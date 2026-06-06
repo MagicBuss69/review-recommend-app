@@ -64,7 +64,9 @@ An app where you **paste a link** to a restaurant, café, or any workshop/compan
 - **Mascot/logo:** "**Forky Critter**" 🍴 — a friendly little creature whose body is a
   fork. Quirky & memorable. Blue body (trust) + green accent (fresh). See
   `logo-concept.txt`. Must look good tiny (as a website icon).
-- **Still to do:** turn the text sketch into a real colored image; build the homepage.
+- **Real logo:** done as `logo.svg` (Forky in blue + green, code-based vector — stays
+  sharp at any size). Preview with `logo-preview.html`.
+- **Still to do:** build the homepage (first real code).
 
 ### Handling Growth & Costs
 
