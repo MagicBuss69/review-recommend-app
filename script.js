@@ -33,3 +33,28 @@ input.addEventListener("keydown", function (event) {
     button.click();
   }
 });
+
+
+/* ===== FEEDBACK BOX ===== */
+const feedbackInput = document.getElementById("feedback-input");
+const feedbackBtn = document.getElementById("feedback-btn");
+const feedbackMessage = document.getElementById("feedback-message");
+
+feedbackBtn.addEventListener("click", function () {
+  const text = feedbackInput.value.trim();
+
+  if (text === "") {
+    feedbackMessage.textContent = "🐾 Type something first, then Forky will catch it!";
+    return;
+  }
+
+  // Save the feedback in the browser's own little memory (localStorage), so it isn't
+  // lost. Later, with a server, we can send these straight to you instead.
+  const saved = JSON.parse(localStorage.getItem("bitebuddy-feedback") || "[]");
+  saved.push(text);
+  localStorage.setItem("bitebuddy-feedback", JSON.stringify(saved));
+
+  // Thank them and clear the box
+  feedbackMessage.textContent = "🐾 Thanks! Forky caught your idea. 💚";
+  feedbackInput.value = "";
+});

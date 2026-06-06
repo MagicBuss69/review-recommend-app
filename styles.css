@@ -134,6 +134,29 @@ body {
 .step h3 { color: var(--blue); margin-bottom: 8px; }
 .step p { color: var(--muted); }
 
+/* ===== FEEDBACK BOX ===== */
+.feedback {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 56px 20px;
+  text-align: center;
+}
+.feedback h2 { font-size: 28px; margin-bottom: 8px; }
+.feedback-sub { color: var(--muted); margin-bottom: 20px; }
+.feedback-input {
+  width: 100%;
+  border: 2px solid #DCE6F5;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 16px;
+  font-family: inherit;       /* match the rest of the site */
+  color: var(--ink);
+  resize: vertical;           /* let users drag it taller, not wider */
+  outline: none;
+  margin-bottom: 14px;
+}
+.feedback-input:focus { border-color: var(--blue); }
+
 /* ===== RESULTS PAGE ===== */
 .demo-banner {
   text-align: center;
