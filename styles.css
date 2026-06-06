@@ -1,0 +1,143 @@
+/*
+  BiteBuddy — Styles (CSS = the looks: colors, sizes, spacing)
+  Friendly & Fun look. Main color blue, helper color green.
+*/
+
+/* These are our brand colors, saved once so we reuse them everywhere.
+   Change a color here and it updates across the whole site. */
+:root {
+  --blue: #2F80ED;
+  --blue-dark: #1F6AD0;
+  --green: #27AE60;
+  --green-dark: #1E8E4E;
+  --bg: #F4F8FF;        /* very light blue background */
+  --ink: #22304A;       /* soft dark text (easier than pure black) */
+  --muted: #6B7A90;     /* grey for less-important text */
+  --white: #FFFFFF;
+}
+
+/* Reset some default browser spacing so we control it */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* Helper classes to color parts of the name */
+.blue  { color: var(--blue); }
+.green { color: var(--green); }
+
+/* ===== TOP BAR ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-logo { width: 38px; height: auto; }
+.brand-name { font-size: 24px; font-weight: 800; }
+.nav { display: flex; align-items: center; gap: 20px; }
+.nav a { text-decoration: none; color: var(--ink); font-weight: 600; }
+.btn-ghost {
+  border: 2px solid var(--blue);
+  color: var(--blue) !important;
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+.btn-ghost:hover { background: var(--blue); color: var(--white) !important; }
+
+/* ===== HERO ===== */
+.hero {
+  text-align: center;
+  padding: 40px 20px 70px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.hero-logo {
+  width: 130px;
+  height: auto;
+  /* a gentle floating animation to feel friendly & alive */
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.hero-title { font-size: 54px; font-weight: 800; margin-top: 8px; }
+.hero-tagline { font-size: 20px; color: var(--muted); margin-bottom: 32px; }
+
+/* The paste-link box */
+.search-box {
+  display: flex;
+  gap: 10px;
+  background: var(--white);
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(47, 128, 237, 0.15);
+}
+.link-input {
+  flex: 1;                 /* takes up the remaining space */
+  border: none;
+  outline: none;
+  font-size: 17px;
+  padding: 12px 14px;
+  color: var(--ink);
+}
+.btn-primary {
+  background: var(--blue);
+  color: var(--white);
+  border: none;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 12px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--blue-dark); }
+
+.result-message {
+  margin-top: 22px;
+  font-size: 17px;
+  color: var(--green-dark);
+  font-weight: 600;
+  min-height: 24px;        /* reserve space so layout doesn't jump */
+}
+
+/* ===== HOW IT WORKS ===== */
+.how {
+  background: var(--white);
+  padding: 56px 20px;
+  text-align: center;
+}
+.how h2 { font-size: 32px; margin-bottom: 36px; }
+.steps {
+  display: flex;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  flex-wrap: wrap;          /* stack on small screens */
+  justify-content: center;
+}
+.step {
+  flex: 1;
+  min-width: 220px;
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 28px 22px;
+}
+.step-num { font-size: 34px; margin-bottom: 10px; }
+.step h3 { color: var(--blue); margin-bottom: 8px; }
+.step p { color: var(--muted); }
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  padding: 28px;
+  color: var(--muted);
+  font-size: 14px;
+}

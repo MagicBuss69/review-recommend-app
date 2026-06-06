@@ -100,4 +100,12 @@ staying cheap means low downside if few come, and the growth tools are ready if 
 - **Jaroslav is 13:** a parent/older sibling is the legal "owner" for contracts/payments;
   Jaroslav is the builder. Public app → mind kids' privacy laws (e.g. COPPA).
 
-> Status: Planning phase. No code written yet.
+### Built so far (code!)
+
+- **Homepage** = `index.html` (structure) + `styles.css` (looks) + `script.js` (button
+  action). Open `index.html` in a browser to see it. Forky floats, blue+green theme,
+  paste-link box. The "Find out!" button shows a friendly "coming soon" message —
+  the real review-reading brain isn't built yet.
+
+> Status: First real code done — the homepage. Next: results page, then the
+> review-reading "brain" (needs an official API + AI).
