@@ -59,7 +59,9 @@ An app where you **paste a link** to a restaurant, café, or any workshop/compan
   - ⚪ White / very light background (clean, friendly).
   - Dark gray text (softer than black).
   - Rule: just 2 main colors + clean background — too many colors looks messy.
-- **Still to do:** name the app, then sketch the actual logo.
+- **App name:** **BiteBuddy** 🐾 (chosen 2026-06-06) — friendly, easy to say, clearly
+  about food; the "Buddy" suits the Friendly & Fun mascot. (Check domain availability later.)
+- **Still to do:** sketch the actual logo (likely a friendly "buddy" mascot).
 
 ### Handling Growth & Costs
 

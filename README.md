@@ -1,4 +1,7 @@
-# 🍽️ Review & Recommend App
+# 🐾 BiteBuddy
+
+*Your buddy who knows where to eat.*
+
 
 An app where you **paste a link** to a restaurant, café, or any business — and it tells you:
 
