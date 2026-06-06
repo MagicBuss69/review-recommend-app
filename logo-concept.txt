@@ -1,0 +1,27 @@
+BiteBuddy — Mascot / Logo Concept  🐾🍴
+========================================
+
+Chosen direction (2026-06-06): "Forky Critter"
+A little friendly creature whose body is a fork. Quirky + memorable.
+
+Rough sketch:
+
+          ^   ^
+         ( o   o )      <- big friendly eyes
+          \  ^  /       <- tiny smile
+        ___|||___
+           |||          <- body is a fork
+           |||
+          _|||_
+
+How the REAL (colored) version should look:
+- Body / fork: BLUE  (main brand color = trust)  💙
+- Cheeks / a little leaf or "fresh" accent: GREEN (food/fresh/good) 💚
+- Background: white / transparent (clean, friendly)
+- Style: rounded, soft edges, smiling — Friendly & Fun, not sharp or scary
+- Should still look good TINY (as a little website icon / "favicon")
+
+Ideas for later:
+- The fork "prongs" could double as a little crown or hair = extra cute
+- A happy version + a "thinking" version (for when the app is loading a review)
+- Holding a tiny magnifying glass = "checking the reviews for you"

@@ -61,7 +61,10 @@ An app where you **paste a link** to a restaurant, café, or any workshop/compan
   - Rule: just 2 main colors + clean background — too many colors looks messy.
 - **App name:** **BiteBuddy** 🐾 (chosen 2026-06-06) — friendly, easy to say, clearly
   about food; the "Buddy" suits the Friendly & Fun mascot. (Check domain availability later.)
-- **Still to do:** sketch the actual logo (likely a friendly "buddy" mascot).
+- **Mascot/logo:** "**Forky Critter**" 🍴 — a friendly little creature whose body is a
+  fork. Quirky & memorable. Blue body (trust) + green accent (fresh). See
+  `logo-concept.txt`. Must look good tiny (as a website icon).
+- **Still to do:** turn the text sketch into a real colored image; build the homepage.
 
 ### Handling Growth & Costs
 
