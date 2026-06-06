@@ -21,7 +21,16 @@ Jaroslav's idea: like Snapchat streaks, but they never disappear.
   Matches our warm "Friendly & Fun" vibe.
 - **Possible plan:** have BOTH —
   - **Milestones (never fade):** badges like "Tried 10 / 50 / 100 restaurants."
-  - **Optional streak (can fade):** for people who like the daily pressure.
+  - **Optional streak (can fade):** for people who like the pressure.
+
+- **Streak window = weekly, NOT daily (Jaroslav's idea):** nobody tries a new
+  restaurant every day, so a daily streak is impossible to keep and makes people
+  quit. Use a longer window — **visit/use within 7 or 10 days to keep the streak.**
+  - **Why it works:** a good streak matches how often people NATURALLY do the
+    thing — daily for a chat app, weekly for a food app. Winnable = fun, not
+    stressful.
+  - Could even let the user pick their pace, or grow the window as the streak gets
+    longer (forgiving for loyal users).
 
 ### 2. Leaderboard 🏆
 Rank users so they can compete.

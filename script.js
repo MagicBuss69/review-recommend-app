@@ -19,8 +19,12 @@ button.addEventListener("click", function () {
     return;
   }
 
-  // For now (we haven't built the review-reading brain yet)
-  message.textContent = "🐾 Forky is still learning to read reviews — this magic is coming soon!";
+  // Let the user know Forky is "thinking", then go to the results page.
+  // (For now the results page shows DEMO data — the real review-reading is added later.)
+  message.textContent = "🐾 Forky is sniffing out the reviews...";
+  setTimeout(function () {
+    window.location.href = "results.html";
+  }, 900); // a short, friendly pause so it feels like Forky is working
 });
 
 // Bonus: let people press the Enter key instead of clicking

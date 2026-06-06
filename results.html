@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+  BiteBuddy — Results page
+  For now this shows DEMO (pretend) data so you can see the whole app work.
+  Later we swap this sample data for real reviews from an API + the AI brain.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBuddy — Your result</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none;">
+      <img src="logo.svg" alt="Forky the BiteBuddy mascot" class="brand-logo">
+      <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
+    </a>
+    <nav class="nav">
+      <a href="index.html" class="btn-ghost">New search 🔍</a>
+    </nav>
+  </header>
+
+  <!-- A little honest banner so it's clear this is sample data for now -->
+  <div class="demo-banner">✨ Demo result with sample data — real reviews coming soon!</div>
+
+  <!-- ===== THE RESULT CARD ===== -->
+  <main class="result">
+
+    <!-- Place name + overall stars -->
+    <div class="place-head">
+      <h1 class="place-name">Joe's Pizza</h1>
+      <div class="place-stars">⭐⭐⭐⭐☆ <span class="muted-text">4.2 · 320 reviews</span></div>
+    </div>
+
+    <!-- THE STAR FEATURE: the personal pick, biggest & on top -->
+    <section class="for-you">
+      <div class="for-you-score">💚 FOR YOU: 9/10</div>
+      <p class="for-you-text">
+        You <strong>love pasta</strong> — and they're famous for it! 🍝
+        Just one heads-up: you dislike seafood, so skip the shrimp dishes.
+      </p>
+    </section>
+
+    <!-- What people say (good & bad) -->
+    <section class="card-block">
+      <h2>📝 What people say</h2>
+      <ul class="say-list">
+        <li class="good">👍 Great pasta, cozy vibe, friendly staff</li>
+        <li class="good">👍 Generous cheese, fast on weekdays</li>
+        <li class="bad">👎 Slow service on busy weekends</li>
+        <li class="bad">👎 A few say portions are small</li>
+      </ul>
+    </section>
+
+    <!-- Business health -->
+    <section class="card-block">
+      <h2>💰 Business health</h2>
+      <p class="health-good">Looking good 📈</p>
+      <p class="muted-text">Busy place, lots of recent reviews, and the rating is rising.</p>
+    </section>
+
+    <a href="index.html" class="btn-primary big-btn">Check another place 🔍</a>
+
+  </main>
+
+  <footer class="footer">
+    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+  </footer>
+
+</body>
+</html>
