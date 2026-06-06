@@ -65,9 +65,43 @@
       <p class="muted-text">Busy place, lots of recent reviews, and the rating is rising.</p>
     </section>
 
+    <!-- ===== CUSTOMER'S OWN NOTE ===== -->
+    <section class="card-block">
+      <h2>📝 Been here? Add your own note</h2>
+      <p class="muted-text" style="margin-bottom:12px;">Share what YOU thought — it helps other food lovers.</p>
+      <textarea
+        id="note-input"
+        class="feedback-input"
+        rows="4"
+        placeholder="Type your own thoughts about this place..."></textarea>
+      <button id="note-btn" class="btn-primary">Add my note 🐾</button>
+      <p id="note-message" class="result-message"></p>
+    </section>
+
     <a href="index.html" class="btn-primary big-btn">Check another place 🔍</a>
 
   </main>
+
+  <!-- Small script just for this page's note box -->
+  <script>
+    const noteInput = document.getElementById("note-input");
+    const noteBtn = document.getElementById("note-btn");
+    const noteMessage = document.getElementById("note-message");
+
+    noteBtn.addEventListener("click", function () {
+      const text = noteInput.value.trim();
+      if (text === "") {
+        noteMessage.textContent = "🐾 Type your note first!";
+        return;
+      }
+      // Save the note in the browser's little memory for now
+      const saved = JSON.parse(localStorage.getItem("bitebuddy-notes") || "[]");
+      saved.push(text);
+      localStorage.setItem("bitebuddy-notes", JSON.stringify(saved));
+      noteMessage.textContent = "🐾 Thanks! Your note has been added. 💚";
+      noteInput.value = "";
+    });
+  </script>
 
   <footer class="footer">
     <p>🐾 BiteBuddy — made with curiosity by Magic.</p>

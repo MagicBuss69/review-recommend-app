@@ -53,6 +53,23 @@ Reward top users.
   week"), a spotlight on the homepage. Cheap, safe, still motivating.
 - **Real prizes:** only once the app earns money. No promises.
 
+### 4. Points → profile customization 💎 (the "economy")
+Jaroslav's idea: earn points, then spend them to customize your profile —
+custom banners, badges, colors, etc.
+
+- **Why this is the glue:** the leaderboard/streaks give points, but points need
+  something to SPEND on or they get boring. Customization gives points a purpose.
+  This earn-and-spend loop is what games call an **"economy."**
+- **Why it's perfect for a cheap app:** a banner or badge is just a picture — it
+  costs us basically nothing to give, but people love showing off. Motivates users
+  WITHOUT costing money (unlike real prizes).
+- **How you'd earn points:** reviewing places, helpful tips voted up, keeping a
+  streak, hitting milestones.
+- **What you'd spend on:** profile banners, badge/avatar styles, name colors,
+  maybe a custom title. Some cheap to unlock, some rare/expensive = a goal to grind.
+- **Later money idea:** a few extra-fancy cosmetics could be the paid upgrade —
+  people fund the app by buying looks, not by paying to use it.
+
 ---
 
 ### How these fit the roadmap
