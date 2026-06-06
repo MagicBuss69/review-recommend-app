@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<!--
+  BiteBuddy — AI Waiter
+  Magic's idea: chat with an AI "waiter" who knows the restaurant, BEFORE you go.
+  For now the waiter gives clever pre-written answers (a demo brain).
+  Later we connect a real AI (like Gemini) so he can answer anything.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBuddy — Your AI Waiter</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none;">
+      <img src="logo.svg" alt="Forky the BiteBuddy mascot" class="brand-logo">
+      <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
+    </a>
+    <nav class="nav">
+      <a href="results.html" class="btn-ghost">Back to result</a>
+    </nav>
+  </header>
+
+  <div class="demo-banner">✨ Demo waiter — gives sample answers for now. Real AI coming soon!</div>
+
+  <!-- ===== THE CHAT ===== -->
+  <main class="waiter">
+    <div class="waiter-head">
+      <h1>👨‍🍳 Tony, your AI waiter</h1>
+      <p class="muted-text">at Joe's Pizza · ask me anything before you visit!</p>
+    </div>
+
+    <!-- Messages show up here -->
+    <div id="chat" class="chat"></div>
+
+    <!-- Type-a-question row -->
+    <div class="chat-box">
+      <input
+        type="text"
+        id="chat-input"
+        class="link-input"
+        placeholder="Ask Tony... (e.g. 'what's good here?')">
+      <button id="chat-btn" class="btn-primary">Ask 🍽️</button>
+    </div>
+
+    <!-- Quick question buttons so it's easy to start -->
+    <div class="quick-qs">
+      <button class="chip" data-q="What's the best dish here?">What's good?</button>
+      <button class="chip" data-q="Do you have vegetarian options?">Vegetarian?</button>
+      <button class="chip" data-q="How are the prices?">Prices?</button>
+      <button class="chip" data-q="Is it busy on weekends?">Busy times?</button>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+  </footer>
+
+  <script>
+    // ===== The waiter's "demo brain" =====
+    // It reads your question, looks for keywords, and gives a fitting answer.
+    // (All based on Joe's Pizza's sample reviews. Later, a real AI replaces this.)
+    function waiterReply(question) {
+      const q = question.toLowerCase();
+
+      if (q.includes("hi") || q.includes("hello") || q.includes("hey")) {
+        return "Ciao! 👋 Welcome to Joe's Pizza. Ask me about our dishes, prices, or busy times!";
+      }
+      if (q.includes("best") || q.includes("good") || q.includes("recommend") || q.includes("popular")) {
+        return "Our pasta is what people rave about — especially the creamy ones! 🍝 You really can't go wrong there.";
+      }
+      if (q.includes("pasta")) {
+        return "Ah, great choice! Our pasta is the star of the menu — guests say it's cozy, cheesy and generous. 🍝";
+      }
+      if (q.includes("seafood") || q.includes("fish") || q.includes("shrimp")) {
+        return "I'll be honest with you 😅 — the seafood gets weaker reviews. If you're not set on it, I'd steer you to the pasta instead.";
+      }
+      if (q.includes("vegetarian") || q.includes("veggie") || q.includes("vegan")) {
+        return "Yes! We have veggie pizzas and pastas. The margherita and veggie supreme are guest favorites. 🥦";
+      }
+      if (q.includes("price") || q.includes("cost") || q.includes("expensive") || q.includes("cheap")) {
+        return "We're mid-priced — fair for the portions. Most folks find it good value, especially on weekdays. 💰";
+      }
+      if (q.includes("busy") || q.includes("weekend") || q.includes("wait") || q.includes("reservation")) {
+        return "Weekends get busy and service can slow down a touch. Weekdays are calmer if you'd like a relaxed meal. 📅";
+      }
+      if (q.includes("dessert") || q.includes("sweet")) {
+        return "Save room! 🍰 Our tiramisu is a lovely way to finish.";
+      }
+      if (q.includes("kid") || q.includes("family") || q.includes("child")) {
+        return "Families love us — it's cozy and friendly, perfect for kids. 👨‍👩‍👧";
+      }
+      if (q.includes("thank")) {
+        return "My pleasure! Hope to see you soon at Joe's. 🍕";
+      }
+      // If nothing matches:
+      return "Good question! 🤔 In the full version I'll know every detail. For now, try asking about our best dishes, prices, vegetarian options, or busy times!";
+    }
+
+    // ===== Make the chat work on screen =====
+    const chat = document.getElementById("chat");
+    const chatInput = document.getElementById("chat-input");
+    const chatBtn = document.getElementById("chat-btn");
+
+    // Add one message bubble to the chat (who = "waiter" or "you")
+    function addMessage(who, text) {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble " + who;
+      bubble.textContent = text;
+      chat.appendChild(bubble);
+      chat.scrollTop = chat.scrollHeight; // keep newest message in view
+    }
+
+    // Send whatever is typed
+    function send() {
+      const text = chatInput.value.trim();
+      if (text === "") return;
+      addMessage("you", text);
+      chatInput.value = "";
+      // Tony "thinks" for a moment, then replies
+      setTimeout(function () {
+        addMessage("waiter", waiterReply(text));
+      }, 500);
+    }
+
+    chatBtn.addEventListener("click", send);
+    chatInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") send();
+    });
+
+    // The quick-question chips
+    document.querySelectorAll(".chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        chatInput.value = chip.getAttribute("data-q");
+        send();
+      });
+    });
+
+    // Tony greets you first
+    addMessage("waiter", "Ciao! 👋 I'm Tony, your waiter at Joe's Pizza. Ask me anything before you visit!");
+  </script>
+
+</body>
+</html>

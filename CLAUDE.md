@@ -103,9 +103,13 @@ staying cheap means low downside if few come, and the growth tools are ready if 
 ### Built so far (code!)
 
 - **Homepage** = `index.html` (structure) + `styles.css` (looks) + `script.js` (button
-  action). Open `index.html` in a browser to see it. Forky floats, blue+green theme,
-  paste-link box. The "Find out!" button shows a friendly "coming soon" message —
-  the real review-reading brain isn't built yet.
+  action). Forky floats, blue+green theme, paste-link box, + a feedback box at the bottom.
+- **Results page** = `results.html` — demo sample data (Joe's Pizza), personal pick on top,
+  reviews, business health, a "your own note" box, and a link to the AI waiter.
+- **AI Waiter** = `waiter.html` 👨‍🍳 (Magic's idea!) — chat with "Tony", a waiter who knows
+  the restaurant, BEFORE you visit. Demo brain gives keyword-based answers for now;
+  later connect a real AI (Gemini) so he can answer anything. Fits Magic's love of AI.
+- The "Find out!" button now navigates to the demo results page.
 
 > Status: First real code done — the homepage. Next: results page, then the
 > review-reading "brain" (needs an official API + AI).

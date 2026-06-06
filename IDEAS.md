@@ -70,6 +70,19 @@ custom banners, badges, colors, etc.
 - **Later money idea:** a few extra-fancy cosmetics could be the paid upgrade —
   people fund the app by buying looks, not by paying to use it.
 
+### 5. EXCLUSIVE cosmetics for top contenders 👑 (the "prestige" reward)
+Jaroslav's idea: the top people on the leaderboard get custom looks NOBODY else
+can get — not buyable with points, only won.
+
+- **Why it's powerful:** if anyone can buy a banner, it's nice but not special.
+  A banner you can ONLY get by being #1 = proof you were the best. People compete
+  hard for things money can't buy. This is called **exclusivity / prestige.**
+- **Make it time-limited:** e.g. a "Top Reviewer — June 2026" badge. People return
+  every month to win it or defend it, instead of winning once and leaving.
+- **Use tiers so more people feel special:** top 1 / top 10 / top 100 each get
+  their own exclusive look — not just a single winner.
+- **Safety:** still use nicknames on the public leaderboard (kids' privacy / COPPA).
+
 ---
 
 ### How these fit the roadmap

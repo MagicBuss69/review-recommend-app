@@ -211,6 +211,86 @@ body {
   margin-top: 28px;
 }
 
+/* ===== AI WAITER CHAT ===== */
+.waiter {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+.waiter-head { text-align: center; margin-bottom: 18px; }
+.waiter-head h1 { font-size: 30px; }
+
+.chat {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 18px;
+  height: 340px;
+  overflow-y: auto;            /* scroll when there are many messages */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(47, 128, 237, 0.10);
+}
+/* A single chat bubble */
+.bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.bubble.waiter {
+  background: var(--bg);
+  color: var(--ink);
+  align-self: flex-start;      /* waiter on the left */
+  border-bottom-left-radius: 4px;
+}
+.bubble.you {
+  background: var(--blue);
+  color: var(--white);
+  align-self: flex-end;        /* you on the right */
+  border-bottom-right-radius: 4px;
+}
+
+.chat-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  background: var(--white);
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(47, 128, 237, 0.10);
+}
+
+/* quick-question chips */
+.quick-qs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; justify-content: center; }
+.chip {
+  background: var(--white);
+  border: 2px solid #DCE6F5;
+  color: var(--blue);
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.chip:hover { border-color: var(--blue); background: var(--blue); color: var(--white); }
+
+/* a button that looks like the green personal-pick, for the waiter link */
+.btn-waiter {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background: var(--green);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 17px;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 18px;
+}
+.btn-waiter:hover { background: var(--green-dark); }
+
 /* ===== FOOTER ===== */
 .footer {
   text-align: center;
