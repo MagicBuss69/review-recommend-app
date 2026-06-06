@@ -66,6 +66,9 @@ An app where you **paste a link** to a restaurant, café, or any workshop/compan
   `logo-concept.txt`. Must look good tiny (as a website icon).
 - **Real logo:** done as `logo.svg` (Forky in blue + green, code-based vector — stays
   sharp at any size). Preview with `logo-preview.html`.
+- **Website plan:** see `WEBSITE-PLAN.md` — user journey, pages, and look. Key
+  decisions (2026-06-06): personal pick is biggest on the results page; "taste-first"
+  flow (free review summary → sign-up + tastes unlock the personal pick & saving).
 - **Still to do:** build the homepage (first real code).
 
 ### Handling Growth & Costs
