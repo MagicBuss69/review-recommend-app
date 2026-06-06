@@ -47,6 +47,20 @@ An app where you **paste a link** to a restaurant, café, or any workshop/compan
 4. **Finances insight** — the dream feature; hardest data; tackle once basics work.
 5. **Polish & money** — maps, sharing, AI chat, and ways the app could earn.
 
+### Design direction (chosen 2026-06-06)
+
+- **Homepage layout:** "Friendly & Fun" — big friendly logo/mascot + playful tagline up
+  top, paste-a-link box below. Warm, approachable, memorable so people return.
+- **First-impression rules:** (1) one clear sentence, (2) one obvious button (paste link),
+  (3) a feeling of trust (clean, not messy).
+- **Color palette (colors chosen for their meaning):**
+  - 💙 **Blue = main** (trust, calm) — buttons, logo, brand feel.
+  - 💚 **Green = helper** (fresh food, money/finances, "good!"/✅) — scores, good tags.
+  - ⚪ White / very light background (clean, friendly).
+  - Dark gray text (softer than black).
+  - Rule: just 2 main colors + clean background — too many colors looks messy.
+- **Still to do:** name the app, then sketch the actual logo.
+
 ### Handling Growth & Costs
 
 The real risk early on is **too few users**, not too many — so stay small and cheap first.
