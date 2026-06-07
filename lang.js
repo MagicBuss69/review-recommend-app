@@ -129,6 +129,22 @@ const translations = {
     "login.passwordPh": "Your password",
     "login.toggleprompt": "New here?",
     "login.togglelink": "Create an account",
+
+    /* about / privacy page */
+    "nav.about": "About",
+    "about.title": "About BiteBuddy 🐾",
+    "about.sub": "The friendly buddy who reads the reviews so you don't have to.",
+    "about.whattitle": "🍴 What is BiteBuddy?",
+    "about.what": "Type a restaurant's name and Forky reads its reviews, sums up the good and the not-so-good, and gives you a pick made for YOUR taste. Less scrolling, more eating.",
+    "about.maketitle": "👦 Who made it?",
+    "about.make": "BiteBuddy is built by Magic — a 13-year-old from Landskrona, Sweden — learning to code by building something real. It starts in Landskrona and grows from there.",
+    "about.privtitle": "🔒 Your privacy",
+    "about.priv1": "Everything you add — your tastes, notes, and recent searches — is saved ONLY in your own browser. Not on a server, not anywhere we can see.",
+    "about.priv2": "We don't track you, show ads, or sell your data. Full stop.",
+    "about.priv3": "When real accounts arrive later, this page will be updated with a full privacy policy, set up with an adult.",
+    "about.contacttitle": "💬 Got ideas?",
+    "about.contact": "Forky loves feedback! Use the idea box on the home page to tell us what you'd love to see.",
+    "about.backbtn": "🏠 Back to home",
   },
 
   sv: {
@@ -249,6 +265,22 @@ const translations = {
     "login.passwordPh": "Ditt lösenord",
     "login.toggleprompt": "Ny här?",
     "login.togglelink": "Skapa ett konto",
+
+    /* about / privacy page */
+    "nav.about": "Om",
+    "about.title": "Om BiteBuddy 🐾",
+    "about.sub": "Kompisen som läser recensionerna så att du slipper.",
+    "about.whattitle": "🍴 Vad är BiteBuddy?",
+    "about.what": "Skriv en restaurangs namn så läser Forky dess recensioner, sammanfattar det bra och det mindre bra, och ger dig ett val gjort för DIN smak. Mindre skrollande, mer ätande.",
+    "about.maketitle": "👦 Vem gjorde den?",
+    "about.make": "BiteBuddy är byggd av Magic — en 13-åring från Landskrona, Sverige — som lär sig koda genom att bygga något på riktigt. Den börjar i Landskrona och växer därifrån.",
+    "about.privtitle": "🔒 Din integritet",
+    "about.priv1": "Allt du lägger till — dina smaker, anteckningar och senaste sökningar — sparas ENDAST i din egen webbläsare. Inte på en server, inte någonstans vi kan se.",
+    "about.priv2": "Vi spårar dig inte, visar inga annonser och säljer inte dina uppgifter. Punkt.",
+    "about.priv3": "När riktiga konton kommer senare uppdateras den här sidan med en fullständig integritetspolicy, upprättad med en vuxen.",
+    "about.contacttitle": "💬 Har du idéer?",
+    "about.contact": "Forky älskar feedback! Använd idé-rutan på startsidan för att berätta vad du vill se.",
+    "about.backbtn": "🏠 Tillbaka till start",
   },
 };
 
