@@ -23,6 +23,7 @@
       <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
     </a>
     <nav class="nav">
+      <a href="profile.html">🐾 Profile</a>
       <a href="results.html" class="btn-ghost">Back to result</a>
     </nav>
   </header>
@@ -33,7 +34,7 @@
   <main class="waiter">
     <div class="waiter-head">
       <h1>👨‍🍳 Tony, your AI waiter</h1>
-      <p class="muted-text">at Joe's Pizza · ask me anything before you visit!</p>
+      <p class="muted-text">at Mister York, Landskrona · ask me anything before you visit!</p>
     </div>
 
     <!-- Messages show up here -->
@@ -51,10 +52,10 @@
 
     <!-- Quick question buttons so it's easy to start -->
     <div class="quick-qs">
-      <button class="chip" data-q="What's the best dish here?">What's good?</button>
+      <button class="chip" data-q="What's the best burger here?">Best burger?</button>
       <button class="chip" data-q="Do you have vegetarian options?">Vegetarian?</button>
-      <button class="chip" data-q="How are the prices?">Prices?</button>
-      <button class="chip" data-q="Is it busy on weekends?">Busy times?</button>
+      <button class="chip" data-q="Tell me about the milkshakes">Milkshakes?</button>
+      <button class="chip" data-q="Is it busy at lunch?">Busy times?</button>
     </div>
   </main>
 
@@ -65,42 +66,45 @@
   <script>
     // ===== The waiter's "demo brain" =====
     // It reads your question, looks for keywords, and gives a fitting answer.
-    // (All based on Joe's Pizza's sample reviews. Later, a real AI replaces this.)
+    // (All based on Mister York's menu. Later, a real AI replaces this.)
     function waiterReply(question) {
       const q = question.toLowerCase();
 
       if (q.includes("hi") || q.includes("hello") || q.includes("hey")) {
-        return "Ciao! 👋 Welcome to Joe's Pizza. Ask me about our dishes, prices, or busy times!";
+        return "Hey there! 👋 Welcome to Mister York. Ask me about our burgers, fries, milkshakes, prices, or busy times!";
       }
       if (q.includes("best") || q.includes("good") || q.includes("recommend") || q.includes("popular")) {
-        return "Our pasta is what people rave about — especially the creamy ones! 🍝 You really can't go wrong there.";
+        return "Our smash burgers are the talk of the town! 🍔 Pair one with loaded fries and you can't go wrong.";
       }
-      if (q.includes("pasta")) {
-        return "Ah, great choice! Our pasta is the star of the menu — guests say it's cozy, cheesy and generous. 🍝";
+      if (q.includes("burger") || q.includes("smash")) {
+        return "Great choice! Our American-style smash burgers are crispy-edged and super juicy — the #1 thing people come back for. 🍔";
       }
-      if (q.includes("seafood") || q.includes("fish") || q.includes("shrimp")) {
-        return "I'll be honest with you 😅 — the seafood gets weaker reviews. If you're not set on it, I'd steer you to the pasta instead.";
+      if (q.includes("chicken")) {
+        return "Our crispy chicken burger is a favorite — crunchy outside, tender inside. 🍗";
+      }
+      if (q.includes("fries") || q.includes("loaded")) {
+        return "You HAVE to try the loaded fries 🍟 — topped and loaded, perfect for sharing (or not 😄).";
+      }
+      if (q.includes("shake") || q.includes("milkshake") || q.includes("drink") || q.includes("dessert")) {
+        return "Our thick milkshakes are the perfect finish 🥤 — a classic with smash burgers!";
       }
       if (q.includes("vegetarian") || q.includes("veggie") || q.includes("vegan")) {
-        return "Yes! We have veggie pizzas and pastas. The margherita and veggie supreme are guest favorites. 🥦";
+        return "Yes! We have vegetarian alternatives so plant-based friends are covered too. 🥦";
       }
       if (q.includes("price") || q.includes("cost") || q.includes("expensive") || q.includes("cheap")) {
-        return "We're mid-priced — fair for the portions. Most folks find it good value, especially on weekdays. 💰";
+        return "We're fair-priced for the portions — good value, especially a burger-and-fries combo. 💰";
       }
-      if (q.includes("busy") || q.includes("weekend") || q.includes("wait") || q.includes("reservation")) {
-        return "Weekends get busy and service can slow down a touch. Weekdays are calmer if you'd like a relaxed meal. 📅";
-      }
-      if (q.includes("dessert") || q.includes("sweet")) {
-        return "Save room! 🍰 Our tiramisu is a lovely way to finish.";
+      if (q.includes("busy") || q.includes("weekend") || q.includes("wait") || q.includes("lunch")) {
+        return "Lunchtime can get busy since we're the new spot in town 🚀 — pop in a bit earlier or later for a shorter wait. 📅";
       }
       if (q.includes("kid") || q.includes("family") || q.includes("child")) {
-        return "Families love us — it's cozy and friendly, perfect for kids. 👨‍👩‍👧";
+        return "Families are very welcome — burgers, fries and shakes are a hit with kids! 👨‍👩‍👧";
       }
       if (q.includes("thank")) {
-        return "My pleasure! Hope to see you soon at Joe's. 🍕";
+        return "My pleasure! Hope to see you soon at Mister York. 🍔";
       }
       // If nothing matches:
-      return "Good question! 🤔 In the full version I'll know every detail. For now, try asking about our best dishes, prices, vegetarian options, or busy times!";
+      return "Good question! 🤔 In the full version I'll know every detail. For now, try asking about our burgers, chicken, loaded fries, milkshakes, or veggie options!";
     }
 
     // ===== Make the chat work on screen =====
@@ -143,7 +147,7 @@
     });
 
     // Tony greets you first
-    addMessage("waiter", "Ciao! 👋 I'm Tony, your waiter at Joe's Pizza. Ask me anything before you visit!");
+    addMessage("waiter", "Hey! 👋 I'm Tony, your waiter at Mister York. Ask me anything before you visit!");
   </script>
 
 </body>
