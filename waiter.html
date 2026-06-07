@@ -23,18 +23,22 @@
       <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
     </a>
     <nav class="nav">
-      <a href="profile.html">🐾 Profile</a>
-      <a href="results.html" class="btn-ghost">Back to result</a>
+      <a href="profile.html" data-i18n="nav.profile">🐾 Profile</a>
+      <a href="results.html" class="btn-ghost" data-i18n="nav.backresult">Back to result</a>
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">🇬🇧 English</option>
+        <option value="sv">🇸🇪 Svenska</option>
+      </select>
     </nav>
   </header>
 
-  <div class="demo-banner">✨ Demo waiter — gives sample answers for now. Real AI coming soon!</div>
+  <div class="demo-banner" data-i18n="waiter.banner">✨ Demo waiter — gives sample answers for now. Real AI coming soon!</div>
 
   <!-- ===== THE CHAT ===== -->
   <main class="waiter">
     <div class="waiter-head">
-      <h1>👨‍🍳 Tony, your AI waiter</h1>
-      <p class="muted-text">at Mister York, Landskrona · ask me anything before you visit!</p>
+      <h1 data-i18n="waiter.title">👨‍🍳 Tony, your AI waiter</h1>
+      <p class="muted-text" data-i18n="waiter.subtitle">at Mister York, Landskrona · ask me anything before you visit!</p>
     </div>
 
     <!-- Messages show up here -->
@@ -46,22 +50,27 @@
         type="text"
         id="chat-input"
         class="link-input"
+        data-i18n-placeholder="waiter.placeholder"
         placeholder="Ask Tony... (e.g. 'what's good here?')">
-      <button id="chat-btn" class="btn-primary">Ask 🍽️</button>
+      <button id="chat-btn" class="btn-primary" data-i18n="waiter.askbtn">Ask 🍽️</button>
     </div>
 
-    <!-- Quick question buttons so it's easy to start -->
+    <!-- Quick question buttons so it's easy to start.
+         (data-q stays English so the demo brain still understands the click.) -->
     <div class="quick-qs">
-      <button class="chip" data-q="What's the best burger here?">Best burger?</button>
-      <button class="chip" data-q="Do you have vegetarian options?">Vegetarian?</button>
-      <button class="chip" data-q="Tell me about the milkshakes">Milkshakes?</button>
-      <button class="chip" data-q="Is it busy at lunch?">Busy times?</button>
+      <button class="chip" data-q="What's the best burger here?" data-i18n="waiter.chip1">Best burger?</button>
+      <button class="chip" data-q="Do you have vegetarian options?" data-i18n="waiter.chip2">Vegetarian?</button>
+      <button class="chip" data-q="Tell me about the milkshakes" data-i18n="waiter.chip3">Milkshakes?</button>
+      <button class="chip" data-q="Is it busy at lunch?" data-i18n="waiter.chip4">Busy times?</button>
     </div>
   </main>
 
   <footer class="footer">
-    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+    <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
   </footer>
+
+  <!-- the language system (English + Svenska) -->
+  <script src="lang.js"></script>
 
   <script>
     // ===== The waiter's "demo brain" =====
@@ -147,7 +156,10 @@
     });
 
     // Tony greets you first
-    addMessage("waiter", "Hey! 👋 I'm Tony, your waiter at Mister York. Ask me anything before you visit!");
+    const waiterLang = localStorage.getItem("bitebuddy-lang") || "en";
+    addMessage("waiter", waiterLang === "sv"
+      ? "Hej! 👋 Jag är Tony, din kypare på Mister York. Fråga mig vad som helst innan du besöker!"
+      : "Hey! 👋 I'm Tony, your waiter at Mister York. Ask me anything before you visit!");
   </script>
 
 </body>

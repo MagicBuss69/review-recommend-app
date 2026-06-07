@@ -13,6 +13,9 @@ it once the core app (real review summary + personal pick) actually works.
   the homepage.
 - **[engagement.md](engagement.md)** — ways to make people come back: never-fade
   streaks, leaderboard, prizes, points→customization economy, exclusive prestige cosmetics.
+- **[sign-in-and-language.md](sign-in-and-language.md)** — site basics: real sign in / sign
+  up (accounts), a language menu in the corner (English + Svenska), and a note that the
+  current "Log in" button doesn't work yet.
 
 ## 🗺️ When to build them
 

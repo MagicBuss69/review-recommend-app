@@ -29,13 +29,17 @@
       </a>
     </div>
     <nav class="nav">
-      <a href="index.html">Home</a>
-      <a href="#" class="btn-ghost">Log out</a>
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="#" class="btn-ghost" data-i18n="nav.logout">Log out</a>
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">🇬🇧 English</option>
+        <option value="sv">🇸🇪 Svenska</option>
+      </select>
     </nav>
   </header>
 
   <!-- A friendly, honest heads-up that this is a preview with fake numbers -->
-  <div class="demo-banner">👀 Preview — these points and badges are pretend, just to show the idea!</div>
+  <div class="demo-banner" data-i18n="profile.banner">👀 Preview — these points and badges are pretend, just to show the idea!</div>
 
   <main class="profile">
 
@@ -49,81 +53,81 @@
       </div>
 
       <h1 class="profile-name">Forky_Fan_2026</h1>
-      <p class="profile-handle">🍴 Member since June 2026</p>
+      <p class="profile-handle" data-i18n="profile.handle">🍴 Member since June 2026</p>
 
       <!-- The 3 big numbers -->
       <div class="stats">
         <div class="stat">
           <div class="stat-num">1,250</div>
-          <div class="stat-label">💎 Points</div>
+          <div class="stat-label" data-i18n="profile.points">💎 Points</div>
         </div>
         <div class="stat">
           <div class="stat-num green">3</div>
-          <div class="stat-label">🔥 Week streak</div>
+          <div class="stat-label" data-i18n="profile.streak">🔥 Week streak</div>
         </div>
         <div class="stat">
           <div class="stat-num">17</div>
-          <div class="stat-label">🍽️ Places tried</div>
+          <div class="stat-label" data-i18n="profile.places">🍽️ Places tried</div>
         </div>
       </div>
     </section>
 
     <!-- ===== MY TASTES (this is what powers the "FOR YOU" picks!) ===== -->
     <section class="panel">
-      <h2>🍽️ My tastes</h2>
-      <p class="hint">Add foods you love and foods you avoid — this is what powers your personal "FOR YOU" picks! 💚</p>
+      <h2 data-i18n="profile.tastestitle">🍽️ My tastes</h2>
+      <p class="hint" data-i18n="profile.tasteshint">Add foods you love and foods you avoid — this is what powers your personal "FOR YOU" picks! 💚</p>
 
       <div class="taste-add">
-        <input type="text" id="taste-input" class="taste-input" placeholder="Type a food, e.g. burgers...">
-        <button id="like-btn" class="btn-primary">💚 Like</button>
-        <button id="dislike-btn" class="btn-ghost taste-dislike-btn">👎 Dislike</button>
+        <input type="text" id="taste-input" class="taste-input" data-i18n-placeholder="profile.tasteplaceholder" placeholder="Type a food, e.g. burgers...">
+        <button id="like-btn" class="btn-primary" data-i18n="profile.likebtn">💚 Like</button>
+        <button id="dislike-btn" class="btn-ghost taste-dislike-btn" data-i18n="profile.dislikebtn">👎 Dislike</button>
       </div>
 
-      <h3 class="taste-h">💚 I like</h3>
+      <h3 class="taste-h" data-i18n="profile.ilike">💚 I like</h3>
       <div id="likes-list" class="taste-list"></div>
 
-      <h3 class="taste-h">👎 I dislike</h3>
+      <h3 class="taste-h" data-i18n="profile.idislike">👎 I dislike</h3>
       <div id="dislikes-list" class="taste-list"></div>
     </section>
 
     <!-- ===== BADGES ===== -->
     <section class="panel">
-      <h2>🏅 My badges</h2>
-      <p class="hint">Earn these by trying places, writing helpful tips, and keeping streaks.</p>
+      <h2 data-i18n="profile.badgestitle">🏅 My badges</h2>
+      <p class="hint" data-i18n="profile.badgeshint">Earn these by trying places, writing helpful tips, and keeping streaks.</p>
       <div class="badge-row">
-        <span class="badge"><span class="emoji">🌮</span> Taco Explorer</span>
-        <span class="badge"><span class="emoji">🍕</span> Pizza Pro</span>
-        <span class="badge"><span class="emoji">✍️</span> Helpful Reviewer</span>
-        <span class="badge"><span class="emoji">🔥</span> 3-Week Streak</span>
+        <span class="badge"><span class="emoji">🌮</span> <span data-i18n="badge.taco">Taco Explorer</span></span>
+        <span class="badge"><span class="emoji">🍕</span> <span data-i18n="badge.pizza">Pizza Pro</span></span>
+        <span class="badge"><span class="emoji">✍️</span> <span data-i18n="badge.reviewer">Helpful Reviewer</span></span>
+        <span class="badge"><span class="emoji">🔥</span> <span data-i18n="badge.streak3">3-Week Streak</span></span>
         <!-- Locked = not earned yet, shown faded -->
-        <span class="badge locked"><span class="emoji">🍣</span> Sushi Master (locked)</span>
-        <span class="badge locked"><span class="emoji">👑</span> Top 10 (locked)</span>
+        <span class="badge locked"><span class="emoji">🍣</span> <span data-i18n="badge.sushi">Sushi Master (locked)</span></span>
+        <span class="badge locked"><span class="emoji">👑</span> <span data-i18n="badge.top10">Top 10 (locked)</span></span>
       </div>
     </section>
 
     <!-- ===== MILESTONES (never-fade progress) ===== -->
     <section class="panel">
-      <h2>🎯 Milestones</h2>
-      <p class="hint">These never disappear — no pressure, just keep going at your own pace!</p>
+      <h2 data-i18n="profile.milestonestitle">🎯 Milestones</h2>
+      <p class="hint" data-i18n="profile.milestoneshint">These never disappear — no pressure, just keep going at your own pace!</p>
 
       <div class="milestone">
-        <div class="milestone-top"><span>Try 25 places</span><span>17 / 25</span></div>
+        <div class="milestone-top"><span data-i18n="profile.m1">Try 25 places</span><span>17 / 25</span></div>
         <div class="bar"><div class="bar-fill" style="width:68%"></div></div>
       </div>
       <div class="milestone">
-        <div class="milestone-top"><span>Write 10 helpful tips</span><span>6 / 10</span></div>
+        <div class="milestone-top"><span data-i18n="profile.m2">Write 10 helpful tips</span><span>6 / 10</span></div>
         <div class="bar"><div class="bar-fill" style="width:60%"></div></div>
       </div>
       <div class="milestone">
-        <div class="milestone-top"><span>Earn 2,000 points</span><span>1,250 / 2,000</span></div>
+        <div class="milestone-top"><span data-i18n="profile.m3">Earn 2,000 points</span><span>1,250 / 2,000</span></div>
         <div class="bar"><div class="bar-fill" style="width:62%"></div></div>
       </div>
     </section>
 
     <!-- ===== COSMETIC SHOP (spend points → change banner) ===== -->
     <section class="panel">
-      <h2>🎨 Customize: banner color</h2>
-      <p class="hint">Spend points on looks! Click a color to try it on your banner above. 💎</p>
+      <h2 data-i18n="profile.shoptitle">🎨 Customize: banner color</h2>
+      <p class="hint" data-i18n="profile.shophint">Spend points on looks! Click a color to try it on your banner above. 💎</p>
       <div class="swatches">
         <!-- data-color tells the script what color to use. Try clicking them! -->
         <div class="swatch" style="background:linear-gradient(135deg,#2F80ED,#27AE60)" data-color="linear-gradient(135deg,#2F80ED,#27AE60)" title="Blue → Green"></div>
@@ -136,17 +140,20 @@
 
     <!-- ===== EXCLUSIVE (top contenders only) ===== -->
     <section class="exclusive">
-      <h2>👑 Exclusive: Top 10 banner</h2>
-      <p class="hint">Can't be bought with points — only the leaderboard's best win it each month!</p>
-      <span class="locked-pill">🔒 Reach Top 10 to unlock</span>
+      <h2 data-i18n="profile.exclusivetitle">👑 Exclusive: Top 10 banner</h2>
+      <p class="hint" data-i18n="profile.exclusivehint">Can't be bought with points — only the leaderboard's best win it each month!</p>
+      <span class="locked-pill" data-i18n="profile.lockedpill">🔒 Reach Top 10 to unlock</span>
     </section>
 
   </main>
 
   <!-- ===== FOOTER (matches the homepage) ===== -->
   <footer class="footer">
-    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+    <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
   </footer>
+
+  <!-- the language system (English + Svenska) -->
+  <script src="lang.js"></script>
 
   <!--
     A tiny bit of JavaScript = the "magic" that makes clicking work.

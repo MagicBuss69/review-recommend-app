@@ -22,13 +22,17 @@
       <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
     </a>
     <nav class="nav">
-      <a href="profile.html">🐾 Profile</a>
-      <a href="index.html" class="btn-ghost">New search 🔍</a>
+      <a href="profile.html" data-i18n="nav.profile">🐾 Profile</a>
+      <a href="index.html" class="btn-ghost" data-i18n="nav.newsearch">New search 🔍</a>
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">🇬🇧 English</option>
+        <option value="sv">🇸🇪 Svenska</option>
+      </select>
     </nav>
   </header>
 
   <!-- A little honest banner so it's clear this is sample data for now -->
-  <div class="demo-banner">✨ Demo result with sample data — real reviews coming soon!</div>
+  <div class="demo-banner" data-i18n="results.banner">✨ Demo result with sample data — real reviews coming soon!</div>
 
   <!-- ===== THE RESULT CARD ===== -->
   <main class="result">
@@ -41,7 +45,7 @@
 
     <!-- THE STAR FEATURE: the personal pick, biggest & on top -->
     <section class="for-you">
-      <div class="for-you-score">💚 FOR YOU: 9/10</div>
+      <div class="for-you-score" data-i18n="results.foryou">💚 FOR YOU: 9/10</div>
       <p class="for-you-text" id="for-you-text">
         You <strong>love burgers</strong> — and their smash burgers are the talk of the town! 🍔
         Big bonus: the loaded fries are perfect for you. Not big on spicy? Go easy on the hot sauce. 🌶️
@@ -49,40 +53,41 @@
     </section>
 
     <!-- Magic's idea: talk to the AI waiter before you go -->
-    <a href="waiter.html" class="btn-waiter">👨‍🍳 Chat with the AI waiter before you go</a>
+    <a href="waiter.html" class="btn-waiter" data-i18n="results.waiterbtn">👨‍🍳 Chat with the AI waiter before you go</a>
 
     <!-- What people say (good & bad) -->
     <section class="card-block">
-      <h2>📝 What people say</h2>
+      <h2 data-i18n="results.saytitle">📝 What people say</h2>
       <ul class="say-list">
-        <li class="good">👍 Juicy smash burgers & crispy chicken, friendly staff</li>
-        <li class="good">👍 Loaded fries and thick milkshakes are a hit 🥤</li>
-        <li class="bad">👎 Can get busy at lunch — short wait sometimes</li>
-        <li class="bad">👎 A few wish there were more veggie choices</li>
+        <li class="good" data-i18n="results.say1">👍 Juicy smash burgers & crispy chicken, friendly staff</li>
+        <li class="good" data-i18n="results.say2">👍 Loaded fries and thick milkshakes are a hit 🥤</li>
+        <li class="bad" data-i18n="results.say3">👎 Can get busy at lunch — short wait sometimes</li>
+        <li class="bad" data-i18n="results.say4">👎 A few wish there were more veggie choices</li>
       </ul>
     </section>
 
     <!-- Business health -->
     <section class="card-block">
-      <h2>💰 Business health</h2>
-      <p class="health-good">Brand new & buzzing 🚀</p>
-      <p class="muted-text">Just opened a couple of months ago, but early reviews are glowing and word is spreading fast.</p>
+      <h2 data-i18n="results.healthtitle">💰 Business health</h2>
+      <p class="health-good" data-i18n="results.healthgood">Brand new & buzzing 🚀</p>
+      <p class="muted-text" data-i18n="results.healthtext">Just opened a couple of months ago, but early reviews are glowing and word is spreading fast.</p>
     </section>
 
     <!-- ===== CUSTOMER'S OWN NOTE ===== -->
     <section class="card-block">
-      <h2>📝 Been here? Add your own note</h2>
-      <p class="muted-text" style="margin-bottom:12px;">Share what YOU thought — it helps other food lovers.</p>
+      <h2 data-i18n="results.notetitle">📝 Been here? Add your own note</h2>
+      <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.notesub">Share what YOU thought — it helps other food lovers.</p>
       <textarea
         id="note-input"
         class="feedback-input"
         rows="4"
+        data-i18n-placeholder="results.noteplaceholder"
         placeholder="Type your own thoughts about this place..."></textarea>
-      <button id="note-btn" class="btn-primary">Add my note 🐾</button>
+      <button id="note-btn" class="btn-primary" data-i18n="results.notebtn">Add my note 🐾</button>
       <p id="note-message" class="result-message"></p>
     </section>
 
-    <a href="index.html" class="btn-primary big-btn">Check another place 🔍</a>
+    <a href="index.html" class="btn-primary big-btn" data-i18n="results.another">Check another place 🔍</a>
 
   </main>
 
@@ -106,19 +111,34 @@
     // Foods this demo place (Mister York) is known for:
     const placeFoods = ["burger", "burgers", "smash", "chicken", "fries", "milkshake", "milkshakes", "vegetarian", "veggie"];
 
+    // Build the message in the chosen language (English or Swedish).
+    const lang = localStorage.getItem("bitebuddy-lang") || "en";
+    const link = '<a href="profile.html" style="color:#fff;text-decoration:underline;">';
+
     if (myLikes.length === 0 && myDislikes.length === 0) {
       // No tastes yet → gently point them to the Profile.
-      forYouText.innerHTML = 'Want a pick made just for YOU? Add foods you like on your <a href="profile.html" style="color:#fff;text-decoration:underline;">Profile</a>! 💚';
+      forYouText.innerHTML = (lang === "sv")
+        ? 'Vill du ha ett val gjort bara för DIG? Lägg till mat du gillar på din ' + link + 'Profil</a>! 💚'
+        : 'Want a pick made just for YOU? Add foods you like on your ' + link + 'Profile</a>! 💚';
     } else {
       let msg = "";
-      if (myLikes.length > 0) {
-        msg += "You like <strong>" + myLikes.join(", ") + "</strong>. ";
-        // Does any of their likes match what this place is great at?
-        const match = myLikes.find(function (f) { return placeFoods.includes(f.toLowerCase()); });
-        if (match) msg += "Great news — they're famous for that here! 🍔 ";
-      }
-      if (myDislikes.length > 0) {
-        msg += "Not into " + myDislikes.join(", ") + "? We'll keep that in mind. 👍";
+      const match = myLikes.find(function (f) { return placeFoods.includes(f.toLowerCase()); });
+      if (lang === "sv") {
+        if (myLikes.length > 0) {
+          msg += "Du gillar <strong>" + myLikes.join(", ") + "</strong>. ";
+          if (match) msg += "Goda nyheter — det är de kända för här! 🍔 ";
+        }
+        if (myDislikes.length > 0) {
+          msg += "Inte ett fan av " + myDislikes.join(", ") + "? Vi tänker på det. 👍";
+        }
+      } else {
+        if (myLikes.length > 0) {
+          msg += "You like <strong>" + myLikes.join(", ") + "</strong>. ";
+          if (match) msg += "Great news — they're famous for that here! 🍔 ";
+        }
+        if (myDislikes.length > 0) {
+          msg += "Not into " + myDislikes.join(", ") + "? We'll keep that in mind. 👍";
+        }
       }
       forYouText.innerHTML = msg;
     }
@@ -146,8 +166,10 @@
   </script>
 
   <footer class="footer">
-    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+    <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
   </footer>
 
+  <!-- the language system (English + Svenska) -->
+  <script src="lang.js"></script>
 </body>
 </html>
