@@ -19,8 +19,10 @@ button.addEventListener("click", function () {
     return;
   }
 
+  // Remember what they searched (name OR link) so the results page can show it.
+  localStorage.setItem("bitebuddy-search", link);
+
   // Let the user know Forky is "thinking", then go to the results page.
-  // (For now the results page shows DEMO data — the real review-reading is added later.)
   message.textContent = "🐾 Forky is sniffing out the reviews...";
   setTimeout(function () {
     window.location.href = "results.html";
@@ -63,6 +65,9 @@ recommendBtn.addEventListener("click", function () {
     if (i === lastPick) i = (i + 1) % landskronaPlaces.length;
     lastPick = i;
     const place = landskronaPlaces[i];
+
+    // Remember the pick so the results page ("See details") shows this place
+    localStorage.setItem("bitebuddy-search", place.name);
 
     // Show Forky's pick as a little card with a button to see details
     recommendCard.innerHTML =

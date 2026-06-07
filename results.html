@@ -35,14 +35,14 @@
 
     <!-- Place name + overall stars -->
     <div class="place-head">
-      <h1 class="place-name">Mister York</h1>
+      <h1 class="place-name" id="place-name">Mister York</h1>
       <div class="place-stars">🆕 New! ⭐⭐⭐⭐⭐ <span class="muted-text">4.7 · 31 reviews · Landskrona</span></div>
     </div>
 
     <!-- THE STAR FEATURE: the personal pick, biggest & on top -->
     <section class="for-you">
       <div class="for-you-score">💚 FOR YOU: 9/10</div>
-      <p class="for-you-text">
+      <p class="for-you-text" id="for-you-text">
         You <strong>love burgers</strong> — and their smash burgers are the talk of the town! 🍔
         Big bonus: the loaded fries are perfect for you. Not big on spicy? Go easy on the hot sauce. 🌶️
       </p>
@@ -85,6 +85,44 @@
     <a href="index.html" class="btn-primary big-btn">Check another place 🔍</a>
 
   </main>
+
+  <!-- ===== Make the result feel PERSONAL & CONNECTED ===== -->
+  <script>
+    // 1) Show what the user actually searched (a name or a link) as the place title.
+    const searched = localStorage.getItem("bitebuddy-search");
+    if (searched && searched.trim() !== "") {
+      // If it looks like a web link, keep the demo name; otherwise show the typed name.
+      const looksLikeLink = /http|www\.|\.com|\.se/i.test(searched);
+      if (!looksLikeLink) {
+        document.getElementById("place-name").textContent = searched;
+      }
+    }
+
+    // 2) Build the "FOR YOU" message from the likes/dislikes saved on the Profile page.
+    const myLikes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
+    const myDislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+    const forYouText = document.getElementById("for-you-text");
+
+    // Foods this demo place (Mister York) is known for:
+    const placeFoods = ["burger", "burgers", "smash", "chicken", "fries", "milkshake", "milkshakes", "vegetarian", "veggie"];
+
+    if (myLikes.length === 0 && myDislikes.length === 0) {
+      // No tastes yet → gently point them to the Profile.
+      forYouText.innerHTML = 'Want a pick made just for YOU? Add foods you like on your <a href="profile.html" style="color:#fff;text-decoration:underline;">Profile</a>! 💚';
+    } else {
+      let msg = "";
+      if (myLikes.length > 0) {
+        msg += "You like <strong>" + myLikes.join(", ") + "</strong>. ";
+        // Does any of their likes match what this place is great at?
+        const match = myLikes.find(function (f) { return placeFoods.includes(f.toLowerCase()); });
+        if (match) msg += "Great news — they're famous for that here! 🍔 ";
+      }
+      if (myDislikes.length > 0) {
+        msg += "Not into " + myDislikes.join(", ") + "? We'll keep that in mind. 👍";
+      }
+      forYouText.innerHTML = msg;
+    }
+  </script>
 
   <!-- Small script just for this page's note box -->
   <script>
