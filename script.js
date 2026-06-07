@@ -44,6 +44,15 @@ input.addEventListener("keydown", function (event) {
 const recommendBtn = document.getElementById("recommend-btn");
 const recommendCard = document.getElementById("recommend-card");
 
+// Location picker — choose "near me" or a specific city (great when travelling!).
+// We save the choice so it's remembered next time.
+const locationSelect = document.getElementById("location-select");
+const savedLoc = localStorage.getItem("bitebuddy-location");
+if (savedLoc) locationSelect.value = savedLoc;
+locationSelect.addEventListener("change", function () {
+  localStorage.setItem("bitebuddy-location", locationSelect.value);
+});
+
 // A few real Landskrona spots for the demo
 const landskronaPlaces = [
   { name: "Mister York", food: "American smash burgers, loaded fries & milkshakes", emoji: "🍔" },
@@ -57,6 +66,15 @@ const landskronaPlaces = [
 let lastPick = -1; // remember the last pick so we don't repeat it twice in a row
 
 recommendBtn.addEventListener("click", function () {
+  // Respect the chosen location. BiteBuddy is only live in Landskrona so far!
+  const loc = locationSelect.value;
+  if (loc !== "near" && loc !== "Landskrona") {
+    recommendCard.innerHTML =
+      '🚧 BiteBuddy is launching in <strong>Landskrona</strong> first — ' +
+      '<strong>' + loc + '</strong> is coming soon! 🐾';
+    return;
+  }
+
   recommendCard.innerHTML = "🐾 Forky is picking...";
 
   setTimeout(function () {

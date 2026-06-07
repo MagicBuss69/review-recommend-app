@@ -14,6 +14,10 @@ you, and an AI that learns you over time (Gemini API).
 - **Location:** browser asks "share your location?" → app finds places near you.
   - *Safety:* location is sensitive, and Magic is 13 (COPPA). Always ASK permission,
     never require it, and don't store exact location longer than needed.
+  - **Location PICKER (Magic's idea, demo added):** let users choose "Near me" OR a
+    specific city — important for when you're travelling (e.g. planning a trip to Malmö,
+    you don't want the closest place to home). Demo homepage has this; cities other than
+    Landskrona say "coming soon" (matches the launch-in-Landskrona-first plan).
 - **Map:** show the recommended place(s) on a map (Google Maps / Places API — the same
   official API we'll use for reviews, so it fits).
 - **AI that "knows you" over time — the honest version:** we do NOT literally retrain an
