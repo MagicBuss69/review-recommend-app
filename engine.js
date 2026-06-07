@@ -89,6 +89,9 @@ async function summarizeReviews(placeName, reviews) {
   const model = "gemini-2.0-flash"; // if this errors, try "gemini-1.5-flash"
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
 
+  // reply in the language the USER picked on the site (not the reviews' language)
+  const lang = (localStorage.getItem("bitebuddy-lang") || "en") === "sv" ? "Swedish" : "English";
+
   const rules =
     "You summarise restaurant reviews HONESTLY. Use ONLY the reviews provided — " +
     "never invent dishes, prices, or facts. If something is not mentioned, do not claim it. " +
@@ -98,7 +101,7 @@ async function summarizeReviews(placeName, reviews) {
     '{"summary":"one friendly sentence","good":["short point","short point"],' +
     '"bad":["short point"],"dishes":["dish name","dish name"]}. ' +
     "List at most 4 dishes, most-loved first. " +
-    "Reply in the same language as the reviews.";
+    "Always reply in " + lang + ", even if the reviews are in another language.";
 
   const reviewText = reviews.map(function (r, i) { return (i + 1) + ". " + r; }).join("\n");
   const prompt = "Restaurant: " + placeName + "\nReviews:\n" + reviewText;
