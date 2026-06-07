@@ -40,53 +40,70 @@
   <!-- ===== THE RESULT CARD ===== -->
   <main class="result">
 
+    <!-- header spans the full width -->
     <div class="place-head">
       <h1 class="place-name" id="place-name">—</h1>
       <div class="place-stars" id="place-stars"></div>
       <div class="cuisine-chips" id="cuisine-chips"></div>
     </div>
 
-    <!-- a free map of the place (OpenStreetMap embed) -->
-    <div id="place-map" class="place-map"></div>
+    <!-- two columns that use the whole screen on bigger displays -->
+    <div class="result-grid">
 
-    <!-- a rich info card filled from the free data (hours, phone, menu, etc.) -->
-    <section class="card-block info-card" id="info-card" style="display:none;">
-      <h2 data-i18n="results.infotitle">ℹ️ Good to know</h2>
-      <div id="place-info" class="place-info"></div>
-    </section>
+      <!-- LEFT: photos, map, info -->
+      <div class="col">
+        <div class="photo-strip">
+          <div class="photo-tile t1">🍽️</div>
+          <div class="photo-tile t2">🍔</div>
+          <div class="photo-tile t3">🥗</div>
+          <div class="photo-tile t4">🍰</div>
+        </div>
+        <p class="photo-note" data-i18n="results.photonote">📷 Photo placeholders — real photos arrive with Google later.</p>
 
-    <!-- a pick based on the user's REAL saved tastes -->
-    <section class="for-you">
-      <div class="for-you-score" id="for-you-title" data-i18n="results.foryou">💚 For you</div>
-      <p class="for-you-text" id="for-you-text"></p>
-    </section>
+        <div id="place-map" class="place-map"></div>
 
-    <a href="waiter.html" class="btn-waiter" data-i18n="results.waiterbtn">👨‍🍳 Chat with the AI waiter before you go</a>
+        <section class="card-block info-card" id="info-card" style="display:none;">
+          <h2 data-i18n="results.infotitle">ℹ️ Good to know</h2>
+          <div id="place-info" class="place-info"></div>
+        </section>
+      </div>
 
-    <section class="card-block">
-      <h2 data-i18n="results.saytitle">📝 What people say</h2>
-      <ul class="say-list" id="say-list"></ul>
-    </section>
+      <!-- RIGHT: personal pick, waiter, reviews, health, note -->
+      <div class="col">
+        <section class="for-you">
+          <div class="for-you-score" id="for-you-title" data-i18n="results.foryou">💚 For you</div>
+          <p class="for-you-text" id="for-you-text"></p>
+        </section>
 
-    <section class="card-block">
-      <h2 data-i18n="results.healthtitle">💰 Business health</h2>
-      <p class="health-good" id="health-line"></p>
-      <p class="muted-text" id="health-text"></p>
-    </section>
+        <a href="waiter.html" class="btn-waiter" data-i18n="results.waiterbtn">👨‍🍳 Chat with the AI waiter before you go</a>
 
-    <!-- ===== CUSTOMER'S OWN NOTE (these become the free "reviews") ===== -->
-    <section class="card-block">
-      <h2 data-i18n="results.notetitle">📝 Been here? Add your own note</h2>
-      <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.notesub">Share what YOU thought — it helps other food lovers.</p>
-      <textarea
-        id="note-input"
-        class="feedback-input"
-        rows="4"
-        data-i18n-placeholder="results.noteplaceholder"
-        placeholder="Type your own thoughts about this place..."></textarea>
-      <button id="note-btn" class="btn-primary" data-i18n="results.notebtn">Add my note 🐾</button>
-      <p id="note-message" class="result-message"></p>
-    </section>
+        <section class="card-block">
+          <h2 data-i18n="results.saytitle">📝 What people say</h2>
+          <ul class="say-list" id="say-list"></ul>
+        </section>
+
+        <section class="card-block">
+          <h2 data-i18n="results.healthtitle">💰 Business health</h2>
+          <p class="health-good" id="health-line"></p>
+          <p class="muted-text" id="health-text"></p>
+        </section>
+
+        <!-- the customer's own note (becomes a free "review") -->
+        <section class="card-block">
+          <h2 data-i18n="results.notetitle">📝 Been here? Add your own note</h2>
+          <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.notesub">Share what YOU thought — it helps other food lovers.</p>
+          <textarea
+            id="note-input"
+            class="feedback-input"
+            rows="4"
+            data-i18n-placeholder="results.noteplaceholder"
+            placeholder="Type your own thoughts about this place..."></textarea>
+          <button id="note-btn" class="btn-primary" data-i18n="results.notebtn">Add my note 🐾</button>
+          <p id="note-message" class="result-message"></p>
+        </section>
+      </div>
+
+    </div>
 
     <a href="index.html" class="btn-primary big-btn" data-i18n="results.another">Check another place 🔍</a>
 
