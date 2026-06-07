@@ -15,6 +15,25 @@ makes it personal. The **AI waiter (Tony)** is the "wow" nobody else has. 🍽�
 
 ---
 
+## 🎯 1.5 Why BiteBuddy beats free AI (our positioning)
+
+The danger: an "AI wrapper" that just relays AI answers is pointless (people would
+use free AI directly). So the AI is only ONE ingredient — the product is **trusted,
+personal, instant local food decisions.**
+
+**Main headline (chosen 2026-06-07): "AI guesses. BiteBuddy knows." 🐾**
+Lead with **real, current, verified LOCAL data — no hallucination.** Free AI makes
+things up about small local places; BiteBuddy pulls real map/review data and tells the
+AI "only use this, invent nothing."
+
+Backed up by our other edges: it **remembers your taste**, it's **one tap** (no prompting),
+it's **visual** (map, photos, AI waiter), it's **honest** (declines unverified places),
+and it builds **community review data only we have.**
+
+**The rule that protects the brand:** ALWAYS ground answers in real data, or say "I don't
+know." One made-up answer cracks the "honest one" promise. Show trust signals like
+"Based on N real reviews" / "✅ Verified place."
+
 ## 👥 2. Who it's for (our "customers")
 
 - 🧑‍🤝‍🧑 Everyday people deciding where to eat tonight
