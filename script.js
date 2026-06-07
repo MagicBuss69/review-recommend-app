@@ -90,6 +90,50 @@ input.addEventListener("keydown", function (event) {
 });
 
 
+/* ===== LAZY SEARCH (autocomplete, like Google) =====
+   As you type, show matching real places. Picking one fixes any misspelling. */
+const suggestionsEl = document.getElementById("suggestions");
+let suggestTimer;
+
+function goToPlace(name) {
+  localStorage.setItem("bitebuddy-search", name);
+  addToHistory(name);
+  window.location.href = "results.html";
+}
+
+if (suggestionsEl && typeof searchSuggestions === "function") {
+  input.addEventListener("input", function () {
+    clearTimeout(suggestTimer);
+    const q = input.value.trim();
+    if (q.length < 2) { suggestionsEl.innerHTML = ""; return; }
+
+    // wait until the user pauses typing (so we don't spam the search)
+    suggestTimer = setTimeout(function () {
+      searchSuggestions(q).then(function (list) {
+        suggestionsEl.innerHTML = "";
+        list.forEach(function (s) {
+          const item = document.createElement("div");
+          item.className = "suggestion";
+          item.innerHTML = "🍽️ <strong>" + s.name + "</strong>" +
+            (s.area ? ' <span class="sugg-area">' + s.area + "</span>" : "");
+          item.addEventListener("click", function () {
+            input.value = s.name;
+            suggestionsEl.innerHTML = "";
+            goToPlace(s.name);
+          });
+          suggestionsEl.appendChild(item);
+        });
+      });
+    }, 350);
+  });
+
+  // hide the suggestions when you click elsewhere
+  document.addEventListener("click", function (e) {
+    if (e.target !== input && !suggestionsEl.contains(e.target)) suggestionsEl.innerHTML = "";
+  });
+}
+
+
 /* ===== "RECOMMEND ME A PLACE" BUTTON =====
    For people who don't want to paste a link — Forky just picks one!
    Demo version: picks from a small list of real Landskrona restaurants.

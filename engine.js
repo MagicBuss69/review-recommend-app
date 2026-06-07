@@ -210,6 +210,44 @@ async function lookupPlace(placeName) {
 }
 
 /*
+  LAZY SEARCH / autocomplete — like Google's "did you mean as you type".
+  Returns up to 5 matching places for the text typed so far. OpenStreetMap matches
+  loosely, so even a half-typed or misspelled name surfaces the real place to pick.
+*/
+async function searchSuggestions(text) {
+  const q = (text || "").trim();
+  if (q.length < 2) return [];
+
+  const loc = localStorage.getItem("bitebuddy-location");
+  const city = (loc && loc !== "near") ? loc : "Landskrona";
+  const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
+    "&limit=5&namedetails=1&addressdetails=1&q=" + encodeURIComponent(q + ", " + city + ", Sweden");
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(function () { ctrl.abort(); }, 6000);
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" }, signal: ctrl.signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const seen = {};
+    return (data || []).map(function (p) {
+      const name = (p.namedetails && p.namedetails.name) ||
+                   (p.display_name ? p.display_name.split(",")[0] : "");
+      const area = p.display_name ? p.display_name.split(",").slice(1, 3).join(",").trim() : "";
+      return { name: name, area: area };
+    }).filter(function (s) {
+      if (!s.name || seen[s.name.toLowerCase()]) return false;  // drop blanks & duplicates
+      seen[s.name.toLowerCase()] = true;
+      return true;
+    });
+  } catch (e) {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/*
   Rough check: does this look like a real place name, or just random gibberish?
   Used to politely DECLINE nonsense (e.g. "asdfgh") instead of treating it as a place.
   Kept lenient so it never rejects a real (even foreign) name by mistake.

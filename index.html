@@ -16,6 +16,9 @@
 
   <!-- Connect our styles -->
   <link rel="stylesheet" href="styles.css">
+  <!-- keys (private) + the search/lookup brain, so autocomplete works here too -->
+  <script src="config.js"></script>
+  <script src="engine.js"></script>
 </head>
 
 <body>
@@ -68,6 +71,9 @@
         placeholder="Type a restaurant name, or paste a link...">
       <button id="find-btn" class="btn-primary" data-i18n="search.btn">Find out! 🔍</button>
     </div>
+
+    <!-- live suggestions appear here as you type (filled in by script.js) -->
+    <div id="suggestions" class="suggestions"></div>
 
     <!-- A friendly message appears here after clicking (filled in by script.js) -->
     <p id="result-message" class="result-message"></p>

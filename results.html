@@ -186,13 +186,14 @@
         banner.textContent = (sv ? "😅 Kunde inte slå upp stället (" : "😅 Couldn't look up the place (") + e.message + ").";
       }
 
-      // ---------- DECLINE clear gibberish (not a real place) ----------
-      if ((!place || !place.found) && looksLikeGibberish(searched)) {
+      // ---------- DECLINE anything we can't verify as a real place ----------
+      // (OpenStreetMap fixes small typos itself; if it still can't find it, we decline.)
+      if (!place || !place.found) {
         starsEl.textContent = "";
         banner.textContent = sv
-          ? "🤔 \"" + searched + "\" verkar inte vara ett riktigt ställe. Kolla stavningen och prova igen."
-          : "🤔 \"" + searched + "\" doesn't look like a real place. Check the spelling and try again.";
-        oneSay(sv ? "Prova att söka igen med rätt namn. 🔍" : "Try searching again with the correct name. 🔍");
+          ? "🤔 Vi hittade inget ställe som heter \"" + searched + "\". Kolla stavningen och prova igen."
+          : "🤔 We couldn't find a place called \"" + searched + "\". Check the spelling and try again.";
+        oneSay(sv ? "Prova att söka igen. 🔍" : "Try another search. 🔍");
         healthText.textContent = "";
         return;
       }
@@ -311,13 +312,7 @@
 
       // ---------- 5) Show / summarise the reviews ----------
       if (reviews.length === 0) {
-        if (place && place.found) {
-          banner.textContent = sv ? "📝 Inga recensioner än — bli först att skriva en anteckning nedan!" : "📝 No reviews yet — be the first to add a note below!";
-        } else {
-          banner.textContent = sv
-            ? "🆕 Vi har ingen kartinfo för \"" + searched + "\" än — kanske är det helt nytt! Lägg till första anteckningen nedan. 🐾"
-            : "🆕 We don't have map info for \"" + searched + "\" yet — it might be brand new! Add the first note below. 🐾";
-        }
+        banner.textContent = sv ? "📝 Inga recensioner än — bli först att skriva en anteckning nedan!" : "📝 No reviews yet — be the first to add a note below!";
         oneSay(sv ? "Inga recensioner än för \"" + shownName + "\"." : "No reviews yet for \"" + shownName + "\".");
         return;
       }
