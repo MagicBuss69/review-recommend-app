@@ -27,10 +27,15 @@
       <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
     </div>
     <nav class="nav">
-      <a href="#how">How it works</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
       <!-- This link takes you to the profile page when clicked -->
-      <a href="profile.html">🐾 Profile</a>
-      <a href="#" class="btn-ghost">Log in</a>
+      <a href="profile.html" data-i18n="nav.profile">🐾 Profile</a>
+      <a href="#" class="btn-ghost" data-i18n="nav.login">Log in</a>
+      <!-- Language menu in the corner 🇬🇧🇸🇪 -->
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">🇬🇧 English</option>
+        <option value="sv">🇸🇪 Svenska</option>
+      </select>
     </nav>
   </header>
 
@@ -39,13 +44,13 @@
     <img src="logo.svg" alt="Forky the fork mascot" class="hero-logo">
 
     <h1 class="hero-title"><span class="blue">Bite</span><span class="green">Buddy</span></h1>
-    <p class="hero-tagline">Your buddy who knows where to eat. 🐾</p>
+    <p class="hero-tagline" data-i18n="hero.tagline">Your buddy who knows where to eat. 🐾</p>
 
     <!-- Location picker: "near me" OR a specific city (handy when you're travelling!) -->
     <div class="location-bar">
-      <label for="location-select">📍 Location:</label>
+      <label for="location-select" data-i18n="loc.label">📍 Location:</label>
       <select id="location-select" class="location-select">
-        <option value="near">Near me (closest)</option>
+        <option value="near" data-i18n="loc.near">Near me (closest)</option>
         <option value="Landskrona">Landskrona</option>
         <option value="Helsingborg">Helsingborg</option>
         <option value="Malmö">Malmö</option>
@@ -59,8 +64,9 @@
         type="text"
         id="link-input"
         class="link-input"
+        data-i18n-placeholder="search.placeholder"
         placeholder="Type a restaurant name, or paste a link...">
-      <button id="find-btn" class="btn-primary">Find out! 🔍</button>
+      <button id="find-btn" class="btn-primary" data-i18n="search.btn">Find out! 🔍</button>
     </div>
 
     <!-- A friendly message appears here after clicking (filled in by script.js) -->
@@ -68,8 +74,8 @@
 
     <!-- ===== "DECIDE FOR ME" PATH ===== -->
     <!-- For people who don't want to paste a link — just let Forky pick! -->
-    <div class="or-divider"><span>or</span></div>
-    <button id="recommend-btn" class="btn-recommend">🎲 Recommend me a place</button>
+    <div class="or-divider"><span data-i18n="or">or</span></div>
+    <button id="recommend-btn" class="btn-recommend" data-i18n="recommend.btn">🎲 Recommend me a place</button>
 
     <!-- Forky's pick shows up here -->
     <div id="recommend-card" class="recommend-card"></div>
@@ -80,45 +86,47 @@
 
   <!-- ===== HOW IT WORKS ===== -->
   <section id="how" class="how">
-    <h2>How it works</h2>
+    <h2 data-i18n="how.title">How it works</h2>
     <div class="steps">
       <div class="step">
         <div class="step-num">1️⃣</div>
-        <h3>Type a name or paste a link</h3>
-        <p>Just type a restaurant's name — or paste a link if you have one.</p>
+        <h3 data-i18n="how.1.title">Type a name or paste a link</h3>
+        <p data-i18n="how.1.text">Just type a restaurant's name — or paste a link if you have one.</p>
       </div>
       <div class="step">
         <div class="step-num">2️⃣</div>
-        <h3>Forky reads the reviews</h3>
-        <p>Forky reads what everyone says, so you don't have to.</p>
+        <h3 data-i18n="how.2.title">Forky reads the reviews</h3>
+        <p data-i18n="how.2.text">Forky reads what everyone says, so you don't have to.</p>
       </div>
       <div class="step">
         <div class="step-num">3️⃣</div>
-        <h3>Get your pick</h3>
-        <p>A clear summary — plus a recommendation made for <em>you</em>.</p>
+        <h3 data-i18n="how.3.title">Get your pick</h3>
+        <p data-i18n="how.3.text">A clear summary — plus a recommendation made for <em>you</em>.</p>
       </div>
     </div>
   </section>
 
   <!-- ===== FEEDBACK BOX ===== -->
   <section class="feedback">
-    <h2>Got an idea for BiteBuddy? 🐾</h2>
-    <p class="feedback-sub">Tell Forky what you'd love to see, or anything on your mind.</p>
+    <h2 data-i18n="feedback.title">Got an idea for BiteBuddy? 🐾</h2>
+    <p class="feedback-sub" data-i18n="feedback.sub">Tell Forky what you'd love to see, or anything on your mind.</p>
     <textarea
       id="feedback-input"
       class="feedback-input"
       rows="4"
+      data-i18n-placeholder="feedback.placeholder"
       placeholder="Type your thoughts here..."></textarea>
-    <button id="feedback-btn" class="btn-primary">Send to Forky 🐾</button>
+    <button id="feedback-btn" class="btn-primary" data-i18n="feedback.btn">Send to Forky 🐾</button>
     <p id="feedback-message" class="result-message"></p>
   </section>
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
-    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+    <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
   </footer>
 
-  <!-- Connect the interactivity (the button click) -->
+  <!-- Connect the interactivity (the button click) + the language system -->
   <script src="script.js"></script>
+  <script src="lang.js"></script>
 </body>
 </html>
