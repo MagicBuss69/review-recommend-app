@@ -3,13 +3,12 @@
 
   HOW TO USE (do this once on your computer):
   1. Make a COPY of this file and name the copy:  config.js
-  2. In config.js, paste your real Gemini key between the quotes.
-  3. Save. That's it — the app will use it.
+  2. Paste your real keys between the quotes in config.js.
+  3. Save. The app will use them.
 
-  ⚠️ config.js is in .gitignore, so it NEVER gets uploaded to GitHub. Keep it that way!
-  Never put your real key in THIS template file.
+  ⚠️ config.js is in .gitignore, so it NEVER goes to GitHub. Never put real keys here.
 */
 window.BITEBUDDY_CONFIG = {
-  geminiKey: "PASTE_YOUR_GEMINI_KEY_HERE",
-  // googleMapsKey: "ADD_THIS_LATER_WITH_YOUR_BROTHER",
+  geminiKey: "PASTE_YOUR_GEMINI_KEY_HERE",        // starts with AIza...
+  googleMapsKey: "PASTE_YOUR_GOOGLE_MAPS_KEY_HERE", // starts with AIza... (needs billing)
 };

@@ -117,5 +117,10 @@ staying cheap means low downside if few come, and the growth tools are ready if 
   key must move to a small server (TODO with brother). Without a key, Tony uses the demo brain.
 - **Languages:** English + Svenska across all pages via `lang.js` (data-i18n system).
 
-> Status: AI waiter works with a real Gemini key (free, no card). Still TODO: real review
-> data via Google Places API (needs billing/parent), and a server to hide keys for launch.
+- **Real data engine (`engine.js`):** results page now FETCHES the real place from Google
+  Places (New) using `googleMapsKey`, then Gemini summarises the REAL reviews honestly
+  (no hallucination). If keys are missing it says so honestly (no fake placeholder data).
+- **Keys** live in `config.js` (gitignored, never committed): `geminiKey` + `googleMapsKey`.
+
+> Status: Honest real-data engine wired up. Gemini works with free key. Google Places needs
+> billing (brother) AND may need a small server (browser CORS) — that's the next real step.

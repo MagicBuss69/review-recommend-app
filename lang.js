@@ -44,7 +44,7 @@ const translations = {
 
     /* results page */
     "results.banner": "✨ Demo result with sample data — real reviews coming soon!",
-    "results.foryou": "💚 FOR YOU: 9/10",
+    "results.foryou": "💚 For you",
     "results.waiterbtn": "👨‍🍳 Chat with the AI waiter before you go",
     "results.saytitle": "📝 What people say",
     "results.say1": "👍 Juicy smash burgers & crispy chicken, friendly staff",
@@ -137,7 +137,7 @@ const translations = {
 
     /* results page */
     "results.banner": "✨ Demoresultat med exempeldata — riktiga recensioner kommer snart!",
-    "results.foryou": "💚 FÖR DIG: 9/10",
+    "results.foryou": "💚 För dig",
     "results.waiterbtn": "👨‍🍳 Chatta med AI-kyparen innan du går",
     "results.saytitle": "📝 Vad folk säger",
     "results.say1": "👍 Saftiga smashburgare & krispig kyckling, trevlig personal",
