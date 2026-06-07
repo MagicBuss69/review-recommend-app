@@ -67,7 +67,7 @@ button.addEventListener("click", function () {
 
   if (link === "") {
     // They clicked without pasting anything
-    message.textContent = "🐾 Paste a restaurant link first, then let Forky sniff it out!";
+    message.textContent = "🐾 Type a restaurant name first, then let Forky sniff it out!";
     return;
   }
 
