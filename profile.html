@@ -99,6 +99,13 @@
       <div id="dislikes-list" class="taste-list"></div>
     </section>
 
+    <!-- ===== SAVED PLACES (your favorites) ===== -->
+    <section class="panel">
+      <h2 data-i18n="profile.savedtitle">⭐ Saved places</h2>
+      <p class="hint" data-i18n="profile.savedhint">Tap the heart on any result to save it here for later.</p>
+      <div id="saved-list" class="saved-list"></div>
+    </section>
+
     <!-- ===== BADGES ===== -->
     <section class="panel">
       <h2 data-i18n="profile.badgestitle">🏅 My badges</h2>
@@ -268,6 +275,7 @@
         { emoji: "🗺️", en: "Explorer",    sv: "Utforskare",      got: function (s) { return s.places >= 5; } },
         { emoji: "✍️", en: "First Tip",   sv: "Första tipset",   got: function (s) { return s.notes  >= 1; } },
         { emoji: "💚", en: "Tastemaker",  sv: "Smaksättare",     got: function (s) { return s.tastes >= 3; } },
+        { emoji: "📌", en: "Collector",   sv: "Samlare",         got: function (s) { return s.favs   >= 3; } },
         { emoji: "🍽️", en: "Foodie",      sv: "Matälskare",      got: function (s) { return s.places >= 10; } },
         { emoji: "💎", en: "Big Spender", sv: "Storsamlare",     got: function (s) { return s.points >= 500; } },
       ];
@@ -281,17 +289,19 @@
 
       // Read your real activity and turn it into the numbers.
       function getStats() {
-        const history  = JSON.parse(localStorage.getItem("bitebuddy-history")  || "[]");
-        const notesArr = JSON.parse(localStorage.getItem("bitebuddy-notes")    || "[]");
-        const likes    = JSON.parse(localStorage.getItem("bitebuddy-likes")    || "[]");
-        const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+        const history  = JSON.parse(localStorage.getItem("bitebuddy-history")   || "[]");
+        const notesArr = JSON.parse(localStorage.getItem("bitebuddy-notes")     || "[]");
+        const likes    = JSON.parse(localStorage.getItem("bitebuddy-likes")     || "[]");
+        const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes")  || "[]");
+        const favsArr  = JSON.parse(localStorage.getItem("bitebuddy-favorites") || "[]");
 
         const places = history.length;
         const notes  = notesArr.length;
         const tastes = likes.length + dislikes.length;
+        const favs   = favsArr.length;
         // a simple, honest points rule: every action you do is worth something.
-        const points = places * 10 + notes * 25 + tastes * 5;
-        return { places: places, notes: notes, tastes: tastes, points: points };
+        const points = places * 10 + notes * 25 + tastes * 5 + favs * 5;
+        return { places: places, notes: notes, tastes: tastes, favs: favs, points: points };
       }
 
       // Draw everything (called on load, when you change language, and when tastes change).
@@ -346,6 +356,59 @@
       // redraw in the new language if you switch 🇬🇧↔🇸🇪
       const langSel = document.getElementById("lang-select");
       if (langSel) langSel.addEventListener("change", render);
+    })();
+  </script>
+
+  <!-- ===== ⭐ SAVED PLACES (favorites you hearted on the results page) ===== -->
+  <script>
+    (function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      const listEl = document.getElementById("saved-list");
+      function getFavs() { try { return JSON.parse(localStorage.getItem("bitebuddy-favorites") || "[]"); } catch (e) { return []; } }
+
+      function render() {
+        const favs = getFavs();
+        listEl.innerHTML = "";
+        if (!favs.length) {
+          const empty = document.createElement("span");
+          empty.className = "taste-empty";
+          empty.textContent = sv
+            ? "Inga sparade ställen än — tryck på hjärtat på ett resultat! ❤️"
+            : "No saved places yet — tap the heart on a result! ❤️";
+          listEl.appendChild(empty);
+          return;
+        }
+        favs.forEach(function (f, idx) {
+          const chip = document.createElement("span");
+          chip.className = "saved-chip";
+
+          // tap the name → reopen that place's result page
+          const go = document.createElement("button");
+          go.className = "saved-go";
+          go.textContent = "⭐ " + f.name;
+          go.addEventListener("click", function () {
+            localStorage.setItem("bitebuddy-search", f.name);
+            window.location.href = "results.html";
+          });
+
+          // ✕ → remove it from favorites
+          const x = document.createElement("span");
+          x.className = "x";
+          x.textContent = "✕";
+          x.addEventListener("click", function () {
+            const cur = getFavs();
+            cur.splice(idx, 1);
+            localStorage.setItem("bitebuddy-favorites", JSON.stringify(cur));
+            render();
+            if (window.refreshProfile) window.refreshProfile();   // badges/points may change
+          });
+
+          chip.appendChild(go);
+          chip.appendChild(x);
+          listEl.appendChild(chip);
+        });
+      }
+      render();
     })();
   </script>
 </body>

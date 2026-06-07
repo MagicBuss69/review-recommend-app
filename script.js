@@ -75,8 +75,8 @@ button.addEventListener("click", function () {
   localStorage.setItem("bitebuddy-search", link);
   addToHistory(link);   // also add it to the "Recent" list
 
-  // Let the user know Forky is "thinking", then go to the results page.
-  message.textContent = "🐾 Forky is sniffing out the reviews...";
+  // Let the user know Forky is "thinking" (with a spinner), then go to results.
+  message.innerHTML = '<span class="spinner"></span> 🐾 Forky is sniffing out the reviews...';
   setTimeout(function () {
     window.location.href = "results.html";
   }, 900); // a short, friendly pause so it feels like Forky is working
@@ -160,40 +160,60 @@ const landskronaPlaces = [
   { name: "Okaasan", food: "Japanese sushi", emoji: "🍣" },
 ];
 
-let lastPick = -1; // remember the last pick so we don't repeat it twice in a row
+// Pick a fitting emoji from a place's cuisine (for REAL places that have no emoji).
+function cuisineEmoji(food) {
+  const f = (food || "").toLowerCase();
+  if (/pizza|italian/.test(f)) return "🍕";
+  if (/burger|american/.test(f)) return "🍔";
+  if (/sushi|japan/.test(f)) return "🍣";
+  if (/thai|asian|chinese|noodle|vietnam/.test(f)) return "🍜";
+  if (/greek|kebab|turkish|falafel/.test(f)) return "🥙";
+  if (/seafood|fish/.test(f)) return "🦞";
+  if (/coffee|cafe|bakery|fika|dessert/.test(f)) return "☕";
+  if (/taco|mexican|burrito/.test(f)) return "🌮";
+  if (/indian|curry/.test(f)) return "🍛";
+  return "🍴";
+}
 
-recommendBtn.addEventListener("click", function () {
-  // Respect the chosen location. BiteBuddy is only live in Landskrona so far!
+let lastPickName = ""; // remember the last pick so we don't repeat it twice in a row
+
+recommendBtn.addEventListener("click", async function () {
   const loc = locationSelect.value;
-  if (loc !== "near" && loc !== "Landskrona") {
-    recommendCard.innerHTML =
-      '🚧 BiteBuddy is launching in <strong>Landskrona</strong> first — ' +
-      '<strong>' + loc + '</strong> is coming soon! 🐾';
-    return;
+  const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+
+  recommendCard.innerHTML = '<span class="spinner"></span> ' +
+    (sv ? "🐾 Forky väljer…" : "🐾 Forky is picking…");
+
+  // Try REAL nearby places first (works in any city); fall back to the built-in list.
+  let pool = [];
+  if (typeof nearbyFoodPlaces === "function") {
+    try { pool = await nearbyFoodPlaces(loc); } catch (e) { pool = []; }
   }
+  if (!pool || pool.length < 3) pool = landskronaPlaces;   // safety net — always works
 
-  recommendCard.innerHTML = "🐾 Forky is picking...";
+  // Pick a random place that isn't the same as last time.
+  let pick = pool[Math.floor(Math.random() * pool.length)];
+  let guard = 0;
+  while (pool.length > 1 && pick.name === lastPickName && guard < 8) {
+    pick = pool[Math.floor(Math.random() * pool.length)];
+    guard++;
+  }
+  lastPickName = pick.name;
 
-  setTimeout(function () {
-    // Pick a random place that isn't the same as last time
-    let i = Math.floor(Math.random() * landskronaPlaces.length);
-    if (i === lastPick) i = (i + 1) % landskronaPlaces.length;
-    lastPick = i;
-    const place = landskronaPlaces[i];
+  const emoji = pick.emoji || cuisineEmoji(pick.food);
+  const foodLine = pick.food ? '<div class="pick-food">' + pick.food + "</div>" : "";
 
-    // Remember the pick so the results page ("See details") shows this place
-    localStorage.setItem("bitebuddy-search", place.name);
-    addToHistory(place.name);   // add the pick to "Recent" too
+  // Remember the pick so the results page ("See details") shows this place.
+  localStorage.setItem("bitebuddy-search", pick.name);
+  addToHistory(pick.name);
 
-    // Show Forky's pick as a little card with a button to see details
-    recommendCard.innerHTML =
-      '<div class="pick-emoji">' + place.emoji + '</div>' +
-      '<div class="pick-title">Forky picks: <strong>' + place.name + '</strong></div>' +
-      '<div class="pick-food">' + place.food + '</div>' +
-      '<a href="results.html" class="btn-primary big-btn">See details 🔍</a>';
+  recommendCard.innerHTML =
+    '<div class="pick-emoji">' + emoji + "</div>" +
+    '<div class="pick-title">' + (sv ? "Forky väljer: " : "Forky picks: ") + "<strong>" + pick.name + "</strong></div>" +
+    foodLine +
+    '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Se detaljer 🔍" : "See details 🔍") + "</a>";
 
-    renderHistory();   // refresh the Recent list to show the new pick
-  }, 700);
+  renderHistory();   // refresh the Recent list to show the new pick
 });
 
 

@@ -38,8 +38,8 @@ async function fetchPlace(placeName) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
       // only ask for the fields we need (keeps it cheap + fast)
-      // added "places.photos" → Google now hands back real photos of the place 📸
-      "X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.reviews,places.formattedAddress,places.photos",
+      // "places.photos" → real photos 📸 ; "places.location" → map coordinates 🗺️
+      "X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.reviews,places.formattedAddress,places.photos,places.location",
     },
     body: JSON.stringify({ textQuery: query }),
   });
@@ -72,6 +72,9 @@ async function fetchPlace(placeName) {
     address: p.formattedAddress || "",
     reviews: reviews,
     photos: photos,   // 📸 real pictures of the place (empty if Google had none)
+    // 🗺️ coordinates → lets the results page draw a map (using the free OSM embed)
+    lat: p.location ? p.location.latitude : null,
+    lon: p.location ? p.location.longitude : null,
   };
 }
 
@@ -170,6 +173,59 @@ async function fetchPlaceOSM(placeName) {
     lon: p.lon || null,
     source: "OpenStreetMap",
   };
+}
+
+/*
+  🎲 NEARBY FOOD PLACES — powers the "Recommend me a place" button.
+  Finds REAL restaurants/cafés near a city, so the random pick works in ANY city
+  (not just a hard-coded list). Two free steps, no key needed:
+    1. Geocode the city → its coordinates (Nominatim / OpenStreetMap).
+    2. Ask Overpass for food spots around that point (~3 km).
+  Returns a list of { name, food }. If anything fails it returns [] — the caller then
+  falls back to a small built-in list, so the button NEVER breaks.
+*/
+async function nearbyFoodPlaces(city) {
+  const c = (city && city !== "near") ? city : "Landskrona";
+  try {
+    // 1) find the city's coordinates
+    const g = await osmSearch(c + ", Sweden");
+    if (!g || !g.length) return [];
+    const lat = g[0].lat, lon = g[0].lon;
+
+    // 2) ask Overpass for nearby restaurants, cafés & fast food
+    const query =
+      "[out:json][timeout:10];" +
+      '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););" +
+      "out 80;";
+    const ctrl = new AbortController();
+    const timer = setTimeout(function () { ctrl.abort(); }, 9000);
+    try {
+      const res = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        body: "data=" + encodeURIComponent(query),
+        signal: ctrl.signal,
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const seen = {};
+      return (data.elements || [])
+        .map(function (e) {
+          const t = e.tags || {};
+          return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null };
+        })
+        .filter(function (p) {
+          if (!p.name) return false;
+          const k = p.name.toLowerCase();
+          if (seen[k]) return false;       // drop duplicates
+          seen[k] = true;
+          return true;
+        });
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (e) {
+    return [];   // any hiccup → let the caller use its fallback list
+  }
 }
 
 /*

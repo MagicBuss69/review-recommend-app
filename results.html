@@ -57,6 +57,8 @@
       <div class="place-stars" id="place-stars"></div>
       <div class="cuisine-chips" id="cuisine-chips"></div>
       <p class="correction" id="correction"></p>
+      <!-- ⭐ Save this place to your favorites (revealed once a real place is found) -->
+      <button id="fav-btn" class="fav-btn" style="display:none;">🤍 Save</button>
     </div>
 
     <!-- two columns that use the whole screen on bigger displays -->
@@ -129,6 +131,33 @@
 
   </main>
 
+  <!-- ===== ⭐ FAVORITES (save places you love, stored in this browser) ===== -->
+  <script>
+    function bbGetFavs() { try { return JSON.parse(localStorage.getItem("bitebuddy-favorites") || "[]"); } catch (e) { return []; } }
+    function bbIsFav(name) { return bbGetFavs().some(function (f) { return f.name && name && f.name.toLowerCase() === name.toLowerCase(); }); }
+    function bbToggleFav(name) {
+      var favs = bbGetFavs();
+      var i = favs.findIndex(function (f) { return f.name && f.name.toLowerCase() === name.toLowerCase(); });
+      if (i >= 0) favs.splice(i, 1);                 // already saved → un-save
+      else favs.unshift({ name: name, time: Date.now() });   // not saved → save it
+      localStorage.setItem("bitebuddy-favorites", JSON.stringify(favs));
+    }
+    // Show the Save button for this place and make it toggle on click.
+    function setupFavButton(name) {
+      var btn = document.getElementById("fav-btn");
+      if (!btn || !name) return;
+      var sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      function paint() {
+        var on = bbIsFav(name);
+        btn.textContent = on ? (sv ? "❤️ Sparad" : "❤️ Saved") : (sv ? "🤍 Spara" : "🤍 Save");
+        btn.classList.toggle("on", on);
+      }
+      paint();
+      btn.style.display = "inline-flex";
+      btn.onclick = function () { bbToggleFav(name); paint(); };
+    }
+  </script>
+
   <!-- ===== THE HONEST, FREE-FIRST CONTROLLER ===== -->
   <script>
     (async function () {
@@ -192,7 +221,9 @@
 
       // ---------- 1) Find the place (FREE OpenStreetMap, or Google if a Maps key is set) ----------
       banner.textContent = sv ? "🔎 Letar upp stället…" : "🔎 Looking up the place…";
-      oneSay(sv ? "Laddar…" : "Loading…");
+      // a friendly spinner while Forky sniffs (instead of plain "Loading…")
+      sayList.innerHTML = '<li class="loading-row"><span class="spinner"></span> ' +
+        (sv ? "Forky nosar runt…" : "Forky is sniffing around…") + "</li>";
 
       let place = null, reviews = [], source = "";
       try {
@@ -212,7 +243,9 @@
         banner.textContent = sv
           ? "🤔 Vi hittade inget ställe som heter \"" + searched + "\". Kolla stavningen och prova igen."
           : "🤔 We couldn't find a place called \"" + searched + "\". Check the spelling and try again.";
-        oneSay(sv ? "Prova att söka igen. 🔍" : "Try another search. 🔍");
+        sayList.innerHTML = "<li>" +
+          (sv ? "Stavningen kanske blev fel — testa igen. " : "Maybe a small typo — give it another go. ") +
+          '<a href="index.html" class="map-link">' + (sv ? "🔍 Sök igen" : "🔍 Search again") + "</a></li>";
         healthText.textContent = "";
         return;
       }
@@ -303,14 +336,19 @@
           }
         }
 
-        // free map (OpenStreetMap embed — no key needed!)
+        // free map (OpenStreetMap embed — no key needed!) + an "open in Maps" link.
+        // This now works in BOTH modes: Google gives us coordinates too (engine.js).
         if (place.lat && place.lon) {
           const lat = parseFloat(place.lat), lon = parseFloat(place.lon), d = 0.0025;
           const bbox = (lon - d) + "," + (lat - d) + "," + (lon + d) + "," + (lat + d);
+          const mapsQuery = encodeURIComponent((place.name || searched) + " " + (place.address || ""));
           mapEl.innerHTML =
             '<iframe loading="lazy" title="map" style="width:100%;height:220px;border:0;border-radius:16px;" ' +
             'src="https://www.openstreetmap.org/export/embed.html?bbox=' + bbox +
-            '&layer=mapnik&marker=' + lat + ',' + lon + '"></iframe>';
+            '&layer=mapnik&marker=' + lat + ',' + lon + '"></iframe>' +
+            '<a class="map-link" target="_blank" rel="noopener" ' +
+            'href="https://www.google.com/maps/search/?api=1&query=' + mapsQuery + '">' +
+            (sv ? "📍 Öppna i Kartor ↗" : "📍 Open in Maps ↗") + '</a>';
         }
 
         // info rows (only added if the data exists — keeps it honest)
@@ -344,6 +382,7 @@
       }
 
       const shownName = (place && place.name) || searched;
+      setupFavButton(shownName);   // ⭐ wire up the Save button for this place
 
       // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
       if (reviews.length === 0) {

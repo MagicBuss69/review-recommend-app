@@ -124,6 +124,31 @@
 .taste-chip .x { cursor: pointer; font-weight: 800; opacity: 0.55; transition: opacity var(--fast); }
 .taste-chip .x:hover { opacity: 1; }
 
+/* ===== SAVED PLACES (favorites) ===== */
+.saved-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.saved-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg);
+  border-radius: var(--r-pill);
+  padding: 5px 12px 5px 4px;
+}
+.saved-go {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--blue-dark);
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: var(--r-pill);
+}
+.saved-go:hover { text-decoration: underline; }
+.saved-chip .x { cursor: pointer; font-weight: 800; opacity: 0.55; transition: opacity var(--fast); }
+.saved-chip .x:hover { opacity: 1; }
+
 /* ===== BADGES ===== */
 .badge-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .badge {
