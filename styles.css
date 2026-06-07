@@ -134,6 +134,44 @@ body {
 .step h3 { color: var(--blue); margin-bottom: 8px; }
 .step p { color: var(--muted); }
 
+/* ===== "RECOMMEND ME A PLACE" ===== */
+/* a little "or" line with thin rules on each side */
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  margin: 26px 0 18px;
+}
+.or-divider::before, .or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #DCE6F5;
+}
+.btn-recommend {
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 14px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-recommend:hover { background: var(--green-dark); }
+
+/* the card showing Forky's pick */
+.recommend-card {
+  margin-top: 18px;
+  color: var(--ink);
+}
+.recommend-card:empty { display: none; }   /* hide it until there's a pick */
+.pick-emoji { font-size: 40px; }
+.pick-title { font-size: 20px; margin-top: 4px; }
+.pick-food { color: var(--muted); margin: 4px 0 8px; }
+
 /* ===== FEEDBACK BOX ===== */
 .feedback {
   max-width: 600px;

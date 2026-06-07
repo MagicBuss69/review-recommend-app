@@ -35,6 +35,45 @@ input.addEventListener("keydown", function (event) {
 });
 
 
+/* ===== "RECOMMEND ME A PLACE" BUTTON =====
+   For people who don't want to paste a link — Forky just picks one!
+   Demo version: picks from a small list of real Landskrona restaurants.
+   The real version would use your location + a map to find places near you. */
+const recommendBtn = document.getElementById("recommend-btn");
+const recommendCard = document.getElementById("recommend-card");
+
+// A few real Landskrona spots for the demo
+const landskronaPlaces = [
+  { name: "Mister York", food: "American smash burgers, loaded fries & milkshakes", emoji: "🍔" },
+  { name: "Restaurang Basilika", food: "Thai & pan-Asian favourites", emoji: "🍜" },
+  { name: "Mythos", food: "Greek classics", emoji: "🥙" },
+  { name: "Idas by the Sea", food: "Fresh seafood by the water", emoji: "🦞" },
+  { name: "Restaurang Don Pedro", food: "Pizza & cosy bar food", emoji: "🍕" },
+  { name: "Okaasan", food: "Japanese sushi", emoji: "🍣" },
+];
+
+let lastPick = -1; // remember the last pick so we don't repeat it twice in a row
+
+recommendBtn.addEventListener("click", function () {
+  recommendCard.innerHTML = "🐾 Forky is picking...";
+
+  setTimeout(function () {
+    // Pick a random place that isn't the same as last time
+    let i = Math.floor(Math.random() * landskronaPlaces.length);
+    if (i === lastPick) i = (i + 1) % landskronaPlaces.length;
+    lastPick = i;
+    const place = landskronaPlaces[i];
+
+    // Show Forky's pick as a little card with a button to see details
+    recommendCard.innerHTML =
+      '<div class="pick-emoji">' + place.emoji + '</div>' +
+      '<div class="pick-title">Forky picks: <strong>' + place.name + '</strong></div>' +
+      '<div class="pick-food">' + place.food + '</div>' +
+      '<a href="results.html" class="btn-primary big-btn">See details 🔍</a>';
+  }, 700);
+});
+
+
 /* ===== FEEDBACK BOX ===== */
 const feedbackInput = document.getElementById("feedback-input");
 const feedbackBtn = document.getElementById("feedback-btn");
