@@ -49,7 +49,8 @@
   <div class="demo-banner" id="banner">Loading…</div>
 
   <!-- ===== THE RESULT CARD ===== -->
-  <main class="result">
+  <main class="result deco-host">
+    <div class="page-deco" aria-hidden="true"><span>🍴</span><span>🍕</span><span>🍔</span><span>🥗</span><span>🍣</span><span>🥤</span></div>
 
     <!-- header spans the full width -->
     <div class="place-head">
@@ -59,6 +60,8 @@
       <p class="correction" id="correction"></p>
       <!-- ⭐ Save this place to your favorites (revealed once a real place is found) -->
       <button id="fav-btn" class="fav-btn" style="display:none;">🤍 Save</button>
+      <!-- 📋 a clear button to the menu (real website if known, else a quick web search) -->
+      <div id="menu-link-top" class="menu-link-top"></div>
     </div>
 
     <!-- two columns that use the whole screen on bigger displays -->
@@ -102,7 +105,6 @@
           <h2 data-i18n="results.mealtitle">🍽️ Your perfect meal</h2>
           <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.mealsub">A full meal from dishes people love here 💚</p>
           <div id="meal-items" class="meal-items"></div>
-          <p id="meal-menu-link" class="meal-menu-link"></p>
         </section>
 
         <!-- 🍕 Food YOU might like — pictures based on your saved tastes (hidden if you have none) -->
@@ -469,6 +471,16 @@
       if (typeof bbMarkActiveWeek === "function") bbMarkActiveWeek();   // 🔥 you used BiteBuddy this week!
       renderTasteFood();           // 🍕 show pictures of food you might like
 
+      // 📋 reliable "See the menu" button — real website if we have it, else a web search
+      (function () {
+        const mlt = document.getElementById("menu-link-top");
+        if (!mlt) return;
+        const menuUrl = place.menu || place.website ||
+          ("https://www.google.com/search?q=" + encodeURIComponent((place.name || searched) + " menu"));
+        mlt.innerHTML = '<a href="' + menuUrl + '" target="_blank" rel="noopener" class="menu-btn">' +
+          (sv ? "📋 Se menyn" : "📋 See the menu") + "</a>";
+      })();
+
       // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
       if (reviews.length === 0) {
         const notes = getUserNotes(shownName);
@@ -579,14 +591,6 @@
                   (c.tag ? '<div class="meal-tag">' + c.tag + "</div>" : "") + "</div></div>";
               });
               if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = "block"; }
-
-              // a CLEAR button to the real menu, when we know its link
-              const menuLink = place.menu || place.website;
-              const mlEl = document.getElementById("meal-menu-link");
-              if (menuLink && mlEl) {
-                mlEl.innerHTML = '<a href="' + menuLink + '" target="_blank" rel="noopener" class="menu-btn">' +
-                  (sv ? "📋 Se hela menyn" : "📋 See the full menu") + "</a>";
-              }
             }
           }
         } catch (e) {

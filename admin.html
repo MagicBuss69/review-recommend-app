@@ -12,6 +12,7 @@
   <title>BiteBuddy — Admin Panel</title>
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
   <script src="auth.js"></script>
 </head>
 
@@ -32,7 +33,8 @@
     </nav>
   </header>
 
-  <main class="about">
+  <main class="about deco-host">
+    <div class="page-deco" aria-hidden="true"><span>💬</span><span>📨</span><span>📝</span><span>🗒️</span><span>🛠️</span><span>🐾</span></div>
     <div class="about-head">
       <h1 class="about-title" data-i18n="admin.title">🛠️ Admin Panel</h1>
       <p class="about-sub" data-i18n="admin.sub">Feedback people have sent to Forky.</p>
@@ -57,6 +59,21 @@
   <script>
     (function () {
       const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+
+      // 🔒 owner-only: anyone who isn't the admin account gets a polite locked screen
+      const cfg = window.BITEBUDDY_CONFIG || {};
+      const adminEmail = (cfg.adminEmail || "").toLowerCase();
+      let acc = null; try { acc = JSON.parse(localStorage.getItem("bitebuddy-account") || "null"); } catch (e) {}
+      const isAdmin = adminEmail && acc && acc.email && acc.email.toLowerCase() === adminEmail;
+      if (!isAdmin) {
+        const main = document.querySelector(".about");
+        if (main) main.innerHTML =
+          '<div class="about-head"><h1 class="about-title">🔒 ' + (sv ? "Endast för ägaren" : "Owner only") + "</h1>" +
+          '<p class="about-sub">' + (sv ? "Den här panelen är bara för BiteBuddys ägare." : "This panel is just for BiteBuddy's owner.") + "</p></div>" +
+          '<a href="index.html" class="btn-primary big-btn">🏠 ' + (sv ? "Till start" : "Home") + "</a>";
+        return;
+      }
+
       const listEl = document.getElementById("feedback-list");
 
       // "2h ago" style time (handles missing times gracefully)

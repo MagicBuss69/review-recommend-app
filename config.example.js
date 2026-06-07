@@ -11,4 +11,5 @@
 window.BITEBUDDY_CONFIG = {
   geminiKey: "PASTE_YOUR_GEMINI_KEY_HERE",        // starts with AIza...
   googleMapsKey: "PASTE_YOUR_GOOGLE_MAPS_KEY_HERE", // starts with AIza... (needs billing)
+  adminEmail: "",  // YOUR email — only this account can open the Admin Panel. Leave "" for nobody.
 };

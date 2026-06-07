@@ -55,5 +55,13 @@
         const im = document.createElement("img"); im.src = "logo.svg"; im.alt = ""; el.appendChild(im);
       }
     });
+
+    // 5) owner-only: unlock admin links if you're logged in as the admin email (from config.js)
+    const cfg = window.BITEBUDDY_CONFIG || {};
+    const adminEmail = (cfg.adminEmail || "").toLowerCase();
+    let acc = null; try { acc = JSON.parse(localStorage.getItem("bitebuddy-account") || "null"); } catch (e) {}
+    if (adminEmail && acc && acc.email && acc.email.toLowerCase() === adminEmail) {
+      document.documentElement.classList.add("is-admin");
+    }
   });
 })();

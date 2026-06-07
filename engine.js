@@ -38,8 +38,8 @@ async function fetchPlace(placeName) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
       // only ask for the fields we need (keeps it cheap + fast)
-      // "places.photos" → real photos 📸 ; "places.location" → map coordinates 🗺️
-      "X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.reviews,places.formattedAddress,places.photos,places.location",
+      // photos 📸 ; location 🗺️ ; websiteUri 📋 (for the menu/website link)
+      "X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.reviews,places.formattedAddress,places.photos,places.location,places.websiteUri",
     },
     body: JSON.stringify({ textQuery: query }),
   });
@@ -75,6 +75,7 @@ async function fetchPlace(placeName) {
     // 🗺️ coordinates → lets the results page draw a map (using the free OSM embed)
     lat: p.location ? p.location.latitude : null,
     lon: p.location ? p.location.longitude : null,
+    website: p.websiteUri || null,   // 📋 used for the "See the menu" button
   };
 }
 
