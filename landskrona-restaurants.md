@@ -68,7 +68,7 @@ unclear — rough order. (Magic, you'll know these well!)
 (The new restaurants you mentioned — the internet often doesn't have these yet, and
 they're your best marketing hook!)
 
-- _add here..._
+- **Mister York** — opened a couple of months ago (~spring 2026). _Added by Magic 🐾_
 - _add here..._
 
 ## 🚫 Appear to be closed (don't add)
