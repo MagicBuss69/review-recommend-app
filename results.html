@@ -11,6 +11,9 @@
   <title>BiteBuddy — Your result</title>
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <!-- your private key file (not on GitHub) + the review-summarizer brain -->
+  <script src="config.js"></script>
+  <script src="engine.js"></script>
 </head>
 
 <body>
@@ -58,7 +61,7 @@
     <!-- What people say (good & bad) -->
     <section class="card-block">
       <h2 data-i18n="results.saytitle">📝 What people say</h2>
-      <ul class="say-list">
+      <ul class="say-list" id="say-list">
         <li class="good" data-i18n="results.say1">👍 Juicy smash burgers & crispy chicken, friendly staff</li>
         <li class="good" data-i18n="results.say2">👍 Loaded fries and thick milkshakes are a hit 🥤</li>
         <li class="bad" data-i18n="results.say3">👎 Can get busy at lunch — short wait sometimes</li>
@@ -142,6 +145,43 @@
       }
       forYouText.innerHTML = msg;
     }
+  </script>
+
+  <!-- ===== Fill "What people say" with an AI summary of REAL reviews (engine.js) =====
+       Only runs if a Gemini key is set in config.js — otherwise the demo bullets stay. -->
+  <script>
+    (async function () {
+      if (typeof getGeminiKey !== "function" || !getGeminiKey()) return;
+
+      const placeName = document.getElementById("place-name").textContent;
+      const sayList = document.getElementById("say-list");
+      const banner = document.querySelector(".demo-banner");
+
+      try {
+        const reviews = await getReviews(placeName);            // sample now, Google later
+        const result = await summarizeReviews(placeName, reviews);
+        if (!result) return;
+
+        // Replace the demo bullets with the AI's honest good/bad points.
+        sayList.innerHTML = "";
+        (result.good || []).forEach(function (point) {
+          const li = document.createElement("li");
+          li.className = "good";
+          li.textContent = "👍 " + point;
+          sayList.appendChild(li);
+        });
+        (result.bad || []).forEach(function (point) {
+          const li = document.createElement("li");
+          li.className = "bad";
+          li.textContent = "👎 " + point;
+          sayList.appendChild(li);
+        });
+
+        if (banner) banner.textContent = "🤖 AI summary of real reviews — no made-up info";
+      } catch (e) {
+        console.log("Summary engine error:", e.message); // keep demo content if it fails
+      }
+    })();
   </script>
 
   <!-- Small script just for this page's note box -->

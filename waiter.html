@@ -12,6 +12,8 @@
   <title>BiteBuddy — Your AI Waiter</title>
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <!-- your private key file (not on GitHub). If missing, Tony uses the demo brain. -->
+  <script src="config.js"></script>
 </head>
 
 <body>
@@ -63,21 +65,6 @@
       <button class="chip" data-q="Tell me about the milkshakes" data-i18n="waiter.chip3">Milkshakes?</button>
       <button class="chip" data-q="Is it busy at lunch?" data-i18n="waiter.chip4">Busy times?</button>
     </div>
-
-    <!-- ===== MAKE TONY A REAL AI ===== -->
-    <!-- Paste a free Gemini key to power Tony. It is saved ONLY in this browser,
-         never in the code and never on GitHub. -->
-    <div id="key-box" class="key-box">
-      <p>🔑 <strong>Make Tony a REAL AI!</strong> Paste your free Gemini API key
-         — it stays only on your computer.</p>
-      <div class="key-row">
-        <input type="password" id="gemini-key" class="link-input" placeholder="Paste Gemini API key...">
-        <button id="save-key" class="btn-primary">Save</button>
-      </div>
-      <p class="key-note">⚠️ Never share this key or put it in your code/GitHub. <a href="https://aistudio.google.com/apikey" target="_blank">Get a free key →</a></p>
-    </div>
-
-    <p id="key-status" class="key-status"></p>
   </main>
 
   <footer class="footer">
@@ -150,7 +137,7 @@
     // ===== Ask the REAL AI (Gemini) =====
     // Sends the question to Google's Gemini with a little description of the restaurant.
     async function askGemini(question) {
-      const key = localStorage.getItem("bitebuddy-gemini-key");
+      const key = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey;
       const model = "gemini-2.0-flash";  // if this ever errors, try "gemini-1.5-flash"
       const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
 
@@ -184,7 +171,7 @@
       addMessage("you", text);
       chatInput.value = "";
 
-      const hasKey = localStorage.getItem("bitebuddy-gemini-key");
+      const hasKey = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey;
       if (hasKey) {
         // Real AI mode: show a "thinking" bubble, then fill it with Gemini's reply.
         const thinking = addMessage("waiter", "🐾 ...");
@@ -220,40 +207,6 @@
     addMessage("waiter", waiterLang === "sv"
       ? "Hej! 👋 Jag är Tony, din kypare på Mister York. Fråga mig vad som helst innan du besöker!"
       : "Hey! 👋 I'm Tony, your waiter at Mister York. Ask me anything before you visit!");
-
-
-    // ===== API KEY BOX (saves your key ONLY on this computer) =====
-    const keyBox = document.getElementById("key-box");
-    const keyInput = document.getElementById("gemini-key");
-    const saveKeyBtn = document.getElementById("save-key");
-    const keyStatus = document.getElementById("key-status");
-
-    // When a key is saved, hide the box and show that Tony is now a real AI.
-    function showKeyState() {
-      if (localStorage.getItem("bitebuddy-gemini-key")) {
-        keyBox.style.display = "none";
-        keyStatus.innerHTML = "✅ Tony is powered by real AI! <a href='#' id='clear-key'>Remove key</a>";
-        const clear = document.getElementById("clear-key");
-        if (clear) clear.addEventListener("click", function (e) {
-          e.preventDefault();
-          localStorage.removeItem("bitebuddy-gemini-key");
-          showKeyState();
-        });
-      } else {
-        keyBox.style.display = "block";
-        keyStatus.textContent = "";
-      }
-    }
-
-    saveKeyBtn.addEventListener("click", function () {
-      const k = keyInput.value.trim();
-      if (k === "") { keyStatus.textContent = "🐾 Paste your key first!"; return; }
-      localStorage.setItem("bitebuddy-gemini-key", k);  // saved only in THIS browser
-      keyInput.value = "";
-      showKeyState();
-    });
-
-    showKeyState();
   </script>
 
 </body>
