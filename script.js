@@ -135,7 +135,7 @@ if (suggestionsEl && typeof searchSuggestions === "function") {
 
 
 /* ===== "RECOMMEND ME A PLACE" BUTTON =====
-   For people who don't want to paste a link — Forky just picks one!
+   For people who don't want to type a name — Forky just picks one!
    Demo version: picks from a small list of real Landskrona restaurants.
    The real version would use your location + a map to find places near you. */
 const recommendBtn = document.getElementById("recommend-btn");
