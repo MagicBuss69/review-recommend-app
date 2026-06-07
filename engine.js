@@ -121,6 +121,40 @@ async function summarizeReviews(placeName, reviews) {
 }
 
 /*
+  💬 SUMMARISE FEEDBACK — the AI reads a user's message and boils it down to one line,
+  plus a type (idea / bug / praise / other) and a mood. Used by the feedback box so YOU
+  get a quick, clear read of what people said. Returns null if there's no Gemini key.
+*/
+async function summarizeFeedback(text) {
+  const key = getGeminiKey();
+  if (!key) return null;
+
+  const model = "gemini-2.0-flash";
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
+
+  const rules =
+    "You read short user feedback for a food app called BiteBuddy. Reply ONLY as JSON: " +
+    '{"summary":"one short friendly sentence","type":"idea|bug|praise|other","mood":"😀|😐|😕"}. ' +
+    "Keep the summary under 15 words.";
+
+  const body = {
+    system_instruction: { parts: [{ text: rules }] },
+    contents: [{ parts: [{ text: text }] }],
+    generationConfig: { responseMimeType: "application/json" },
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error("Gemini status " + res.status);
+
+  const data = await res.json();
+  return JSON.parse(data.candidates[0].content.parts[0].text);
+}
+
+/*
   FREE place lookup via OpenStreetMap (Nominatim) — no key, no credit card! 🆓
   Gives the real place + basic info (address, cuisine, website, hours).
   ❗ It has NO reviews — for those we use the users' own notes (below).
