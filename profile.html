@@ -569,10 +569,17 @@
       const msg = document.getElementById("avatar-msg");
       const opts = document.querySelectorAll("#avatar-shop .avatar-opt");
 
-      // show the chosen avatar (Forky logo, or an emoji)
-      function applyAvatar(emoji) {
-        if (!emoji || emoji === "forky") { img.style.display = ""; emojiEl.style.display = "none"; }
-        else { emojiEl.textContent = emoji; emojiEl.style.display = "flex"; img.style.display = "none"; }
+      // show the chosen avatar: a Google photo URL, an emoji, or the Forky logo
+      function applyAvatar(value) {
+        if (value && /^https?:\/\//.test(value)) {
+          img.src = value; img.classList.add("is-photo");          // round-crop real photos
+          img.style.display = ""; emojiEl.style.display = "none";
+        } else if (value && value !== "forky") {
+          emojiEl.textContent = value; emojiEl.style.display = "flex"; img.style.display = "none";
+        } else {
+          img.src = "logo.svg"; img.classList.remove("is-photo");
+          img.style.display = ""; emojiEl.style.display = "none";
+        }
       }
       applyAvatar(localStorage.getItem("bitebuddy-avatar") || "forky");
 

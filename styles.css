@@ -120,7 +120,7 @@ html.is-guest [data-auth="in"]  { display: none !important; }
   overflow: hidden;
   flex: none;
 }
-.nav-avatar img { width: 100%; height: 100%; object-fit: contain; }
+.nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Helper classes to colour parts of the name.
    We make these into GRADIENT text so the brand name shimmers a little. */

@@ -43,10 +43,17 @@
     });
 
     // 4) show your chosen profile picture inside the nav "Profile" button 🖼️
+    //    (a Google photo URL, an emoji, or Forky by default)
     const av = localStorage.getItem("bitebuddy-avatar") || "forky";
     document.querySelectorAll("[data-nav-avatar]").forEach(function (el) {
-      if (av && av !== "forky") el.textContent = av;                 // an emoji avatar
-      else el.innerHTML = '<img src="logo.svg" alt="">';             // default: Forky
+      el.textContent = "";
+      if (/^https?:\/\//.test(av)) {                  // a Google profile photo
+        const im = document.createElement("img"); im.src = av; im.alt = ""; el.appendChild(im);
+      } else if (av !== "forky") {                    // an emoji avatar
+        el.textContent = av;
+      } else {                                        // default: Forky
+        const im = document.createElement("img"); im.src = "logo.svg"; im.alt = ""; el.appendChild(im);
+      }
     });
   });
 })();

@@ -22,6 +22,8 @@
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script src="auth.js"></script>
+  <!-- Google's official "Sign in with Google" library (safe, client-side) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -61,6 +63,8 @@
         </svg>
         <span id="google-text" data-i18n="signup.google">Continue with Google</span>
       </button>
+      <!-- the REAL Google button renders here once a Client ID is set -->
+      <div id="g-signin" style="display:flex;justify-content:center;"></div>
 
       <div class="auth-divider"><span data-i18n="signup.or">or</span></div>
 
@@ -153,12 +157,54 @@
 
     linkEl.addEventListener("click", function () { setMode(mode === "signup" ? "login" : "signup"); });
 
-    // "Continue with Google" — honest placeholder until real Google sign-in is set up.
+    /*
+      🔑 REAL "Sign in with Google".
+      Paste your OAuth Client ID between the quotes below (it ends with
+      ".apps.googleusercontent.com"). It is SAFE to be public — that's how Google's
+      browser sign-in works. Get one in Google Cloud Console (steps Claude gave you).
+      Leave it "" and the friendly placeholder button stays.
+    */
+    const GOOGLE_CLIENT_ID = "";
+
+    // turn the Google ID token (a JWT) into the user's name / email / picture
+    function decodeJwt(token) {
+      try {
+        const part = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(decodeURIComponent(escape(atob(part))));
+      } catch (e) { return null; }
+    }
+
+    // called by Google after a successful sign-in
+    function onGoogleSignIn(response) {
+      const d = decodeJwt(response.credential);
+      if (!d) { msg.className = "auth-msg error"; msg.textContent = isSv() ? "Hmm, det gick inte — försök igen." : "Hmm, that didn't work — try again."; return; }
+      localStorage.setItem("bitebuddy-account", JSON.stringify({
+        name: d.name || d.given_name || "Friend",
+        email: d.email || "",
+        picture: d.picture || "",
+      }));
+      localStorage.setItem("bitebuddy-loggedin", "yes");
+      if (d.picture) localStorage.setItem("bitebuddy-avatar", d.picture);   // your Google photo becomes your avatar
+      window.location.href = "profile.html";
+    }
+
+    // set up Google's button (waits until the library has loaded)
+    function initGoogle() {
+      if (!GOOGLE_CLIENT_ID) return;   // not set up yet → keep the placeholder button
+      if (!(window.google && google.accounts && google.accounts.id)) { setTimeout(initGoogle, 300); return; }
+      document.getElementById("google-btn").style.display = "none";   // hide the placeholder
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleSignIn, auto_select: false });
+      google.accounts.id.renderButton(document.getElementById("g-signin"),
+        { theme: "outline", size: "large", width: 320, text: "continue_with", shape: "pill" });
+    }
+    initGoogle();
+
+    // the placeholder button (only used until a Client ID is added)
     document.getElementById("google-btn").addEventListener("click", function () {
       msg.className = "auth-msg";
       msg.textContent = isSv()
-        ? "🔜 Google-inloggning kommer snart — den behöver lite uppsättning med din bror först!"
-        : "🔜 Google sign-in is coming soon — it needs a quick setup with your brother first!";
+        ? "🔜 Google-inloggning kommer snart — be din bror om Google Client ID först!"
+        : "🔜 Google sign-in is coming soon — ask your brother for the Google Client ID first!";
     });
 
     // A very light email check (just looks for an @ and a dot — friendly, not strict).

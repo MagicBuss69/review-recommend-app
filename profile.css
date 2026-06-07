@@ -39,6 +39,9 @@
   box-shadow: 0 6px 18px rgba(47, 128, 237, 0.25);
 }
 
+/* a real photo (e.g. from Google sign-in) fills the circle neatly */
+#avatar-img.is-photo { object-fit: cover; border-radius: 50%; padding: 3px; }
+
 .profile-name { text-align: center; font-family: "Baloo 2", sans-serif; font-size: 28px; font-weight: 800; margin-top: 10px; }
 .profile-handle { text-align: center; color: var(--muted); font-weight: 600; margin-bottom: 20px; }
 
