@@ -37,6 +37,8 @@
     </div>
     <nav class="nav">
       <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="guide.html" data-i18n="nav.guide">📖 Guide</a>
+      <a href="admin.html" data-i18n="nav.admin">🛠️ Admin</a>
       <a href="#" class="btn-ghost" data-auth="in" data-action="logout" data-i18n="nav.logout">Log out</a>
       <select id="lang-select" class="lang-select" aria-label="Language">
         <option value="en">🇬🇧 English</option>
@@ -56,7 +58,9 @@
       <div class="banner" id="banner"></div>
 
       <div class="avatar-wrap">
-        <img src="logo.svg" alt="Your Forky avatar" class="avatar">
+        <img src="logo.svg" alt="Your Forky avatar" class="avatar" id="avatar-img">
+        <!-- shown instead of Forky when you've picked an emoji profile picture -->
+        <div class="avatar avatar-emoji" id="avatar-emoji" style="display:none;"></div>
       </div>
 
       <!-- shows your real name once you've signed up (otherwise a friendly default) -->
@@ -144,6 +148,23 @@
         <div class="swatch" data-id="cherry"    data-cost="350" style="background:linear-gradient(135deg,#eb3349,#f45c43)" data-color="linear-gradient(135deg,#eb3349,#f45c43)" title="Cherry"></div>
       </div>
       <p class="shop-msg" id="shop-msg"></p>
+    </section>
+
+    <!-- ===== 🖼️ PROFILE PICTURE SHOP (spend gems on an avatar) ===== -->
+    <section class="panel">
+      <h2 data-i18n="profile.avatartitle">🖼️ Profile picture shop</h2>
+      <p class="hint" data-i18n="profile.avatarhint">Spend gems to unlock fun profile pictures, then pick your favorite!</p>
+      <p class="shop-balance" id="avatar-balance"></p>
+      <div class="avatar-shop" id="avatar-shop">
+        <button class="avatar-opt" data-id="forky"  data-cost="0"   data-emoji="forky" title="Forky (free)"><img src="logo.svg" alt="Forky"></button>
+        <button class="avatar-opt" data-id="pizza"  data-cost="50"  data-emoji="🍕">🍕</button>
+        <button class="avatar-opt" data-id="burger" data-cost="50"  data-emoji="🍔">🍔</button>
+        <button class="avatar-opt" data-id="sushi"  data-cost="100" data-emoji="🍣">🍣</button>
+        <button class="avatar-opt" data-id="fox"    data-cost="150" data-emoji="🦊">🦊</button>
+        <button class="avatar-opt" data-id="cat"    data-cost="150" data-emoji="🐱">🐱</button>
+        <button class="avatar-opt" data-id="crown"  data-cost="400" data-emoji="👑">👑</button>
+      </div>
+      <p class="shop-msg" id="avatar-msg"></p>
     </section>
 
     <!-- ===== EXCLUSIVE (top contenders only) ===== -->
@@ -479,7 +500,7 @@
       if (savedBanner) banner.style.background = savedBanner;
 
       function paintBalance() {
-        balanceEl.textContent = (sv ? "💎 Du har " : "💎 You have ") + available() + (sv ? " poäng att spendera" : " points to spend");
+        balanceEl.textContent = (sv ? "💎 Du har " : "💎 You have ") + available() + (sv ? " gems att spendera" : " gems to spend");
       }
       function paintSwatches() {
         swatches.forEach(function (s) {
@@ -509,8 +530,8 @@
               paintBalance(); paintSwatches();
             } else {
               msg.textContent = sv
-                ? "Inte tillräckligt med poäng än — fortsätt använda BiteBuddy! 💎"
-                : "Not enough points yet — keep using BiteBuddy! 💎";
+                ? "Inte tillräckligt med gems än — fortsätt använda BiteBuddy! 💎"
+                : "Not enough gems yet — keep using BiteBuddy! 💎";
               return;
             }
           } else {
@@ -524,6 +545,65 @@
 
       paintBalance();
       paintSwatches();
+    })();
+  </script>
+
+  <!-- ===== 🖼️ PROFILE PICTURE SHOP (spend gems to unlock & pick an avatar) ===== -->
+  <script>
+    (function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      function earned() {
+        function n(k) { try { return JSON.parse(localStorage.getItem(k) || "[]").length; } catch (e) { return 0; } }
+        return n("bitebuddy-history") * 10 + n("bitebuddy-notes") * 25 + (n("bitebuddy-likes") + n("bitebuddy-dislikes")) * 5 + n("bitebuddy-favorites") * 5;
+      }
+      function spent() { return parseInt(localStorage.getItem("bitebuddy-spent") || "0", 10) || 0; }
+      function setSpent(v) { localStorage.setItem("bitebuddy-spent", String(v)); }
+      function available() { return Math.max(0, earned() - spent()); }
+      function getUnlocked() { try { return JSON.parse(localStorage.getItem("bitebuddy-unlocked-avatars") || "[]"); } catch (e) { return []; } }
+      function isUnlocked(id, cost) { return cost === 0 || getUnlocked().indexOf(id) >= 0; }
+      function unlock(id) { const u = getUnlocked(); if (u.indexOf(id) < 0) { u.push(id); localStorage.setItem("bitebuddy-unlocked-avatars", JSON.stringify(u)); } }
+
+      const img = document.getElementById("avatar-img");
+      const emojiEl = document.getElementById("avatar-emoji");
+      const balanceEl = document.getElementById("avatar-balance");
+      const msg = document.getElementById("avatar-msg");
+      const opts = document.querySelectorAll("#avatar-shop .avatar-opt");
+
+      // show the chosen avatar (Forky logo, or an emoji)
+      function applyAvatar(emoji) {
+        if (!emoji || emoji === "forky") { img.style.display = ""; emojiEl.style.display = "none"; }
+        else { emojiEl.textContent = emoji; emojiEl.style.display = "flex"; img.style.display = "none"; }
+      }
+      applyAvatar(localStorage.getItem("bitebuddy-avatar") || "forky");
+
+      function paintBalance() { balanceEl.textContent = (sv ? "💎 Du har " : "💎 You have ") + available() + (sv ? " gems" : " gems"); }
+      function paintOpts() {
+        opts.forEach(function (o) {
+          const id = o.dataset.id, cost = parseInt(o.dataset.cost || "0", 10);
+          const tag = o.querySelector(".avatar-cost"); if (tag) tag.remove();
+          if (isUnlocked(id, cost)) o.classList.remove("locked");
+          else { o.classList.add("locked"); const t = document.createElement("span"); t.className = "avatar-cost"; t.textContent = "💎" + cost; o.appendChild(t); }
+        });
+      }
+      opts.forEach(function (o) {
+        o.addEventListener("click", function () {
+          const id = o.dataset.id, cost = parseInt(o.dataset.cost || "0", 10), emoji = o.dataset.emoji;
+          if (!isUnlocked(id, cost)) {
+            if (available() >= cost) {
+              setSpent(spent() + cost); unlock(id);
+              msg.textContent = sv ? "🎉 Upplåst!" : "🎉 Unlocked!";
+              paintBalance(); paintOpts();
+            } else {
+              msg.textContent = sv ? "Inte tillräckligt med gems än! 💎" : "Not enough gems yet! 💎";
+              return;
+            }
+          } else { msg.textContent = ""; }
+          localStorage.setItem("bitebuddy-avatar", emoji);
+          applyAvatar(emoji);
+        });
+      });
+      paintBalance();
+      paintOpts();
     })();
   </script>
 </body>

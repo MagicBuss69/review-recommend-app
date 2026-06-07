@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  BiteBuddy — Guide 📖
+  Two helpful sections:
+   1. 💎 How to earn gems (the points you spend in the shops)
+   2. 🏅 All badges and how to unlock each one (✅ = you've earned it)
+  Everything reads your REAL activity so it shows your progress.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBuddy — Guide</title>
+  <meta name="description" content="How to earn gems and unlock every badge in BiteBuddy. 🐾">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <img src="logo.svg" alt="Forky the BiteBuddy mascot" class="brand-logo">
+      <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
+    </a>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <a href="profile.html" data-auth="in" data-i18n="nav.profile">🐾 Profile</a>
+      <a href="signup.html" class="btn-ghost" data-auth="out" data-i18n="nav.login">Log in</a>
+      <a href="#" class="btn-ghost" data-auth="in" data-action="logout" data-i18n="nav.logout">Log out</a>
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">🇬🇧 English</option>
+        <option value="sv">🇸🇪 Svenska</option>
+      </select>
+    </nav>
+  </header>
+
+  <main class="about">
+    <div class="about-head">
+      <h1 class="about-title" data-i18n="guide.title">📖 BiteBuddy Guide</h1>
+      <p class="about-sub" data-i18n="guide.sub">How to earn gems and unlock badges!</p>
+    </div>
+
+    <!-- 💎 GEMS TUTORIAL -->
+    <section class="card-block">
+      <h2 data-i18n="guide.gemstitle">💎 How to earn gems</h2>
+      <p class="muted-text" data-i18n="guide.gemsintro" style="margin-bottom:14px;">Gems are points you earn by using BiteBuddy. Spend them in the shops on your profile! 🎨</p>
+      <div id="gem-rules"></div>
+      <p class="muted-text" id="gem-have" style="margin-top:14px;font-weight:700;"></p>
+    </section>
+
+    <!-- 🏅 BADGES GUIDE -->
+    <section class="card-block">
+      <h2 data-i18n="guide.badgestitle">🏅 All badges</h2>
+      <p class="muted-text" data-i18n="guide.badgesintro" style="margin-bottom:14px;">A ✅ means you've earned it. Keep going to unlock them all!</p>
+      <div id="badge-guide"></div>
+    </section>
+
+    <a href="profile.html" class="btn-primary big-btn" data-auth="in" data-i18n="guide.toprofile">🐾 Go to my profile</a>
+    <a href="signup.html" class="btn-primary big-btn" data-auth="out" data-i18n="guide.signup">🐾 Make an account to start earning</a>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
+    <p class="footer-links"><a href="about.html" data-i18n="nav.about">About</a></p>
+  </footer>
+
+  <script src="lang.js"></script>
+  <script>
+    (function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+
+      // how many gems each action is worth (matches the profile's points rule)
+      const GEM_RULES = [
+        { emoji: "🔍", en: "Look up a place", sv: "Slå upp ett ställe", gems: 10 },
+        { emoji: "✍️", en: "Write a note about a place", sv: "Skriv en anteckning", gems: 25 },
+        { emoji: "💚", en: "Add a food you like/dislike", sv: "Lägg till en smak", gems: 5 },
+        { emoji: "⭐", en: "Save a favorite place", sv: "Spara ett favoritställe", gems: 5 },
+      ];
+
+      // every badge + how to unlock it (same rules as the profile)
+      const BADGES = [
+        { emoji: "🍴", en: "First Bite",  sv: "Första tuggan", reqEn: "Look up 1 place",       reqSv: "Slå upp 1 ställe",       got: function (s) { return s.places >= 1; } },
+        { emoji: "🗺️", en: "Explorer",    sv: "Utforskare",    reqEn: "Look up 5 places",      reqSv: "Slå upp 5 ställen",      got: function (s) { return s.places >= 5; } },
+        { emoji: "✍️", en: "First Tip",   sv: "Första tipset", reqEn: "Write 1 note",          reqSv: "Skriv 1 anteckning",     got: function (s) { return s.notes >= 1; } },
+        { emoji: "💚", en: "Tastemaker",  sv: "Smaksättare",   reqEn: "Add 3 tastes",          reqSv: "Lägg till 3 smaker",     got: function (s) { return s.tastes >= 3; } },
+        { emoji: "📌", en: "Collector",   sv: "Samlare",       reqEn: "Save 3 favorites",      reqSv: "Spara 3 favoriter",      got: function (s) { return s.favs >= 3; } },
+        { emoji: "🍽️", en: "Foodie",      sv: "Matälskare",    reqEn: "Look up 10 places",     reqSv: "Slå upp 10 ställen",     got: function (s) { return s.places >= 10; } },
+        { emoji: "💎", en: "Big Spender", sv: "Storsamlare",   reqEn: "Reach 500 gems",        reqSv: "Nå 500 ädelstenar",      got: function (s) { return s.points >= 500; } },
+      ];
+
+      function stats() {
+        function n(k) { try { return JSON.parse(localStorage.getItem(k) || "[]").length; } catch (e) { return 0; } }
+        const places = n("bitebuddy-history"), notes = n("bitebuddy-notes");
+        const tastes = n("bitebuddy-likes") + n("bitebuddy-dislikes"), favs = n("bitebuddy-favorites");
+        return { places: places, notes: notes, tastes: tastes, favs: favs, points: places * 10 + notes * 25 + tastes * 5 + favs * 5 };
+      }
+      const s = stats();
+
+      // render gem rules
+      const gr = document.getElementById("gem-rules");
+      GEM_RULES.forEach(function (r) {
+        const row = document.createElement("div");
+        row.className = "guide-row";
+        row.innerHTML = '<span class="guide-ic">' + r.emoji + "</span>" +
+          '<span class="guide-text">' + (sv ? r.sv : r.en) + "</span>" +
+          '<span class="guide-gems">+' + r.gems + " 💎</span>";
+        gr.appendChild(row);
+      });
+      const spent = parseInt(localStorage.getItem("bitebuddy-spent") || "0", 10) || 0;
+      document.getElementById("gem-have").textContent =
+        (sv ? "💎 Du har just nu " : "💎 You currently have ") + Math.max(0, s.points - spent) + (sv ? " gems att spendera." : " gems to spend.");
+
+      // render badge guide
+      const bg = document.getElementById("badge-guide");
+      BADGES.forEach(function (b) {
+        const on = b.got(s);
+        const row = document.createElement("div");
+        row.className = "guide-row" + (on ? " earned" : "");
+        row.innerHTML = '<span class="guide-ic">' + b.emoji + "</span>" +
+          '<span class="guide-text"><strong>' + (sv ? b.sv : b.en) + "</strong> — " + (sv ? b.reqSv : b.reqEn) + "</span>" +
+          '<span class="guide-status">' + (on ? "✅" : "🔒") + "</span>";
+        bg.appendChild(row);
+      });
+    })();
+  </script>
+</body>
+</html>

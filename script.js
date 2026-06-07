@@ -351,15 +351,7 @@ const feedbackInput = document.getElementById("feedback-input");
 const feedbackBtn = document.getElementById("feedback-btn");
 const feedbackMessage = document.getElementById("feedback-message");
 
-/*
-  📬 To get feedback EMAILED to you: paste your free Web3Forms access key between the
-  quotes below. It's safe to be public (that's how Web3Forms works). Get one in 2 min at
-  https://web3forms.com — type your email, and they email you a key. Whatever email you
-  use there is where the feedback lands. Leave it "" and feedback just saves on the device.
-*/
-const WEB3FORMS_KEY = "";
-
-feedbackBtn.addEventListener("click", async function () {
+feedbackBtn.addEventListener("click", function () {
   const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
   const text = feedbackInput.value.trim();
 
@@ -368,41 +360,11 @@ feedbackBtn.addEventListener("click", async function () {
     return;
   }
 
-  feedbackBtn.disabled = true;
-  feedbackMessage.innerHTML = '<span class="spinner"></span> ' + (sv ? "Forky läser…" : "Forky is reading…");
-
-  // 1) AI reads & summarises the message (when a Gemini key is available)
-  let summary = null;
-  if (typeof summarizeFeedback === "function") {
-    try { summary = await summarizeFeedback(text); } catch (e) { summary = null; }
-  }
-
-  // 2) email it to you via Web3Forms (only if you've set a key above)
-  if (WEB3FORMS_KEY) {
-    try {
-      await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: "BiteBuddy feedback" + (summary && summary.type ? " [" + summary.type + "]" : ""),
-          from_name: "BiteBuddy 🐾",
-          message: text + (summary ? "\n\n— Forky's summary: " + summary.summary +
-            " (" + (summary.type || "") + " " + (summary.mood || "") + ")" : ""),
-        }),
-      });
-    } catch (e) { /* offline or blocked — the local backup below still keeps it */ }
-  }
-
-  // 3) always keep a local backup too (with the AI summary), so nothing is ever lost
+  // Save it so you can read it later in the Admin Panel.
   const saved = JSON.parse(localStorage.getItem("bitebuddy-feedback") || "[]");
-  saved.push({ text: text, summary: summary ? summary.summary : null, time: Date.now() });
+  saved.push({ text: text, time: Date.now() });
   localStorage.setItem("bitebuddy-feedback", JSON.stringify(saved));
 
-  // 4) thank them — and show what Forky understood
-  let msg = sv ? "🐾 Tack! Forky fångade din idé. 💚" : "🐾 Thanks! Forky caught your idea. 💚";
-  if (summary && summary.summary) msg += (sv ? " Forky förstod: " : " Forky understood: ") + '“' + summary.summary + '”';
-  feedbackMessage.textContent = msg;
+  feedbackMessage.textContent = sv ? "🐾 Tack! Forky fångade din idé. 💚" : "🐾 Thanks! Forky caught your idea. 💚";
   feedbackInput.value = "";
-  feedbackBtn.disabled = false;
 });

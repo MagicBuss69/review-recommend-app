@@ -947,6 +947,48 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
 .about .card-block p { font-weight: 600; color: var(--ink); }
 .about .card-block p + p { margin-top: 10px; }
 
+/* ===== GUIDE / ADMIN rows ===== */
+.guide-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #EEF3FB; }
+.guide-row:last-child { border-bottom: none; }
+.guide-ic { font-size: 22px; width: 28px; text-align: center; }
+.guide-text { flex: 1; font-weight: 600; }
+.guide-gems { font-weight: 800; color: var(--green-dark); }
+.guide-status { font-size: 18px; }
+.guide-row:not(.earned) .guide-text { color: var(--muted); }
+.admin-note { text-align: center; }
+
+/* ===== 🖼️ AVATAR (profile picture) SHOP ===== */
+.avatar-emoji { display: flex; align-items: center; justify-content: center; font-size: 48px; }
+.avatar-shop { display: flex; flex-wrap: wrap; gap: 26px 14px; padding-bottom: 4px; }
+.avatar-opt {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #DCE6F5;
+  background: var(--bg);
+  font-size: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform var(--fast), border-color var(--fast);
+}
+.avatar-opt:hover { transform: scale(1.1); border-color: var(--blue); }
+.avatar-opt img { width: 78%; height: 78%; object-fit: contain; }
+.avatar-opt.locked { filter: grayscale(0.4) brightness(0.9); }
+.avatar-opt.locked::before {
+  content: "🔒";
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.avatar-cost {
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap;
+}
+
 /* ===== EXPLORE MAP PAGE ===== */
 .explore { max-width: 960px; margin: 0 auto; padding: 30px 20px 60px; }
 .explore-title { font-family: "Baloo 2", sans-serif; font-size: 34px; font-weight: 800; text-align: center; }
