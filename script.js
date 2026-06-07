@@ -9,6 +9,58 @@ const input = document.getElementById("link-input");
 const button = document.getElementById("find-btn");
 const message = document.getElementById("result-message");
 
+
+/* ===== SEARCH HISTORY ("Recent") =====
+   Saves the places you searched, WITH the time, so you can jump back with one tap
+   instead of typing it all again. */
+const recent = document.getElementById("recent");
+
+// Save a place into the history: newest first, no duplicates, keep only the latest 6.
+function addToHistory(name) {
+  let hist = JSON.parse(localStorage.getItem("bitebuddy-history") || "[]");
+  // drop any older copy of the same name, so it jumps back to the top
+  hist = hist.filter(function (item) { return item.name.toLowerCase() !== name.toLowerCase(); });
+  hist.unshift({ name: name, time: Date.now() });   // add to the front with the current time
+  hist = hist.slice(0, 6);                            // keep the list short
+  localStorage.setItem("bitebuddy-history", JSON.stringify(hist));
+}
+
+// Turn a saved time into friendly text like "just now" or "2h ago" (the time mechanic!).
+function timeAgo(ms) {
+  const secs = Math.floor((Date.now() - ms) / 1000);
+  if (secs < 60) return "just now";
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return mins + "m ago";
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return hours + "h ago";
+  return Math.floor(hours / 24) + "d ago";
+}
+
+// Draw the recent list and make each item tappable to reopen that result.
+function renderHistory() {
+  if (!recent) return;
+  const hist = JSON.parse(localStorage.getItem("bitebuddy-history") || "[]");
+  if (hist.length === 0) { recent.innerHTML = ""; return; }
+
+  let html = '<div class="recent-title">🕘 Recent</div><div class="recent-list">';
+  hist.forEach(function (item) {
+    html += '<button class="recent-chip" data-name="' + item.name.replace(/"/g, "&quot;") + '">' +
+            item.name + ' <span class="recent-time">' + timeAgo(item.time) + '</span></button>';
+  });
+  html += '</div>';
+  recent.innerHTML = html;
+
+  // clicking a recent item jumps straight to its result
+  recent.querySelectorAll(".recent-chip").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      localStorage.setItem("bitebuddy-search", chip.dataset.name);
+      window.location.href = "results.html";
+    });
+  });
+}
+renderHistory();   // show the recent list when the page opens
+
+
 // What happens when the button is clicked
 button.addEventListener("click", function () {
   const link = input.value.trim();   // the text the user typed
@@ -21,6 +73,7 @@ button.addEventListener("click", function () {
 
   // Remember what they searched (name OR link) so the results page can show it.
   localStorage.setItem("bitebuddy-search", link);
+  addToHistory(link);   // also add it to the "Recent" list
 
   // Let the user know Forky is "thinking", then go to the results page.
   message.textContent = "🐾 Forky is sniffing out the reviews...";
@@ -86,6 +139,7 @@ recommendBtn.addEventListener("click", function () {
 
     // Remember the pick so the results page ("See details") shows this place
     localStorage.setItem("bitebuddy-search", place.name);
+    addToHistory(place.name);   // add the pick to "Recent" too
 
     // Show Forky's pick as a little card with a button to see details
     recommendCard.innerHTML =
@@ -93,6 +147,8 @@ recommendBtn.addEventListener("click", function () {
       '<div class="pick-title">Forky picks: <strong>' + place.name + '</strong></div>' +
       '<div class="pick-food">' + place.food + '</div>' +
       '<a href="results.html" class="btn-primary big-btn">See details 🔍</a>';
+
+    renderHistory();   // refresh the Recent list to show the new pick
   }, 700);
 });
 
