@@ -97,6 +97,13 @@
           <div id="order-chips" class="cuisine-chips"></div>
         </section>
 
+        <!-- 🍕 Food YOU might like — pictures based on your saved tastes (hidden if you have none) -->
+        <section class="card-block" id="taste-food-card" style="display:none;">
+          <h2 data-i18n="results.tastefoodtitle">🍕 Food you might like</h2>
+          <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.tastefoodsub">A few things from your tastes 💚</p>
+          <div id="taste-food-strip" class="taste-food-strip"></div>
+        </section>
+
         <a href="waiter.html" class="btn-waiter" data-i18n="results.waiterbtn">👨‍🍳 Chat with the AI waiter before you go</a>
 
         <section class="card-block">
@@ -155,6 +162,74 @@
       paint();
       btn.style.display = "inline-flex";
       btn.onclick = function () { bbToggleFav(name); paint(); };
+    }
+  </script>
+
+  <!-- ===== 🍕 FOOD YOU MIGHT LIKE (pictures from your saved tastes) ===== -->
+  <script>
+    // pick a food emoji for a food word (used while a photo loads, or if there isn't one)
+    function foodEmoji(food) {
+      const f = (food || "").toLowerCase();
+      if (/pizza/.test(f)) return "🍕";
+      if (/burger/.test(f)) return "🍔";
+      if (/sushi|sashimi/.test(f)) return "🍣";
+      if (/taco|burrito|mexican/.test(f)) return "🌮";
+      if (/pasta|spaghetti/.test(f)) return "🍝";
+      if (/noodle|ramen|thai|asian/.test(f)) return "🍜";
+      if (/salad|veg/.test(f)) return "🥗";
+      if (/chicken/.test(f)) return "🍗";
+      if (/steak|beef|meat/.test(f)) return "🥩";
+      if (/fish|seafood|shrimp|prawn/.test(f)) return "🦐";
+      if (/ice ?cream|dessert|cake|sweet/.test(f)) return "🍰";
+      if (/coffee|fika|latte/.test(f)) return "☕";
+      if (/kebab|falafel/.test(f)) return "🥙";
+      if (/rice/.test(f)) return "🍚";
+      if (/curry|indian/.test(f)) return "🍛";
+      if (/sandwich|sub/.test(f)) return "🥪";
+      if (/fries|chips/.test(f)) return "🍟";
+      if (/egg|breakfast|brunch/.test(f)) return "🍳";
+      if (/cheese/.test(f)) return "🧀";
+      if (/bread|bakery|bun/.test(f)) return "🥐";
+      if (/soup/.test(f)) return "🥣";
+      if (/pancake|waffle/.test(f)) return "🧇";
+      return "🍴";
+    }
+
+    // try to find a real photo of a food (free TheMealDB API, no key). Returns a URL or null.
+    async function fetchFoodImage(term) {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(function () { ctrl.abort(); }, 6000);
+        const r = await fetch("https://www.themealdb.com/api/json/v1/1/search.php?s=" + encodeURIComponent(term), { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.meals && d.meals[0] && d.meals[0].strMealThumb) return d.meals[0].strMealThumb;
+        }
+      } catch (e) { /* offline / no match → emoji fallback */ }
+      return null;
+    }
+
+    // show a little gallery of foods the user likes
+    function renderTasteFood() {
+      const card = document.getElementById("taste-food-card");
+      const strip = document.getElementById("taste-food-strip");
+      if (!card || !strip) return;
+      const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
+      if (!likes.length) return;              // no tastes → keep it hidden
+
+      card.style.display = "block";
+      strip.innerHTML = "";
+      likes.slice(0, 4).forEach(function (food) {
+        const tile = document.createElement("div");
+        tile.className = "taste-food-tile";
+        tile.innerHTML = '<div class="tf-emoji">' + foodEmoji(food) + '</div><div class="tf-name">' + food + "</div>";
+        strip.appendChild(tile);
+        // swap in a real photo if we can find one
+        fetchFoodImage(food).then(function (url) {
+          if (url) { tile.style.backgroundImage = "url('" + url + "')"; tile.classList.add("has-photo"); }
+        });
+      });
     }
   </script>
 
@@ -384,6 +459,7 @@
       const shownName = (place && place.name) || searched;
       setupFavButton(shownName);   // ⭐ wire up the Save button for this place
       if (typeof bbMarkActiveWeek === "function") bbMarkActiveWeek();   // 🔥 you used BiteBuddy this week!
+      renderTasteFood();           // 🍕 show pictures of food you might like
 
       // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
       if (reviews.length === 0) {
