@@ -68,6 +68,24 @@
       </div>
     </section>
 
+    <!-- ===== MY TASTES (this is what powers the "FOR YOU" picks!) ===== -->
+    <section class="panel">
+      <h2>🍽️ My tastes</h2>
+      <p class="hint">Add foods you love and foods you avoid — this is what powers your personal "FOR YOU" picks! 💚</p>
+
+      <div class="taste-add">
+        <input type="text" id="taste-input" class="taste-input" placeholder="Type a food, e.g. burgers...">
+        <button id="like-btn" class="btn-primary">💚 Like</button>
+        <button id="dislike-btn" class="btn-ghost taste-dislike-btn">👎 Dislike</button>
+      </div>
+
+      <h3 class="taste-h">💚 I like</h3>
+      <div id="likes-list" class="taste-list"></div>
+
+      <h3 class="taste-h">👎 I dislike</h3>
+      <div id="dislikes-list" class="taste-list"></div>
+    </section>
+
     <!-- ===== BADGES ===== -->
     <section class="panel">
       <h2>🏅 My badges</h2>
@@ -135,17 +153,90 @@
     It listens for clicks on the color swatches and recolors the banner.
   -->
   <script>
-    // Find the banner strip and every color swatch on the page.
+    /* ===== BANNER COLOR (click to change — and it now REMEMBERS your pick) ===== */
     const banner = document.getElementById('banner');
     const swatches = document.querySelectorAll('.swatch');
 
-    // For each swatch, when it's clicked, paint the banner with that swatch's color.
+    // If you picked a color before, use it again when the page opens.
+    const savedBanner = localStorage.getItem('bitebuddy-banner');
+    if (savedBanner) banner.style.background = savedBanner;
+
     swatches.forEach(function (swatch) {
       swatch.addEventListener('click', function () {
-        // 'dataset.color' reads the data-color="..." we wrote in the HTML.
-        banner.style.background = swatch.dataset.color;
+        const color = swatch.dataset.color;   // reads the data-color="..." from the HTML
+        banner.style.background = color;
+        localStorage.setItem('bitebuddy-banner', color);  // remember it for next time
       });
     });
+
+
+    /* ===== MY TASTES (likes & dislikes that power the "FOR YOU" picks) ===== */
+    const tasteInput = document.getElementById('taste-input');
+    const likeBtn = document.getElementById('like-btn');
+    const dislikeBtn = document.getElementById('dislike-btn');
+    const likesList = document.getElementById('likes-list');
+    const dislikesList = document.getElementById('dislikes-list');
+
+    // Load any tastes we saved before (or start with empty lists).
+    let likes = JSON.parse(localStorage.getItem('bitebuddy-likes') || '[]');
+    let dislikes = JSON.parse(localStorage.getItem('bitebuddy-dislikes') || '[]');
+
+    // Save both lists into the browser's little memory.
+    function saveTastes() {
+      localStorage.setItem('bitebuddy-likes', JSON.stringify(likes));
+      localStorage.setItem('bitebuddy-dislikes', JSON.stringify(dislikes));
+    }
+
+    // Draw one list of foods as little chips, each with a remove (✕) button.
+    function renderList(listEl, foods, kind) {
+      listEl.innerHTML = '';
+      if (foods.length === 0) {
+        const empty = document.createElement('span');
+        empty.className = 'taste-empty';
+        empty.textContent = 'Nothing yet — add some above!';
+        listEl.appendChild(empty);
+        return;
+      }
+      foods.forEach(function (food, index) {
+        const chip = document.createElement('span');
+        chip.className = 'taste-chip ' + kind;
+        chip.textContent = food + ' ';
+        const x = document.createElement('span');
+        x.className = 'x';
+        x.textContent = '✕';
+        x.addEventListener('click', function () {
+          foods.splice(index, 1);   // remove this food from the list
+          saveTastes();
+          renderAll();
+        });
+        chip.appendChild(x);
+        listEl.appendChild(chip);
+      });
+    }
+
+    // Redraw both lists.
+    function renderAll() {
+      renderList(likesList, likes, 'like');
+      renderList(dislikesList, dislikes, 'dislike');
+    }
+
+    // Add whatever is typed into the chosen list (likes or dislikes).
+    function addTaste(targetList) {
+      const food = tasteInput.value.trim();
+      if (food === '') return;
+      targetList.push(food);
+      tasteInput.value = '';
+      saveTastes();
+      renderAll();
+    }
+
+    likeBtn.addEventListener('click', function () { addTaste(likes); });
+    dislikeBtn.addEventListener('click', function () { addTaste(dislikes); });
+    tasteInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') addTaste(likes);   // pressing Enter adds to "I like"
+    });
+
+    renderAll();   // draw the lists when the page first opens
   </script>
 </body>
 </html>

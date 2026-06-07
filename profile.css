@@ -71,6 +71,42 @@
 .panel h2 { font-size: 20px; margin-bottom: 6px; }
 .panel .hint { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
 
+/* ===== MY TASTES (likes & dislikes) ===== */
+.taste-add { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.taste-input {
+  flex: 1;
+  min-width: 160px;
+  border: 2px solid #DCE6F5;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+}
+.taste-input:focus { border-color: var(--blue); }
+/* the Dislike button reuses the ghost look but needs a white background on a <button> */
+.taste-dislike-btn { background: var(--white); font-size: 16px; cursor: pointer; }
+
+.taste-h { font-size: 15px; margin: 16px 0 8px; }
+.taste-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.taste-empty { color: var(--muted); font-size: 14px; }
+
+/* each food shows as a colored pill */
+.taste-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.taste-chip.like { background: #E6F7EE; color: var(--green-dark); }     /* soft green */
+.taste-chip.dislike { background: #FDEAEA; color: #C0392B; }            /* soft red */
+.taste-chip .x { cursor: pointer; font-weight: 800; opacity: 0.55; }
+.taste-chip .x:hover { opacity: 1; }
+
 /* ===== BADGES ===== */
 .badge-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .badge {
