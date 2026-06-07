@@ -41,5 +41,12 @@
         window.location.href = "index.html";
       });
     });
+
+    // 4) show your chosen profile picture inside the nav "Profile" button 🖼️
+    const av = localStorage.getItem("bitebuddy-avatar") || "forky";
+    document.querySelectorAll("[data-nav-avatar]").forEach(function (el) {
+      if (av && av !== "forky") el.textContent = av;                 // an emoji avatar
+      else el.innerHTML = '<img src="logo.svg" alt="">';             // default: Forky
+    });
   });
 })();

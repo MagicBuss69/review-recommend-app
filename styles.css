@@ -105,6 +105,23 @@ body::after {
 html.is-auth  [data-auth="out"] { display: none !important; }
 html.is-guest [data-auth="in"]  { display: none !important; }
 
+/* the nav "Profile" button shows your avatar (emoji or Forky) instead of a paw */
+.nav-profile-link { display: inline-flex; align-items: center; gap: 6px; }
+.nav-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg);
+  font-size: 15px;
+  line-height: 1;
+  overflow: hidden;
+  flex: none;
+}
+.nav-avatar img { width: 100%; height: 100%; object-fit: contain; }
+
 /* Helper classes to colour parts of the name.
    We make these into GRADIENT text so the brand name shimmers a little. */
 .blue,
