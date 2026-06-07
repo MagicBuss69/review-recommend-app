@@ -774,7 +774,21 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
 .meal-row.meal-main { background: #E3F9EC; border-radius: var(--r-sm); padding: 12px 14px; }
 .meal-ic { font-size: 22px; width: 26px; text-align: center; flex: none; }
 .meal-tag { color: var(--green-dark); font-size: 13px; font-weight: 700; }
-.meal-menu-link { margin-top: 12px; }
+.meal-course { color: var(--muted); font-weight: 700; font-size: 13px; }
+.meal-menu-link { margin-top: 14px; }
+/* a clear, tappable button to the real restaurant menu */
+.menu-btn {
+  display: inline-block;
+  background: var(--grad-blue);
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+  padding: 11px 20px;
+  border-radius: var(--r-pill);
+  box-shadow: 0 6px 14px rgba(47, 128, 237, 0.3);
+  transition: transform var(--fast), filter var(--fast);
+}
+.menu-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
 
 /* 🍕 "Food you might like" picture tiles (from your tastes) */
 .taste-food-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }

@@ -556,29 +556,37 @@
                 : "People love the <strong>" + dishes[0] + "</strong> here. 🍴";
             }
 
-            // ===== 🍽️ YOUR PERFECT MEAL (honest: only dishes people actually mention) =====
+            // ===== 🍽️ YOUR PERFECT MEAL (courses + drink — only from real reviews) =====
+            const meal = result.meal || {};
+            const mainDish = topMatch || meal.main || dishes[0];   // your taste, else AI's pick, else top dish
+            const drinkPick = meal.drink || (result.drinks && result.drinks[0]) || "";
+            const courses = [
+              { ic: "🍽️", en: "Main", sv: "Huvudrätt", val: mainDish, main: true,
+                tag: topMatch ? (sv ? "matchar din smak 💚" : "matches your taste 💚") : (sv ? "mest hyllad" : "most loved") },
+              { ic: "🥗", en: "Side", sv: "Tillbehör", val: meal.side },
+              { ic: "🥤", en: "Drink", sv: "Dryck", val: drinkPick },
+              { ic: "🍰", en: "Dessert", sv: "Efterrätt", val: meal.dessert },
+            ];
             const mealCard = document.getElementById("meal-card");
             const mealItems = document.getElementById("meal-items");
             if (mealCard && mealItems) {
-              const mainDish = topMatch || dishes[0];                                   // your taste, else most-loved
-              const pairings = dishes.filter(function (d) { return d !== mainDish; }).slice(0, 2);
-              let mhtml = '<div class="meal-row meal-main"><span class="meal-ic">🍽️</span><div><strong>' + mainDish + "</strong>" +
-                '<div class="meal-tag">' + (topMatch ? (sv ? "matchar din smak 💚" : "matches your taste 💚") : (sv ? "mest hyllad här" : "most loved here")) + "</div></div></div>";
-              pairings.forEach(function (p) {
-                mhtml += '<div class="meal-row"><span class="meal-ic">➕</span><div>' + p + "</div></div>";
+              let mhtml = "";
+              courses.forEach(function (c) {
+                if (!c.val) return;     // skip courses reviewers didn't mention (stay honest)
+                mhtml += '<div class="meal-row' + (c.main ? " meal-main" : "") + '">' +
+                  '<span class="meal-ic">' + c.ic + "</span>" +
+                  '<div><span class="meal-course">' + (sv ? c.sv : c.en) + ":</span> <strong>" + c.val + "</strong>" +
+                  (c.tag ? '<div class="meal-tag">' + c.tag + "</div>" : "") + "</div></div>";
               });
-              if (!pairings.length) {
-                mhtml += '<div class="meal-row muted-text">' + (sv ? "(för få rätter nämnda för ett tillägg)" : "(too few dishes mentioned to add a pairing)") + "</div>";
-              }
-              mealItems.innerHTML = mhtml;
-              // a link to the REAL menu, if we know it
+              if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = "block"; }
+
+              // a CLEAR button to the real menu, when we know its link
               const menuLink = place.menu || place.website;
               const mlEl = document.getElementById("meal-menu-link");
               if (menuLink && mlEl) {
-                mlEl.innerHTML = '<a href="' + menuLink + '" target="_blank" rel="noopener" class="map-link">' +
-                  (sv ? "📋 Se hela menyn →" : "📋 See the full menu →") + "</a>";
+                mlEl.innerHTML = '<a href="' + menuLink + '" target="_blank" rel="noopener" class="menu-btn">' +
+                  (sv ? "📋 Se hela menyn" : "📋 See the full menu") + "</a>";
               }
-              mealCard.style.display = "block";
             }
           }
         } catch (e) {

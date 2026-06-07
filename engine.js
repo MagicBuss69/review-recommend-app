@@ -98,9 +98,13 @@ async function summarizeReviews(placeName, reviews) {
     "Also pick the top dishes that reviewers actually PRAISE (the things to order). " +
     "Only include a dish if a review really mentions it. If none are named, use an empty list. " +
     "Reply ONLY as JSON in this shape: " +
-    '{"summary":"one friendly sentence","good":["short point","short point"],' +
-    '"bad":["short point"],"dishes":["dish name","dish name"]}. ' +
+    '{"summary":"one friendly sentence","good":["short point"],"bad":["short point"],' +
+    '"dishes":["dish name"],"drinks":["drink name"],' +
+    '"meal":{"main":"","side":"","drink":"","dessert":""}}. ' +
     "List at most 4 dishes, most-loved first. " +
+    "For 'meal', suggest ONE full meal using ONLY items reviewers actually mention: the best " +
+    "main dish, plus a side, a drink and a dessert IF mentioned. Leave any field an empty " +
+    'string "" when reviewers do not mention it — NEVER invent menu items. ' +
     "Always reply in " + lang + ", even if the reviews are in another language.";
 
   const reviewText = reviews.map(function (r, i) { return (i + 1) + ". " + r; }).join("\n");
