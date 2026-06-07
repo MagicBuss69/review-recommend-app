@@ -208,3 +208,18 @@ async function lookupPlace(placeName) {
   if (place && place.found) cacheSet(key, place);            // remember it for next time
   return place;
 }
+
+/*
+  Rough check: does this look like a real place name, or just random gibberish?
+  Used to politely DECLINE nonsense (e.g. "asdfgh") instead of treating it as a place.
+  Kept lenient so it never rejects a real (even foreign) name by mistake.
+*/
+function looksLikeGibberish(text) {
+  const t = (text || "").trim().toLowerCase();
+  const letters = t.replace(/[^a-zåäöéè]/g, "");
+  if (letters.length < 2) return true;                       // too short to be a name
+  const vowels = (letters.match(/[aeiouyåäöéè]/g) || []).length;
+  if (letters.length >= 4 && vowels / letters.length < 0.18) return true; // almost no vowels
+  if (/[bcdfghjklmnpqrstvwxz]{6,}/.test(t)) return true;     // long run of consonants
+  return false;
+}

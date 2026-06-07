@@ -45,6 +45,7 @@
       <h1 class="place-name" id="place-name">—</h1>
       <div class="place-stars" id="place-stars"></div>
       <div class="cuisine-chips" id="cuisine-chips"></div>
+      <p class="correction" id="correction"></p>
     </div>
 
     <!-- two columns that use the whole screen on bigger displays -->
@@ -185,6 +186,17 @@
         banner.textContent = (sv ? "😅 Kunde inte slå upp stället (" : "😅 Couldn't look up the place (") + e.message + ").";
       }
 
+      // ---------- DECLINE clear gibberish (not a real place) ----------
+      if ((!place || !place.found) && looksLikeGibberish(searched)) {
+        starsEl.textContent = "";
+        banner.textContent = sv
+          ? "🤔 \"" + searched + "\" verkar inte vara ett riktigt ställe. Kolla stavningen och prova igen."
+          : "🤔 \"" + searched + "\" doesn't look like a real place. Check the spelling and try again.";
+        oneSay(sv ? "Prova att söka igen med rätt namn. 🔍" : "Try searching again with the correct name. 🔍");
+        healthText.textContent = "";
+        return;
+      }
+
       // ---------- 2) Show the place header ----------
       if (place && place.found) {
         placeNameEl.textContent = place.name || searched;
@@ -202,6 +214,18 @@
       // show a little badge when this was reused from the cache (no internet call!)
       if (place && place.found && place._fromCache) {
         starsEl.textContent += sv ? " · ⚡ från cache" : " · ⚡ cached";
+      }
+
+      // ---------- typo fix: if the found name differs from what was typed, say so ----------
+      if (place && place.found) {
+        var norm = function (s) { return (s || "").toLowerCase().replace(/[^a-z0-9åäö]/g, ""); };
+        var typedNorm = norm(searched.split(",")[0]);
+        var realNorm = norm(place.name);
+        if (typedNorm && realNorm && typedNorm !== realNorm && realNorm.indexOf(typedNorm) === -1) {
+          var corr = document.getElementById("correction");
+          if (corr) corr.textContent = (sv ? "🔤 Visar \"" : "🔤 Showing \"") + place.name +
+            (sv ? "\" — menade du det? (du skrev \"" : "\" — did you mean that? (you typed \"") + searched + "\")";
+        }
       }
 
       // ---------- 2b) Flesh out the page with the free rich data ----------

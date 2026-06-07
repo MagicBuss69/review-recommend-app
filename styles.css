@@ -302,6 +302,8 @@ body {
 .place-name { font-size: 38px; }
 .place-stars { font-size: 18px; margin-top: 6px; }
 .muted-text { color: var(--muted); font-weight: 400; }
+.correction { color: var(--muted); font-size: 14px; margin-top: 8px; }
+.correction:empty { display: none; }
 
 /* cuisine chips under the place name */
 .cuisine-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
