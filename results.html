@@ -43,7 +43,17 @@
     <div class="place-head">
       <h1 class="place-name" id="place-name">—</h1>
       <div class="place-stars" id="place-stars"></div>
+      <div class="cuisine-chips" id="cuisine-chips"></div>
     </div>
+
+    <!-- a free map of the place (OpenStreetMap embed) -->
+    <div id="place-map" class="place-map"></div>
+
+    <!-- a rich info card filled from the free data (hours, phone, menu, etc.) -->
+    <section class="card-block info-card" id="info-card" style="display:none;">
+      <h2 data-i18n="results.infotitle">ℹ️ Good to know</h2>
+      <div id="place-info" class="place-info"></div>
+    </section>
 
     <!-- a pick based on the user's REAL saved tastes -->
     <section class="for-you">
@@ -171,6 +181,64 @@
         }
       } else {
         starsEl.textContent = sv ? "Kunde inte hitta stället 🤔" : "Couldn't find the place 🤔";
+      }
+
+      // ---------- 2b) Flesh out the page with the free rich data ----------
+      if (place && place.found) {
+        const chipsEl = document.getElementById("cuisine-chips");
+        const mapEl = document.getElementById("place-map");
+        const infoCard = document.getElementById("info-card");
+        const infoEl = document.getElementById("place-info");
+
+        // cuisine chips
+        if (place.cuisine) {
+          place.cuisine.split(/[;,]/).forEach(function (c) {
+            if (!c.trim()) return;
+            const chip = document.createElement("span");
+            chip.className = "cuisine-chip";
+            chip.textContent = "🍽️ " + c.trim();
+            chipsEl.appendChild(chip);
+          });
+        }
+
+        // free map (OpenStreetMap embed — no key needed!)
+        if (place.lat && place.lon) {
+          const lat = parseFloat(place.lat), lon = parseFloat(place.lon), d = 0.0025;
+          const bbox = (lon - d) + "," + (lat - d) + "," + (lon + d) + "," + (lat + d);
+          mapEl.innerHTML =
+            '<iframe loading="lazy" title="map" style="width:100%;height:220px;border:0;border-radius:16px;" ' +
+            'src="https://www.openstreetmap.org/export/embed.html?bbox=' + bbox +
+            '&layer=mapnik&marker=' + lat + ',' + lon + '"></iframe>';
+        }
+
+        // info rows (only added if the data exists — keeps it honest)
+        function addInfo(icon, label, value) {
+          if (!value) return;
+          const row = document.createElement("div");
+          row.className = "info-row";
+          row.innerHTML = '<span class="info-ic">' + icon + '</span>' +
+                          '<span class="info-label">' + label + ":</span> " +
+                          '<span class="info-val">' + value + "</span>";
+          infoEl.appendChild(row);
+        }
+        function yn(v) {
+          if (!v) return null;
+          if (v === "yes") return sv ? "Ja ✅" : "Yes ✅";
+          if (v === "no") return sv ? "Nej ❌" : "No ❌";
+          return v;
+        }
+        addInfo("🕐", sv ? "Öppettider" : "Hours", place.hours);
+        addInfo("📞", sv ? "Telefon" : "Phone", place.phone);
+        if (place.website) addInfo("🌐", sv ? "Webbplats" : "Website",
+          '<a href="' + place.website + '" target="_blank">' + (sv ? "Besök →" : "Visit →") + "</a>");
+        if (place.menu) addInfo("📋", sv ? "Meny" : "Menu",
+          '<a href="' + place.menu + '" target="_blank">' + (sv ? "Se meny →" : "See menu →") + "</a>");
+        addInfo("🥗", sv ? "Vegetariskt" : "Vegetarian", yn(place.vegetarian));
+        addInfo("🥡", sv ? "Avhämtning" : "Takeaway", yn(place.takeaway));
+        addInfo("☀️", sv ? "Uteservering" : "Outdoor seating", yn(place.outdoor));
+        addInfo("📍", sv ? "Adress" : "Address", place.address);
+
+        if (infoEl.children.length > 0) infoCard.style.display = "block";
       }
 
       const shownName = (place && place.name) || searched;

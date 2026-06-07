@@ -271,6 +271,30 @@ body {
 .place-stars { font-size: 18px; margin-top: 6px; }
 .muted-text { color: var(--muted); font-weight: 400; }
 
+/* cuisine chips under the place name */
+.cuisine-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+.cuisine-chip {
+  background: #E6F0FF;
+  color: var(--blue-dark);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* the free OpenStreetMap map */
+.place-map { margin-top: 18px; }
+.place-map:empty { display: none; }
+.place-map iframe { display: block; box-shadow: 0 6px 20px rgba(47, 128, 237, 0.10); }
+
+/* "Good to know" info card */
+.place-info { display: flex; flex-direction: column; gap: 10px; }
+.info-row { font-size: 15px; line-height: 1.5; }
+.info-ic { margin-right: 6px; }
+.info-label { font-weight: 700; }
+.info-val { color: var(--ink); }
+.info-row a { color: var(--blue); font-weight: 600; }
+
 /* The star feature: personal pick, big and green */
 .for-you {
   background: var(--green);

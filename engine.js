@@ -130,7 +130,15 @@ async function fetchPlaceOSM(placeName) {
     address: p.display_name || "",
     cuisine: tags.cuisine || null,
     website: tags.website || null,
+    menu: tags["website:menu"] || null,
     hours: tags.opening_hours || null,
+    phone: tags.phone || tags["contact:phone"] || null,
+    takeaway: tags.takeaway || null,
+    vegetarian: tags["diet:vegetarian"] || null,
+    vegan: tags["diet:vegan"] || null,
+    outdoor: tags.outdoor_seating || null,
+    lat: p.lat || null,
+    lon: p.lon || null,
     source: "OpenStreetMap",
   };
 }
