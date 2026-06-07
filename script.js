@@ -155,13 +155,88 @@ if (savedLoc === "near") {
   locationInput.value = savedLoc;
 }
 
+const locClear = document.getElementById("loc-clear");
+
+// is this value a real city (not blank / not "near me")?
+function isRealCity(v) { return v && !/near|nära|📍/i.test(v); }
+
+// show the ✕ only when there's text to clear
+function toggleClear() {
+  if (locClear) locClear.style.display = locationInput.value.trim() ? "block" : "none";
+}
+
+// ===== 🕘 LOCATION HISTORY (remember cities you've used) =====
+function addLocHistory(loc) {
+  const v = (loc || "").trim();
+  if (!isRealCity(v)) return;                       // skip blank / near-me
+  let h = JSON.parse(localStorage.getItem("bitebuddy-loc-history") || "[]");
+  h = h.filter(function (x) { return x.toLowerCase() !== v.toLowerCase(); });  // no duplicates
+  h.unshift(v);                                     // newest first
+  h = h.slice(0, 6);                                // keep it short
+  localStorage.setItem("bitebuddy-loc-history", JSON.stringify(h));
+}
+function renderLocHistory() {
+  const el = document.getElementById("loc-history");
+  if (!el) return;
+  const h = JSON.parse(localStorage.getItem("bitebuddy-loc-history") || "[]");
+  if (!h.length) { el.innerHTML = ""; return; }
+  const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+  let html = '<span class="loc-history-title">' + (sv ? "🕘 Senaste:" : "🕘 Recent:") + "</span>";
+  h.forEach(function (c) {
+    const safe = c.replace(/"/g, "&quot;");
+    html += '<span class="loc-chip"><button class="loc-go" data-loc="' + safe + '">' + c +
+            '</button><span class="loc-x" data-loc="' + safe + '" title="Remove">✕</span></span>';
+  });
+  el.innerHTML = html;
+  // tap a city → use it
+  el.querySelectorAll(".loc-go").forEach(function (b) {
+    b.addEventListener("click", function () {
+      const v = b.dataset.loc;
+      locationInput.value = v;
+      localStorage.setItem("bitebuddy-location", v);
+      localStorage.removeItem("bitebuddy-geo");      // a city, not GPS
+      addLocHistory(v);                              // bump it to the front
+      toggleClear();
+      renderLocHistory();
+    });
+  });
+  // ✕ on a chip → remove just that city from history
+  el.querySelectorAll(".loc-x").forEach(function (x) {
+    x.addEventListener("click", function () {
+      const v = x.dataset.loc;
+      let list = JSON.parse(localStorage.getItem("bitebuddy-loc-history") || "[]");
+      list = list.filter(function (c) { return c.toLowerCase() !== v.toLowerCase(); });
+      localStorage.setItem("bitebuddy-loc-history", JSON.stringify(list));
+      renderLocHistory();
+    });
+  });
+}
+
 // save whatever the user types
 locationInput.addEventListener("change", function () {
   const v = locationInput.value.trim();
   localStorage.setItem("bitebuddy-location", v || "near");
-  // typing a real city clears any old saved GPS location
-  if (v && !/near|nära|📍/i.test(v)) localStorage.removeItem("bitebuddy-geo");
+  if (isRealCity(v)) {
+    localStorage.removeItem("bitebuddy-geo");   // typing a real city clears old GPS
+    addLocHistory(v);
+    renderLocHistory();
+  }
 });
+locationInput.addEventListener("input", toggleClear);   // show/hide the ✕ as you type
+
+// ✕ button → clear what you wrote
+if (locClear) {
+  locClear.addEventListener("click", function () {
+    locationInput.value = "";
+    localStorage.setItem("bitebuddy-location", "near");
+    localStorage.removeItem("bitebuddy-geo");
+    toggleClear();
+    locationInput.focus();
+  });
+}
+
+toggleClear();          // set the ✕ correctly on load
+renderLocHistory();     // show recent cities on load
 
 // 📍 "Near me" — ask the browser for the real location (always OPTIONAL, never required).
 if (nearMeBtn) {

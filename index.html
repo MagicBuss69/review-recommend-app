@@ -68,13 +68,17 @@
     <!-- Location: TYPE any city, pick a suggestion, or tap 📍 for your real location -->
     <div class="location-bar">
       <label for="location-input" data-i18n="loc.label">📍 Location:</label>
-      <input
-        type="text"
-        id="location-input"
-        class="location-select"
-        list="city-list"
-        data-i18n-placeholder="loc.placeholder"
-        placeholder="Type a city, or tap 📍">
+      <span class="loc-input-wrap">
+        <input
+          type="text"
+          id="location-input"
+          class="location-select"
+          list="city-list"
+          data-i18n-placeholder="loc.placeholder"
+          placeholder="Type a city, or tap 📍">
+        <!-- ✕ clears what you typed (only shows when there's text) -->
+        <button id="loc-clear" class="loc-clear" type="button" title="Clear" aria-label="Clear">✕</button>
+      </span>
       <!-- suggestions while typing (you can still type anything that's not listed) -->
       <datalist id="city-list">
         <option value="Landskrona"></option>
@@ -86,6 +90,9 @@
       </datalist>
       <button id="near-me-btn" class="near-me-btn" type="button" title="Use my location">📍</button>
     </div>
+
+    <!-- recently-used cities — tap one to switch back fast (filled in by script.js) -->
+    <div id="loc-history" class="loc-history"></div>
 
     <!-- The paste-a-link box + button -->
     <div class="search-box">

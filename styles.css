@@ -447,7 +447,7 @@ html.is-guest [data-auth="in"]  { display: none !important; }
   transition: border-color var(--fast);
 }
 .location-select:focus, .location-select:hover { border-color: var(--blue); }
-input.location-select { width: 230px; max-width: 56vw; }
+input.location-select { width: 230px; max-width: 56vw; padding-right: 28px; }
 /* the round 📍 "use my location" button next to the location box */
 .near-me-btn {
   border: 2px solid #DCE6F5;
@@ -460,6 +460,55 @@ input.location-select { width: 230px; max-width: 56vw; }
   transition: transform var(--fast), border-color var(--fast);
 }
 .near-me-btn:hover { border-color: var(--blue); transform: scale(1.1); }
+
+/* the clear-✕ tucked inside the location box (only shows when there's text) */
+.loc-input-wrap { position: relative; display: inline-flex; align-items: center; }
+.loc-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  display: none;
+}
+.loc-clear:hover { color: var(--ink); }
+
+/* 🕘 recently-used cities under the location box */
+.loc-history { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; margin: -6px 0 18px; }
+.loc-history:empty { display: none; }
+.loc-history-title { color: var(--muted); font-weight: 700; font-size: 13px; }
+.loc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--white);
+  border: 2px solid #DCE6F5;
+  border-radius: var(--r-pill);
+  padding: 3px 8px 3px 4px;
+  transition: border-color var(--fast);
+}
+.loc-chip:hover { border-color: var(--blue); }
+.loc-go {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--r-pill);
+}
+.loc-go:hover { color: var(--blue); }
+.loc-chip .loc-x { cursor: pointer; font-weight: 800; font-size: 12px; opacity: 0.5; transition: opacity var(--fast); }
+.loc-chip .loc-x:hover { opacity: 1; }
 
 /* ===== "RECOMMEND ME A PLACE" ===== */
 .or-divider {
