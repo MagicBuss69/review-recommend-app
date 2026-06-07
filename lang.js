@@ -76,10 +76,11 @@ const translations = {
     "waiter.chip4": "Busy times?",
 
     /* profile page */
-    "profile.banner": "👀 Preview — these points and badges are pretend, just to show the idea!",
+    "profile.banner": "🌱 Your profile grows as you use BiteBuddy — earn points and badges by trying places and adding notes!",
     "profile.handle": "🍴 Member since June 2026",
     "profile.points": "💎 Points",
     "profile.streak": "🔥 Week streak",
+    "profile.notes": "✍️ Notes written",
     "profile.places": "🍽️ Places tried",
     "profile.tastestitle": "🍽️ My tastes",
     "profile.tasteshint": "Add foods you love and foods you avoid — this is what powers your personal \"FOR YOU\" picks! 💚",
@@ -212,10 +213,11 @@ const translations = {
     "waiter.chip4": "Rusningstider?",
 
     /* profile page */
-    "profile.banner": "👀 Förhandsvisning — dessa poäng och märken är på låtsas, bara för att visa idén!",
+    "profile.banner": "🌱 Din profil växer när du använder BiteBuddy — tjäna poäng och märken genom att testa ställen och lägga till anteckningar!",
     "profile.handle": "🍴 Medlem sedan juni 2026",
     "profile.points": "💎 Poäng",
     "profile.streak": "🔥 Veckostreak",
+    "profile.notes": "✍️ Anteckningar",
     "profile.places": "🍽️ Ställen testade",
     "profile.tastestitle": "🍽️ Mina smaker",
     "profile.tasteshint": "Lägg till mat du älskar och mat du undviker — det är detta som driver dina personliga \"FÖR DIG\"-val! 💚",

@@ -61,18 +61,19 @@
       <h1 class="profile-name" id="profile-name">Forky_Fan_2026</h1>
       <p class="profile-handle" data-i18n="profile.handle">🍴 Member since June 2026</p>
 
-      <!-- The 3 big numbers -->
+      <!-- The 3 big numbers — filled in by JavaScript from your REAL activity.
+           A brand-new account starts at 0 and grows as you use BiteBuddy. -->
       <div class="stats">
         <div class="stat">
-          <div class="stat-num">1,250</div>
+          <div class="stat-num" id="stat-points">0</div>
           <div class="stat-label" data-i18n="profile.points">💎 Points</div>
         </div>
         <div class="stat">
-          <div class="stat-num green">3</div>
-          <div class="stat-label" data-i18n="profile.streak">🔥 Week streak</div>
+          <div class="stat-num green" id="stat-notes">0</div>
+          <div class="stat-label" data-i18n="profile.notes">✍️ Notes written</div>
         </div>
         <div class="stat">
-          <div class="stat-num">17</div>
+          <div class="stat-num" id="stat-places">0</div>
           <div class="stat-label" data-i18n="profile.places">🍽️ Places tried</div>
         </div>
       </div>
@@ -100,15 +101,8 @@
     <section class="panel">
       <h2 data-i18n="profile.badgestitle">🏅 My badges</h2>
       <p class="hint" data-i18n="profile.badgeshint">Earn these by trying places, writing helpful tips, and keeping streaks.</p>
-      <div class="badge-row">
-        <span class="badge"><span class="emoji">🌮</span> <span data-i18n="badge.taco">Taco Explorer</span></span>
-        <span class="badge"><span class="emoji">🍕</span> <span data-i18n="badge.pizza">Pizza Pro</span></span>
-        <span class="badge"><span class="emoji">✍️</span> <span data-i18n="badge.reviewer">Helpful Reviewer</span></span>
-        <span class="badge"><span class="emoji">🔥</span> <span data-i18n="badge.streak3">3-Week Streak</span></span>
-        <!-- Locked = not earned yet, shown faded -->
-        <span class="badge locked"><span class="emoji">🍣</span> <span data-i18n="badge.sushi">Sushi Master (locked)</span></span>
-        <span class="badge locked"><span class="emoji">👑</span> <span data-i18n="badge.top10">Top 10 (locked)</span></span>
-      </div>
+      <!-- JavaScript fills this with ONLY the badges you've really earned. New = empty. -->
+      <div id="badge-row" class="badge-row"></div>
     </section>
 
     <!-- ===== MILESTONES (never-fade progress) ===== -->
@@ -116,18 +110,8 @@
       <h2 data-i18n="profile.milestonestitle">🎯 Milestones</h2>
       <p class="hint" data-i18n="profile.milestoneshint">These never disappear — no pressure, just keep going at your own pace!</p>
 
-      <div class="milestone">
-        <div class="milestone-top"><span data-i18n="profile.m1">Try 25 places</span><span>17 / 25</span></div>
-        <div class="bar"><div class="bar-fill" style="width:68%"></div></div>
-      </div>
-      <div class="milestone">
-        <div class="milestone-top"><span data-i18n="profile.m2">Write 10 helpful tips</span><span>6 / 10</span></div>
-        <div class="bar"><div class="bar-fill" style="width:60%"></div></div>
-      </div>
-      <div class="milestone">
-        <div class="milestone-top"><span data-i18n="profile.m3">Earn 2,000 points</span><span>1,250 / 2,000</span></div>
-        <div class="bar"><div class="bar-fill" style="width:62%"></div></div>
-      </div>
+      <!-- JavaScript fills these with your REAL progress (starts at 0 for a new account). -->
+      <div id="milestones"></div>
     </section>
 
     <!-- ===== COSMETIC SHOP (spend points → change banner) ===== -->
@@ -218,6 +202,8 @@
     function saveTastes() {
       localStorage.setItem('bitebuddy-likes', JSON.stringify(likes));
       localStorage.setItem('bitebuddy-dislikes', JSON.stringify(dislikes));
+      // adding tastes earns points/badges — refresh the numbers right away
+      if (window.refreshProfile) window.refreshProfile();
     }
 
     // Draw one list of foods as little chips, each with a remove (✕) button.
@@ -270,6 +256,104 @@
     });
 
     renderAll();   // draw the lists when the page first opens
+  </script>
+
+  <!--
+    ===== REAL PROGRESS (points, badges, milestones) =====
+    Everything here is counted from what you've ACTUALLY done on this device:
+      • places tried  = how many places are in your search history
+      • notes written = how many notes you've added
+      • tastes        = foods you've liked/disliked
+    A brand-new account has none of these, so it starts beautifully empty. 🌱
+    You earn points and badges by using BiteBuddy for real — nothing is pretend.
+  -->
+  <script>
+    (function () {
+      // The badges you can earn, each with the REAL condition that unlocks it.
+      const BADGES = [
+        { emoji: "🍴", en: "First Bite",  sv: "Första tuggan",   got: function (s) { return s.places >= 1; } },
+        { emoji: "🗺️", en: "Explorer",    sv: "Utforskare",      got: function (s) { return s.places >= 5; } },
+        { emoji: "✍️", en: "First Tip",   sv: "Första tipset",   got: function (s) { return s.notes  >= 1; } },
+        { emoji: "💚", en: "Tastemaker",  sv: "Smaksättare",     got: function (s) { return s.tastes >= 3; } },
+        { emoji: "🍽️", en: "Foodie",      sv: "Matälskare",      got: function (s) { return s.places >= 10; } },
+        { emoji: "💎", en: "Big Spender", sv: "Storsamlare",     got: function (s) { return s.points >= 500; } },
+      ];
+
+      // The long-term goals (progress bars). These start at 0 too.
+      const MILES = [
+        { en: "Try 25 places",     sv: "Testa 25 ställen",   cur: function (s) { return s.places; }, goal: 25 },
+        { en: "Write 10 notes",    sv: "Skriv 10 anteckningar", cur: function (s) { return s.notes; }, goal: 10 },
+        { en: "Earn 2,000 points", sv: "Tjäna 2 000 poäng",  cur: function (s) { return s.points; }, goal: 2000 },
+      ];
+
+      // Read your real activity and turn it into the numbers.
+      function getStats() {
+        const history  = JSON.parse(localStorage.getItem("bitebuddy-history")  || "[]");
+        const notesArr = JSON.parse(localStorage.getItem("bitebuddy-notes")    || "[]");
+        const likes    = JSON.parse(localStorage.getItem("bitebuddy-likes")    || "[]");
+        const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+
+        const places = history.length;
+        const notes  = notesArr.length;
+        const tastes = likes.length + dislikes.length;
+        // a simple, honest points rule: every action you do is worth something.
+        const points = places * 10 + notes * 25 + tastes * 5;
+        return { places: places, notes: notes, tastes: tastes, points: points };
+      }
+
+      // Draw everything (called on load, when you change language, and when tastes change).
+      function render() {
+        const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+        const s = getStats();
+
+        // the 3 big numbers
+        document.getElementById("stat-points").textContent = s.points.toLocaleString();
+        document.getElementById("stat-notes").textContent  = s.notes;
+        document.getElementById("stat-places").textContent = s.places;
+
+        // badges: show ONLY the ones you've really earned
+        const row = document.getElementById("badge-row");
+        row.innerHTML = "";
+        const earned = BADGES.filter(function (b) { return b.got(s); });
+        if (earned.length === 0) {
+          const empty = document.createElement("span");
+          empty.className = "taste-empty";
+          empty.textContent = sv
+            ? "Inga märken än — testa ett ställe eller skriv en anteckning för att tjäna ditt första! 🍴"
+            : "No badges yet — try a place or add a note to earn your first! 🍴";
+          row.appendChild(empty);
+        } else {
+          earned.forEach(function (b) {
+            const span = document.createElement("span");
+            span.className = "badge";
+            span.innerHTML = '<span class="emoji">' + b.emoji + "</span> " + (sv ? b.sv : b.en);
+            row.appendChild(span);
+          });
+        }
+
+        // milestones: real progress bars
+        const mEl = document.getElementById("milestones");
+        mEl.innerHTML = "";
+        MILES.forEach(function (m) {
+          const cur = m.cur(s);
+          const pct = Math.min(100, Math.round((cur / m.goal) * 100));
+          const d = document.createElement("div");
+          d.className = "milestone";
+          d.innerHTML =
+            '<div class="milestone-top"><span>' + (sv ? m.sv : m.en) + "</span>" +
+            "<span>" + cur.toLocaleString() + " / " + m.goal.toLocaleString() + "</span></div>" +
+            '<div class="bar"><div class="bar-fill" style="width:' + pct + '%"></div></div>';
+          mEl.appendChild(d);
+        });
+      }
+
+      window.refreshProfile = render;   // so other scripts can refresh after changes
+      render();                          // draw it when the page opens
+
+      // redraw in the new language if you switch 🇬🇧↔🇸🇪
+      const langSel = document.getElementById("lang-select");
+      if (langSel) langSel.addEventListener("change", render);
+    })();
   </script>
 </body>
 </html>
