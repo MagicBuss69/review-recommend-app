@@ -27,6 +27,8 @@
 
   <!-- Connect our styles -->
   <link rel="stylesheet" href="styles.css">
+  <!-- login-state helper: runs early so the nav shows the right links with no flicker -->
+  <script src="auth.js"></script>
   <!-- keys (private) + the search/lookup brain, so autocomplete works here too -->
   <script src="config.js"></script>
   <script src="engine.js"></script>
@@ -42,9 +44,11 @@
     </div>
     <nav class="nav">
       <a href="#how" data-i18n="nav.how">How it works</a>
-      <!-- This link takes you to the profile page when clicked -->
-      <a href="profile.html" data-i18n="nav.profile">🐾 Profile</a>
-      <a href="signup.html" class="btn-ghost" data-i18n="nav.login">Log in</a>
+      <!-- Profile only shows when you're logged in -->
+      <a href="profile.html" data-auth="in" data-i18n="nav.profile">🐾 Profile</a>
+      <!-- "Log in" when logged out; swaps to "Log out" when logged in -->
+      <a href="signup.html" class="btn-ghost" data-auth="out" data-i18n="nav.login">Log in</a>
+      <a href="#" class="btn-ghost" data-auth="in" data-action="logout" data-i18n="nav.logout">Log out</a>
       <!-- Language menu in the corner 🇬🇧🇸🇪 -->
       <select id="lang-select" class="lang-select" aria-label="Language">
         <option value="en">🇬🇧 English</option>

@@ -97,6 +97,14 @@ body::after {
 }
 .bg-photos.show { opacity: 0.22; }
 
+/* ===== AUTH-AWARE NAV =====
+   auth.js adds .is-auth (logged in) or .is-guest (logged out) to <html>. These rules
+   then show the right links with no flicker:
+     data-auth="in"  → only visible when logged IN
+     data-auth="out" → only visible when logged OUT  */
+html.is-auth  [data-auth="out"] { display: none !important; }
+html.is-guest [data-auth="in"]  { display: none !important; }
+
 /* Helper classes to colour parts of the name.
    We make these into GRADIENT text so the brand name shimmers a little. */
 .blue,

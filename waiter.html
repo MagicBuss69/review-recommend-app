@@ -17,6 +17,7 @@
   <meta property="og:image" content="logo.svg">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <script src="auth.js"></script>
   <!-- your private key file (not on GitHub). If missing, Tony uses the demo brain. -->
   <script src="config.js"></script>
   <!-- the real-data brain, so Tony can look up the place you actually searched -->
@@ -32,7 +33,9 @@
       <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
     </a>
     <nav class="nav">
-      <a href="profile.html" data-i18n="nav.profile">🐾 Profile</a>
+      <a href="profile.html" data-auth="in" data-i18n="nav.profile">🐾 Profile</a>
+      <a href="signup.html" class="btn-ghost" data-auth="out" data-i18n="nav.login">Log in</a>
+      <a href="#" class="btn-ghost" data-auth="in" data-action="logout" data-i18n="nav.logout">Log out</a>
       <a href="results.html" class="btn-ghost" data-i18n="nav.backresult">Back to result</a>
       <select id="lang-select" class="lang-select" aria-label="Language">
         <option value="en">🇬🇧 English</option>

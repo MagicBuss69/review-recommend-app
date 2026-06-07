@@ -21,9 +21,11 @@
   <link rel="stylesheet" href="styles.css">
   <!-- ...then the EXTRA styles just for this page -->
   <link rel="stylesheet" href="profile.css">
+  <!-- login-state helper: protects this private page + powers the Log out button -->
+  <script src="auth.js"></script>
 </head>
 
-<body>
+<body data-requires-auth>
 
   <!-- ===== TOP BAR (same as the homepage so it feels like one app) ===== -->
   <header class="topbar">
@@ -35,7 +37,7 @@
     </div>
     <nav class="nav">
       <a href="index.html" data-i18n="nav.home">Home</a>
-      <a href="#" id="logout-link" class="btn-ghost" data-i18n="nav.logout">Log out</a>
+      <a href="#" class="btn-ghost" data-auth="in" data-action="logout" data-i18n="nav.logout">Log out</a>
       <select id="lang-select" class="lang-select" aria-label="Language">
         <option value="en">🇬🇧 English</option>
         <option value="sv">🇸🇪 Svenska</option>
@@ -168,21 +170,12 @@
     });
 
 
-    /* ===== ACCOUNT (show your real name once you've signed up) ===== */
+    /* ===== ACCOUNT (show your real name once you've signed up) =====
+       (Log out and page protection are handled by the shared auth.js.) */
     (function () {
       const acc = JSON.parse(localStorage.getItem('bitebuddy-account') || 'null');
       if (acc && acc.name) {
         document.getElementById('profile-name').textContent = acc.name;
-      }
-
-      // "Log out" — forget the login on this device and head home.
-      const logout = document.getElementById('logout-link');
-      if (logout) {
-        logout.addEventListener('click', function (e) {
-          e.preventDefault();
-          localStorage.removeItem('bitebuddy-loggedin');   // keep tastes; just sign out
-          window.location.href = 'index.html';
-        });
       }
     })();
 
