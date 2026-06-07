@@ -175,11 +175,9 @@
 
       let place = null, reviews = [], source = "";
       try {
-        if (hasMaps) {
-          place = await fetchPlace(searched);                 // Google: info + reviews
-          if (place && place.found) { reviews = place.reviews || []; source = "google"; }
-        } else {
-          place = await fetchPlaceOSM(searched);              // free place info (no reviews)
+        place = await lookupPlace(searched);                  // cached lookup (Google or free OSM)
+        if (place && place.found && place.reviews && place.reviews.length) {
+          reviews = place.reviews; source = "google";
         }
       } catch (e) {
         console.log("place lookup error:", e);
@@ -198,6 +196,11 @@
         }
       } else {
         starsEl.textContent = sv ? "Kunde inte hitta stället 🤔" : "Couldn't find the place 🤔";
+      }
+
+      // show a little badge when this was reused from the cache (no internet call!)
+      if (place && place.found && place._fromCache) {
+        starsEl.textContent += sv ? " · ⚡ från cache" : " · ⚡ cached";
       }
 
       // ---------- 2b) Flesh out the page with the free rich data ----------

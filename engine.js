@@ -156,3 +156,43 @@ function getUserNotes(placeName) {
     })
     .map(function (n) { return n.text; });
 }
+
+/*
+  ===== SIMPLE CACHE (the "reuse" feature) =====
+  Saves a place's info the first time, then reuses it next time instead of fetching
+  again. This makes repeat lookups instant AND saves Google calls (= saves money).
+  This is the SIMPLE level (browser-only). The BIG win — one fetch helping ALL users —
+  comes later with the shared cache on the Raspberry Pi server.
+*/
+function cacheGet(key) {
+  try {
+    const raw = localStorage.getItem("bitebuddy-cache:" + key);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    const ageDays = (Date.now() - obj.time) / (1000 * 60 * 60 * 24);
+    if (ageDays > 7) return null;          // expire after a week to stay fresh
+    return obj.data;
+  } catch (e) { return null; }
+}
+function cacheSet(key, data) {
+  try {
+    localStorage.setItem("bitebuddy-cache:" + key, JSON.stringify({ time: Date.now(), data: data }));
+  } catch (e) { /* storage full or blocked — just skip caching */ }
+}
+
+/*
+  Look up a place WITH caching. First checks the saved copy; only calls the internet
+  if we don't already have a fresh one. Uses Google if a Maps key is set, else free OSM.
+*/
+async function lookupPlace(placeName) {
+  const loc = localStorage.getItem("bitebuddy-location") || "near";
+  const useGoogle = !!getGoogleMapsKey();
+  const key = (useGoogle ? "g:" : "o:") + loc + ":" + placeName.toLowerCase();
+
+  const cached = cacheGet(key);
+  if (cached) { cached._fromCache = true; return cached; }   // ⚡ reuse — no internet call!
+
+  const place = useGoogle ? await fetchPlace(placeName) : await fetchPlaceOSM(placeName);
+  if (place && place.found) cacheSet(key, place);            // remember it for next time
+  return place;
+}
