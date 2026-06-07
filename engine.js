@@ -101,11 +101,13 @@ async function summarizeReviews(placeName, reviews) {
     "Reply ONLY as JSON in this shape: " +
     '{"summary":"one friendly sentence","good":["short point"],"bad":["short point"],' +
     '"dishes":["dish name"],"drinks":["drink name"],' +
-    '"meal":{"main":"","side":"","drink":"","dessert":""}}. ' +
-    "List at most 4 dishes, most-loved first. " +
+    '"meal":{"main":"","side":"","drink":"","dessert":"","note":""}}. ' +
+    "List at most 4 dishes, most-loved first, and be SPECIFIC with names " +
+    "(e.g. 'double smash burger', not just 'burger'; 'salmon nigiri', not just 'sushi'). " +
     "For 'meal', suggest ONE full meal using ONLY items reviewers actually mention: the best " +
-    "main dish, plus a side, a drink and a dessert IF mentioned. Leave any field an empty " +
-    'string "" when reviewers do not mention it — NEVER invent menu items. ' +
+    "main, plus a side, a drink and a dessert IF mentioned. In 'note', write ONE friendly " +
+    "sentence describing the meal with real details reviewers give (taste, portion, why it's good). " +
+    'Leave any field an empty string "" when reviewers do not mention it — NEVER invent items. ' +
     "Always reply in " + lang + ", even if the reviews are in another language.";
 
   const reviewText = reviews.map(function (r, i) { return (i + 1) + ". " + r; }).join("\n");

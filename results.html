@@ -478,14 +478,25 @@
       setupFavButton(shownName);   // ⭐ wire up the Save button for this place
       if (typeof bbMarkActiveWeek === "function") bbMarkActiveWeek();   // 🔥 you used BiteBuddy this week!
 
-      // 📋 reliable "See the menu" button — real website if we have it, else a web search
-      (function () {
+      // 📋 "See the menu" — try hard to link DIRECTLY to the actual menu
+      (async function () {
         const mlt = document.getElementById("menu-link-top");
         if (!mlt) return;
-        const menuUrl = place.menu || place.website ||
-          ("https://www.google.com/search?q=" + encodeURIComponent((place.name || searched) + " menu"));
-        mlt.innerHTML = '<a href="' + menuUrl + '" target="_blank" rel="noopener" class="menu-btn">' +
-          (sv ? "📋 Se menyn" : "📋 See the menu") + "</a>";
+        const label = sv ? "📋 Se menyn" : "📋 See the menu";
+        const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent((place.name || searched) + " menu");
+        function setLink(url) { mlt.innerHTML = '<a href="' + url + '" target="_blank" rel="noopener" class="menu-btn">' + label + "</a>"; }
+
+        // show the best link we already have right away (direct menu > website > web search)
+        setLink(place.menu || place.website || searchUrl);
+
+        // no direct menu yet? ask OpenStreetMap — it often stores the real menu URL (website:menu)
+        if (!place.menu && typeof fetchPlaceOSM === "function") {
+          try {
+            const osm = await fetchPlaceOSM(place.name || searched);
+            if (osm && osm.found && osm.menu) setLink(osm.menu);                       // 🎯 a true, direct menu link
+            else if (osm && osm.found && !place.website && osm.website) setLink(osm.website);
+          } catch (e) { /* keep the link we already set */ }
+        }
       })();
 
       // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
@@ -597,6 +608,7 @@
                   '<div><span class="meal-course">' + (sv ? c.sv : c.en) + ":</span> <strong>" + c.val + "</strong>" +
                   (c.tag ? '<div class="meal-tag">' + c.tag + "</div>" : "") + "</div></div>";
               });
+              if (meal.note) mhtml += '<p class="meal-note-text">“' + meal.note + '”</p>';   // a tasty detail
               if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = "block"; }
             }
 
