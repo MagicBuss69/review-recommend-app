@@ -68,7 +68,8 @@ unclear — rough order. (Magic, you'll know these well!)
 (The new restaurants you mentioned — the internet often doesn't have these yet, and
 they're your best marketing hook!)
 
-- **Mister York** — opened a couple of months ago (~spring 2026). _Added by Magic 🐾_
+- **Mister York** — American-style 🍔 — smash burgers, crispy chicken, vegetarian
+  alternatives, loaded fries, and milkshakes. Opened ~spring 2026. _Added by Magic 🐾_
 - _add here..._
 
 ## 🚫 Appear to be closed (don't add)
