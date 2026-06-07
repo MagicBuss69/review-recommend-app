@@ -373,6 +373,27 @@ html.is-guest [data-auth="in"]  { display: none !important; }
   padding: 6px 0;
 }
 
+/* ===== THEMED SECTION BACKGROUNDS ===== faint doodles that match the section */
+.how, .feedback { position: relative; overflow: hidden; }
+/* keep the real content above the decoration */
+.how > *:not(.section-deco), .feedback > *:not(.section-deco) { position: relative; z-index: 1; }
+.section-deco { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ⚙️ cog wheels behind "How it works" (slowly turning) */
+.how-deco .cog { position: absolute; opacity: 0.08; animation: spin 16s linear infinite; }
+.how-deco .c1 { top: 6%;  left: 4%;  font-size: 72px; }
+.how-deco .c2 { top: 55%; left: 11%; font-size: 48px; animation-duration: 12s; animation-direction: reverse; }
+.how-deco .c3 { top: 12%; right: 8%; font-size: 56px; animation-duration: 20s; }
+.how-deco .c4 { bottom: 6%; right: 5%; font-size: 84px; animation-direction: reverse; }
+.how-deco .c5 { bottom: 16%; left: 47%; font-size: 40px; animation-duration: 10s; }
+
+/* 💡 lightbulbs behind the ideas/feedback box (gently floating) */
+.fb-deco .bulb { position: absolute; opacity: 0.08; animation: float 5s ease-in-out infinite; }
+.fb-deco .b1 { top: 8%;  left: 8%;  font-size: 50px; }
+.fb-deco .b2 { top: 22%; right: 9%; font-size: 36px; animation-delay: 1s; }
+.fb-deco .b3 { bottom: 14%; left: 13%; font-size: 42px; animation-delay: 0.5s; }
+.fb-deco .b4 { bottom: 20%; right: 12%; font-size: 48px; animation-delay: 1.5s; }
+
 /* ===== HOW IT WORKS ===== */
 .how {
   background: rgba(255, 255, 255, 0.65);
