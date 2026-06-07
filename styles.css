@@ -462,3 +462,31 @@ body {
   color: var(--muted);
   font-size: 14px;
 }
+
+/* ===== RESPONSIVE: look good & centered on EVERY device ===== */
+/* never let images/maps overflow their box */
+img, iframe { max-width: 100%; }
+
+/* tablets and down: tidy the top bar so it doesn't overflow */
+@media (max-width: 820px) {
+  .topbar { flex-wrap: wrap; gap: 10px; padding: 14px 18px; }
+  .nav { gap: 14px; flex-wrap: wrap; }
+}
+
+/* phones: bigger touch targets, stacked search, smaller headings */
+@media (max-width: 600px) {
+  .hero { padding: 24px 16px 50px; }
+  .hero-title { font-size: 40px; }
+  .hero-tagline { font-size: 18px; }
+  .place-name { font-size: 30px; }
+  .how, .feedback { padding: 40px 16px; }
+  .how h2, .feedback h2 { font-size: 26px; }
+
+  /* stack the search and chat boxes so input + button each get full width */
+  .search-box, .chat-box { flex-direction: column; }
+  .search-box .btn-primary,
+  .chat-box .btn-primary { width: 100%; }
+
+  /* let the nav links sit comfortably */
+  .brand-name { font-size: 22px; }
+}
