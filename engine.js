@@ -220,21 +220,26 @@ async function searchSuggestions(text) {
 
   const loc = localStorage.getItem("bitebuddy-location");
   const city = (loc && loc !== "near") ? loc : "Landskrona";
-  const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
-    "&limit=5&namedetails=1&addressdetails=1&q=" + encodeURIComponent(q + ", " + city + ", Sweden");
+
+  // Photon is a FREE OpenStreetMap search engine built for type-ahead (handles partial
+  // words & misspellings). We filter to food places so suggestions are restaurants/cafés.
+  const foodTags =
+    "&osm_tag=amenity:restaurant&osm_tag=amenity:cafe&osm_tag=amenity:fast_food" +
+    "&osm_tag=amenity:bar&osm_tag=amenity:pub&osm_tag=amenity:bakery";
+  const url = "https://photon.komoot.io/api/?limit=6&lang=en" + foodTags +
+    "&q=" + encodeURIComponent(q + " " + city);
 
   const ctrl = new AbortController();
   const timer = setTimeout(function () { ctrl.abort(); }, 6000);
   try {
-    const res = await fetch(url, { headers: { Accept: "application/json" }, signal: ctrl.signal });
+    const res = await fetch(url, { signal: ctrl.signal });
     if (!res.ok) return [];
     const data = await res.json();
     const seen = {};
-    return (data || []).map(function (p) {
-      const name = (p.namedetails && p.namedetails.name) ||
-                   (p.display_name ? p.display_name.split(",")[0] : "");
-      const area = p.display_name ? p.display_name.split(",").slice(1, 3).join(",").trim() : "";
-      return { name: name, area: area };
+    return (data.features || []).map(function (f) {
+      const p = f.properties || {};
+      const area = [p.city, p.street].filter(Boolean).join(", ");
+      return { name: p.name || "", area: area };
     }).filter(function (s) {
       if (!s.name || seen[s.name.toLowerCase()]) return false;  // drop blanks & duplicates
       seen[s.name.toLowerCase()] = true;
