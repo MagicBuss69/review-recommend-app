@@ -99,3 +99,52 @@ async function summarizeReviews(placeName, reviews) {
   const data = await res.json();
   return JSON.parse(data.candidates[0].content.parts[0].text);
 }
+
+/*
+  FREE place lookup via OpenStreetMap (Nominatim) — no key, no credit card! 🆓
+  Gives the real place + basic info (address, cuisine, website, hours).
+  ❗ It has NO reviews — for those we use the users' own notes (below).
+  Returns { found:true, name, address, cuisine, website, hours, source } or { found:false }.
+*/
+async function fetchPlaceOSM(placeName) {
+  const loc = localStorage.getItem("bitebuddy-location");
+  const query = placeName + ((loc && loc !== "near") ? ", " + loc : ", Landskrona, Sweden");
+
+  const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
+    "&addressdetails=1&namedetails=1&extratags=1&limit=1&q=" + encodeURIComponent(query);
+
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error("OpenStreetMap status " + res.status);
+
+  const data = await res.json();
+  if (!data || data.length === 0) return { found: false };
+
+  const p = data[0];
+  const tags = p.extratags || {};
+  const name = (p.namedetails && p.namedetails.name) ||
+               (p.display_name ? p.display_name.split(",")[0] : placeName);
+
+  return {
+    found: true,
+    name: name,
+    address: p.display_name || "",
+    cuisine: tags.cuisine || null,
+    website: tags.website || null,
+    hours: tags.opening_hours || null,
+    source: "OpenStreetMap",
+  };
+}
+
+/*
+  The users' own notes for a place = our FREE "reviews".
+  Notes are saved as { place, text } so each place only shows ITS own notes.
+*/
+function getUserNotes(placeName) {
+  const all = JSON.parse(localStorage.getItem("bitebuddy-notes") || "[]");
+  return all
+    .filter(function (n) {
+      return n && typeof n === "object" && n.place && placeName &&
+             n.place.toLowerCase() === placeName.toLowerCase();
+    })
+    .map(function (n) { return n.text; });
+}

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
-  BiteBuddy — Results page
-  This page is HONEST: with keys in config.js it fetches the REAL place from Google and
-  has Gemini summarise the real reviews. WITHOUT keys it clearly says it has no real data
-  yet (instead of pretending). No more fake placeholder reviews.
+  BiteBuddy — Results page (honest + FREE-first)
+  - Finds the real place for FREE via OpenStreetMap (or Google if a Maps key is set).
+  - Uses real reviews: Google reviews if available, otherwise the users' own notes.
+  - Gemini summarises ONLY those real reviews (never invents). No keys → it says so honestly.
 -->
 <html lang="en">
 <head>
@@ -12,7 +12,6 @@
   <title>BiteBuddy — Your result</title>
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
-  <!-- your private keys (not on GitHub) + the fetch/summarise brain -->
   <script src="config.js"></script>
   <script src="engine.js"></script>
 </head>
@@ -35,41 +34,37 @@
     </nav>
   </header>
 
-  <!-- honest status line — the code fills this in (loading / demo / real / error) -->
+  <!-- honest status line — the code fills this in -->
   <div class="demo-banner" id="banner">Loading…</div>
 
   <!-- ===== THE RESULT CARD ===== -->
   <main class="result">
 
-    <!-- Place name + rating (filled by the code) -->
     <div class="place-head">
       <h1 class="place-name" id="place-name">—</h1>
       <div class="place-stars" id="place-stars"></div>
     </div>
 
-    <!-- THE STAR FEATURE: a pick based on the user's REAL saved tastes -->
+    <!-- a pick based on the user's REAL saved tastes -->
     <section class="for-you">
       <div class="for-you-score" id="for-you-title" data-i18n="results.foryou">💚 For you</div>
       <p class="for-you-text" id="for-you-text"></p>
     </section>
 
-    <!-- talk to the AI waiter before you go -->
     <a href="waiter.html" class="btn-waiter" data-i18n="results.waiterbtn">👨‍🍳 Chat with the AI waiter before you go</a>
 
-    <!-- What people say (filled from real reviews, or an honest message) -->
     <section class="card-block">
       <h2 data-i18n="results.saytitle">📝 What people say</h2>
       <ul class="say-list" id="say-list"></ul>
     </section>
 
-    <!-- Business health (from real numbers, or honest "not enough data") -->
     <section class="card-block">
       <h2 data-i18n="results.healthtitle">💰 Business health</h2>
       <p class="health-good" id="health-line"></p>
       <p class="muted-text" id="health-text"></p>
     </section>
 
-    <!-- ===== CUSTOMER'S OWN NOTE ===== -->
+    <!-- ===== CUSTOMER'S OWN NOTE (these become the free "reviews") ===== -->
     <section class="card-block">
       <h2 data-i18n="results.notetitle">📝 Been here? Add your own note</h2>
       <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.notesub">Share what YOU thought — it helps other food lovers.</p>
@@ -87,23 +82,21 @@
 
   </main>
 
-  <!-- ===== THE HONEST CONTROLLER: fetch real data + fill the page ===== -->
+  <!-- ===== THE HONEST, FREE-FIRST CONTROLLER ===== -->
   <script>
     (async function () {
-      const lang = localStorage.getItem("bitebuddy-lang") || "en";
-      const sv = (lang === "sv");
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
 
-      const banner     = document.getElementById("banner");
+      const banner      = document.getElementById("banner");
       const placeNameEl = document.getElementById("place-name");
-      const starsEl    = document.getElementById("place-stars");
-      const sayList    = document.getElementById("say-list");
-      const healthLine = document.getElementById("health-line");
-      const healthText = document.getElementById("health-text");
+      const starsEl     = document.getElementById("place-stars");
+      const sayList     = document.getElementById("say-list");
+      const healthLine  = document.getElementById("health-line");
+      const healthText  = document.getElementById("health-text");
 
-      // little helpers
-      function say(msgs) {
+      function say(items) {
         sayList.innerHTML = "";
-        msgs.forEach(function (m) {
+        items.forEach(function (m) {
           const li = document.createElement("li");
           li.className = m.kind;
           li.textContent = m.text;
@@ -112,7 +105,6 @@
       }
       function oneSay(text) { say([{ kind: "muted-text", text: text }]); }
 
-      // What did the user search for?
       const searched = (localStorage.getItem("bitebuddy-search") || "").trim();
       placeNameEl.textContent = searched || (sv ? "Inget ställe valt" : "No place chosen");
 
@@ -144,98 +136,100 @@
         el.innerHTML = msg;
       })();
 
-      // ---------- No place searched ----------
       if (!searched) {
         banner.textContent = sv ? "Sök ett ställe på startsidan först." : "Search a place on the home page first.";
         oneSay(sv ? "Inget ställe valt." : "No place chosen.");
-        healthText.textContent = "";
         return;
       }
 
-      // ---------- No Google Maps key → be HONEST (no fake reviews) ----------
-      if (!hasMaps) {
-        banner.textContent = sv
-          ? "ℹ️ Demoläge — lägg till en Google Maps-nyckel i config.js för att hämta RIKTIGA recensioner."
-          : "ℹ️ Demo mode — add a Google Maps key in config.js to fetch REAL reviews.";
-        oneSay(sv
-          ? "Inga riktiga recensioner laddade än. Anslut en Google Maps-nyckel för att hämta dem."
-          : "No real reviews loaded yet. Connect a Google Maps key to fetch them.");
-        healthText.textContent = sv
-          ? "Vi kan inte bedöma stället förrän riktiga recensioner är anslutna."
-          : "We can't judge this place until real reviews are connected.";
-        return;
-      }
+      // ---------- 1) Find the place (FREE OpenStreetMap, or Google if a Maps key is set) ----------
+      banner.textContent = sv ? "🔎 Letar upp stället…" : "🔎 Looking up the place…";
+      oneSay(sv ? "Laddar…" : "Loading…");
 
-      // ---------- We have a Maps key → fetch the REAL place ----------
-      banner.textContent = sv ? "🔎 Hämtar riktig info från Google…" : "🔎 Fetching real info from Google…";
-      oneSay(sv ? "Laddar recensioner…" : "Loading reviews…");
-
+      let place = null, reviews = [], source = "";
       try {
-        const place = await fetchPlace(searched);
-
-        if (!place || !place.found) {
-          banner.textContent = sv
-            ? "🤔 Hittade inte stället på Google. Prova exakt namn + stad."
-            : "🤔 Couldn't find that place on Google. Try the exact name + city.";
-          oneSay(sv ? "Inga recensioner hittades för \"" + searched + "\"." : "No reviews found for \"" + searched + "\".");
-          healthText.textContent = "";
-          return;
+        if (hasMaps) {
+          place = await fetchPlace(searched);                 // Google: info + reviews
+          if (place && place.found) { reviews = place.reviews || []; source = "google"; }
+        } else {
+          place = await fetchPlaceOSM(searched);              // free place info (no reviews)
         }
+      } catch (e) {
+        console.log("place lookup error:", e);
+        banner.textContent = (sv ? "😅 Kunde inte slå upp stället (" : "😅 Couldn't look up the place (") + e.message + ").";
+      }
 
-        // real name + rating
+      // ---------- 2) Show the place header ----------
+      if (place && place.found) {
         placeNameEl.textContent = place.name || searched;
         if (place.rating) {
           starsEl.textContent = "⭐ " + place.rating + " · " + place.count + (sv ? " Google-recensioner" : " Google reviews");
-        } else {
-          starsEl.textContent = sv ? "Inga betyg än" : "No rating yet";
+        } else if (place.cuisine) {
+          starsEl.textContent = "🍽️ " + place.cuisine + (place.source ? " · " + place.source : "");
+        } else if (place.source) {
+          starsEl.textContent = "📍 " + (sv ? "Hittad via " : "found via ") + place.source;
         }
+      } else {
+        starsEl.textContent = sv ? "Kunde inte hitta stället 🤔" : "Couldn't find the place 🤔";
+      }
 
-        // honest business-health read from the real numbers
-        if (place.count >= 1 && place.rating) {
-          if (place.rating >= 4)      healthLine.textContent = sv ? "Omtyckt 👍" : "Well-liked 👍";
-          else if (place.rating >= 3) healthLine.textContent = sv ? "Blandat 🤷" : "Mixed reviews 🤷";
-          else                         healthLine.textContent = sv ? "Kämpar 👎" : "Struggling 👎";
-          healthText.textContent = (sv ? "Baserat på " : "Based on ") + place.count +
-            (sv ? " Google-recensioner (betyg " : " Google reviews (rating ") + place.rating + "/5).";
-        } else {
-          healthLine.textContent = "";
-          healthText.textContent = sv ? "För få recensioner för att bedöma än." : "Too few reviews to judge yet.";
-        }
+      const shownName = (place && place.name) || searched;
 
-        // reviews → summary
-        if (!place.reviews || place.reviews.length === 0) {
-          banner.textContent = sv ? "ℹ️ Hittade stället, men inga recensioner än." : "ℹ️ Found the place, but no reviews yet.";
-          oneSay(sv ? "Inga recensioner att sammanfatta än." : "No reviews to summarise yet.");
-          return;
-        }
+      // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
+      if (reviews.length === 0) {
+        const notes = getUserNotes(shownName);
+        if (notes.length > 0) { reviews = notes; source = "notes"; }
+      }
 
-        if (hasGemini) {
-          banner.textContent = sv ? "🤖 Sammanfattar riktiga Google-recensioner…" : "🤖 Summarising real Google reviews…";
-          const result = await summarizeReviews(place.name || searched, place.reviews);
+      // ---------- 4) Business health (honest) ----------
+      if (place && place.rating) {
+        if (place.rating >= 4)      healthLine.textContent = sv ? "Omtyckt 👍" : "Well-liked 👍";
+        else if (place.rating >= 3) healthLine.textContent = sv ? "Blandat 🤷" : "Mixed 🤷";
+        else                         healthLine.textContent = sv ? "Kämpar 👎" : "Struggling 👎";
+        healthText.textContent = (sv ? "Baserat på " : "Based on ") + place.count + (sv ? " Google-recensioner." : " Google reviews.");
+      } else if (reviews.length > 0) {
+        healthLine.textContent = "";
+        healthText.textContent = (sv ? "Baserat på " : "Based on ") + reviews.length +
+          (source === "notes" ? (sv ? " användaranteckningar." : " user notes.") : (sv ? " recensioner." : " reviews."));
+      } else {
+        healthLine.textContent = "";
+        healthText.textContent = sv ? "För få recensioner för att bedöma än." : "Too few reviews to judge yet.";
+      }
+
+      // ---------- 5) Show / summarise the reviews ----------
+      if (reviews.length === 0) {
+        banner.textContent = sv ? "📝 Inga recensioner än — bli först att skriva en anteckning nedan!" : "📝 No reviews yet — be the first to add a note below!";
+        oneSay(sv ? "Inga recensioner än för \"" + shownName + "\"." : "No reviews yet for \"" + shownName + "\".");
+        return;
+      }
+
+      const srcLabel = source === "google"
+        ? (sv ? "Google-recensioner" : "Google reviews")
+        : (sv ? "användaranteckningar" : "user notes");
+
+      if (hasGemini) {
+        banner.textContent = sv ? "🤖 Sammanfattar riktiga recensioner…" : "🤖 Summarising real reviews…";
+        try {
+          const result = await summarizeReviews(shownName, reviews);
           const out = [];
           (result.good || []).forEach(function (p) { out.push({ kind: "good", text: "👍 " + p }); });
           (result.bad || []).forEach(function (p) { out.push({ kind: "bad", text: "👎 " + p }); });
-          say(out);
-          banner.textContent = (sv ? "🤖 AI-sammanfattning av " : "🤖 AI summary of ") + place.reviews.length +
-            (sv ? " riktiga Google-recensioner" : " real Google reviews");
-        } else {
-          // No Gemini key → show the real reviews directly (still honest, just not summarised)
-          banner.textContent = sv
-            ? "ℹ️ Visar riktiga Google-recensioner. Lägg till en Gemini-nyckel för en AI-sammanfattning."
-            : "ℹ️ Showing real Google reviews. Add a Gemini key for an AI summary.";
-          say(place.reviews.slice(0, 5).map(function (r) { return { kind: "good", text: "💬 " + r }; }));
+          say(out.length ? out : [{ kind: "muted-text", text: result.summary || "" }]);
+          banner.textContent = (sv ? "🤖 AI-sammanfattning av " : "🤖 AI summary of ") + reviews.length + " " + srcLabel;
+        } catch (e) {
+          banner.textContent = (sv ? "😅 Kunde inte sammanfatta (" : "😅 Couldn't summarise (") + e.message + ").";
+          say(reviews.slice(0, 5).map(function (r) { return { kind: "good", text: "💬 " + r }; }));
         }
-      } catch (e) {
+      } else {
         banner.textContent = sv
-          ? "😅 Kunde inte ladda Google-data (" + e.message + "). Det kan behöva en server (CORS)."
-          : "😅 Couldn't load Google data (" + e.message + "). It may need a server (CORS).";
-        oneSay(sv ? "Kunde inte ladda recensioner." : "Couldn't load reviews.");
-        console.log("Fetch error:", e);
+          ? "ℹ️ Visar riktiga recensioner. Lägg till en Gemini-nyckel för en AI-sammanfattning."
+          : "ℹ️ Showing real reviews. Add a Gemini key for an AI summary.";
+        say(reviews.slice(0, 5).map(function (r) { return { kind: "good", text: "💬 " + r }; }));
       }
     })();
   </script>
 
-  <!-- Small script just for this page's note box -->
+  <!-- Note box — saves notes PER PLACE so each place shows only its own. -->
   <script>
     const noteInput = document.getElementById("note-input");
     const noteBtn = document.getElementById("note-btn");
@@ -243,14 +237,14 @@
 
     noteBtn.addEventListener("click", function () {
       const text = noteInput.value.trim();
-      if (text === "") {
-        noteMessage.textContent = "🐾 Type your note first!";
-        return;
-      }
+      if (text === "") { noteMessage.textContent = "🐾 Type your note first!"; return; }
+
+      const place = document.getElementById("place-name").textContent || "Unknown";
       const saved = JSON.parse(localStorage.getItem("bitebuddy-notes") || "[]");
-      saved.push(text);
+      saved.push({ place: place, text: text });   // tie each note to its place
       localStorage.setItem("bitebuddy-notes", JSON.stringify(saved));
-      noteMessage.textContent = "🐾 Thanks! Your note has been added. 💚";
+
+      noteMessage.textContent = "🐾 Thanks! Your note was added — refresh to see it in the summary. 💚";
       noteInput.value = "";
     });
   </script>
@@ -259,7 +253,6 @@
     <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
   </footer>
 
-  <!-- the language system (English + Svenska) -->
   <script src="lang.js"></script>
 </body>
 </html>
