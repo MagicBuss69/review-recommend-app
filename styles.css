@@ -557,6 +557,11 @@ input.location-select { width: 230px; max-width: 56vw; padding-right: 28px; }
 }
 .btn-recommend:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(39, 174, 96, 0.45); filter: brightness(1.05); }
 .btn-recommend:active { transform: translateY(1px) scale(0.98); }
+/* the two recommend buttons sit side by side (stack on small screens) */
+.reco-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+/* the "suits my taste" button — a warm love-themed pink to stand apart from the random one */
+.btn-taste { background: linear-gradient(135deg, #FF7AA2, #FF4E83); box-shadow: 0 8px 18px rgba(255, 78, 131, 0.35); }
+.btn-taste:hover { box-shadow: 0 12px 24px rgba(255, 78, 131, 0.45); }
 
 /* the card showing Forky's pick */
 .recommend-card {

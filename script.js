@@ -346,6 +346,89 @@ recommendBtn.addEventListener("click", async function () {
 });
 
 
+/* ===== 💚 "SUITS MY TASTE" — recommend a nearby place that matches foods you like ===== */
+// score a place: +2 for each liked food it mentions, -3 for each disliked one.
+function tasteScore(place, likes, dislikes) {
+  const hay = ((place.food || "") + " " + (place.name || "")).toLowerCase();
+  let score = 0, matched = null;
+  likes.forEach(function (f) { if (f && hay.indexOf(f.toLowerCase()) >= 0) { score += 2; if (!matched) matched = f; } });
+  dislikes.forEach(function (f) { if (f && hay.indexOf(f.toLowerCase()) >= 0) score -= 3; });
+  return { score: score, matched: matched };
+}
+
+const tasteBtn = document.getElementById("taste-btn");
+if (tasteBtn) tasteBtn.addEventListener("click", async function () {
+  const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+  const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
+  const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+
+  // need to know your tastes first
+  if (!likes.length) {
+    recommendCard.innerHTML = sv
+      ? "💚 Lägg till mat du gillar på din <a href='profile.html'>Profil</a> först, så väljer Forky åt dig!"
+      : "💚 Add foods you like on your <a href='profile.html'>Profile</a> first, then Forky can pick for you!";
+    return;
+  }
+
+  const loc = locationInput.value.trim();
+  recommendCard.innerHTML = '<span class="spinner"></span> ' + (sv ? "🐾 Forky letar efter din smak…" : "🐾 Forky is matching your taste…");
+
+  // get nearby places (same engine as the random button)
+  let pool = [];
+  if (typeof nearbyFoodPlaces === "function") {
+    try { pool = await nearbyFoodPlaces(loc); } catch (e) { pool = []; }
+  }
+  if (!pool || pool.length < 3) {
+    const lc = loc.toLowerCase();
+    const nearish = lc === "" || /near|nära|📍/.test(lc);
+    const hasGeo = !!localStorage.getItem("bitebuddy-geo");
+    if (lc === "landskrona" || (nearish && !hasGeo)) {
+      pool = landskronaPlaces;
+    } else {
+      const where = nearish ? (sv ? "din plats" : "your area") : loc;
+      recommendCard.innerHTML = sv
+        ? "😅 Forky kunde inte nå matkartan för <strong>" + where + "</strong> just nu — försök igen!"
+        : "😅 Forky couldn't reach the food map for <strong>" + where + "</strong> right now — try again!";
+      return;
+    }
+  }
+
+  // score every place, best first; pick (a little randomly) among the best matches
+  const scored = pool.map(function (p) { const t = tasteScore(p, likes, dislikes); return { p: p, score: t.score, matched: t.matched }; });
+  scored.sort(function (a, b) { return b.score - a.score; });
+  const topScore = scored[0].score;
+
+  let chosen;
+  if (topScore > 0) {
+    const top = scored.filter(function (s) { return s.score === topScore; });
+    chosen = top[Math.floor(Math.random() * top.length)];
+  } else {
+    // nothing matched a food you like → at least avoid your dislikes
+    const ok = scored.filter(function (s) { return s.score >= 0; });
+    const pickFrom = ok.length ? ok : scored;
+    chosen = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+  }
+
+  const place = chosen.p;
+  const emoji = place.emoji || cuisineEmoji(place.food);
+  const why = chosen.matched
+    ? (sv ? "💚 För att du gillar <strong>" + chosen.matched + "</strong>" : "💚 Because you like <strong>" + chosen.matched + "</strong>")
+    : (sv ? "💚 Vald för din smak (inget perfekt matchade — men inget du ogillar!)" : "💚 Picked for your taste (no perfect match nearby — but nothing you dislike!)");
+
+  localStorage.setItem("bitebuddy-search", place.name);
+  addToHistory(place.name);
+
+  recommendCard.innerHTML =
+    '<div class="pick-emoji">' + emoji + "</div>" +
+    '<div class="pick-title">' + (sv ? "För dig: " : "For you: ") + "<strong>" + place.name + "</strong></div>" +
+    '<div class="pick-food">' + why + "</div>" +
+    (place.food ? '<div class="pick-food">' + place.food + "</div>" : "") +
+    '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Se detaljer 🔍" : "See details 🔍") + "</a>";
+
+  renderHistory();
+});
+
+
 /* ===== FEEDBACK BOX ===== */
 const feedbackInput = document.getElementById("feedback-input");
 const feedbackBtn = document.getElementById("feedback-btn");
