@@ -10,10 +10,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BiteBuddy — Your AI Waiter</title>
+  <meta name="description" content="Chat with Tony, BiteBuddy's AI waiter, and ask anything about a restaurant before you go. 👨‍🍳">
+  <meta name="theme-color" content="#2F80ED">
+  <meta property="og:title" content="BiteBuddy — Your AI Waiter 👨‍🍳">
+  <meta property="og:description" content="Ask Tony anything about the place before you visit.">
+  <meta property="og:image" content="logo.svg">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <!-- your private key file (not on GitHub). If missing, Tony uses the demo brain. -->
   <script src="config.js"></script>
+  <!-- the real-data brain, so Tony can look up the place you actually searched -->
+  <script src="engine.js"></script>
 </head>
 
 <body>
@@ -40,7 +47,8 @@
   <main class="waiter">
     <div class="waiter-head">
       <h1 data-i18n="waiter.title">👨‍🍳 Tony, your AI waiter</h1>
-      <p class="muted-text" data-i18n="waiter.subtitle">at Mister York, Landskrona · ask me anything before you visit!</p>
+      <!-- JS fills this with the REAL place you searched (no data-i18n so it isn't overwritten) -->
+      <p class="muted-text" id="waiter-subtitle">…</p>
     </div>
 
     <!-- Messages show up here -->
@@ -60,9 +68,9 @@
     <!-- Quick question buttons so it's easy to start.
          (data-q stays English so the demo brain still understands the click.) -->
     <div class="quick-qs">
-      <button class="chip" data-q="What's the best burger here?" data-i18n="waiter.chip1">Best burger?</button>
+      <button class="chip" data-q="What's good to order here?" data-i18n="waiter.chip1">What's good?</button>
       <button class="chip" data-q="Do you have vegetarian options?" data-i18n="waiter.chip2">Vegetarian?</button>
-      <button class="chip" data-q="Tell me about the milkshakes" data-i18n="waiter.chip3">Milkshakes?</button>
+      <button class="chip" data-q="How are the prices?" data-i18n="waiter.chip3">Prices?</button>
       <button class="chip" data-q="Is it busy at lunch?" data-i18n="waiter.chip4">Busy times?</button>
     </div>
   </main>
@@ -76,46 +84,36 @@
 
   <script>
     // ===== The waiter's "demo brain" =====
-    // It reads your question, looks for keywords, and gives a fitting answer.
-    // (All based on Mister York's menu. Later, a real AI replaces this.)
-    function waiterReply(question) {
+    // Used only when there is NO Gemini key. It reads your question, looks for
+    // keywords, and gives a friendly answer about whatever place you searched.
+    // It stays HONEST: with no real data it won't invent dishes or prices.
+    function waiterReply(question, place) {
       const q = question.toLowerCase();
+      const name = place || "this place";
 
       if (q.includes("hi") || q.includes("hello") || q.includes("hey")) {
-        return "Hey there! 👋 Welcome to Mister York. Ask me about our burgers, fries, milkshakes, prices, or busy times!";
+        return "Hey there! 👋 Welcome to " + name + ". Ask me about the food, prices, or busy times!";
       }
       if (q.includes("best") || q.includes("good") || q.includes("recommend") || q.includes("popular")) {
-        return "Our smash burgers are the talk of the town! 🍔 Pair one with loaded fries and you can't go wrong.";
-      }
-      if (q.includes("burger") || q.includes("smash")) {
-        return "Great choice! Our American-style smash burgers are crispy-edged and super juicy — the #1 thing people come back for. 🍔";
-      }
-      if (q.includes("chicken")) {
-        return "Our crispy chicken burger is a favorite — crunchy outside, tender inside. 🍗";
-      }
-      if (q.includes("fries") || q.includes("loaded")) {
-        return "You HAVE to try the loaded fries 🍟 — topped and loaded, perfect for sharing (or not 😄).";
-      }
-      if (q.includes("shake") || q.includes("milkshake") || q.includes("drink") || q.includes("dessert")) {
-        return "Our thick milkshakes are the perfect finish 🥤 — a classic with smash burgers!";
+        return "Lots of people enjoy " + name + "! 🍴 For exact dishes, check the menu — or add your Gemini key and I'll know the real reviews.";
       }
       if (q.includes("vegetarian") || q.includes("veggie") || q.includes("vegan")) {
-        return "Yes! We have vegetarian alternatives so plant-based friends are covered too. 🥦";
+        return "Many places at " + name + "'s style have veggie options 🥦 — I'd double-check the menu to be sure.";
       }
       if (q.includes("price") || q.includes("cost") || q.includes("expensive") || q.includes("cheap")) {
-        return "We're fair-priced for the portions — good value, especially a burger-and-fries combo. 💰";
+        return "I don't have exact prices for " + name + " yet 💰 — the menu or their website is your best bet.";
       }
       if (q.includes("busy") || q.includes("weekend") || q.includes("wait") || q.includes("lunch")) {
-        return "Lunchtime can get busy since we're the new spot in town 🚀 — pop in a bit earlier or later for a shorter wait. 📅";
+        return "Lunch and weekends are usually busiest 📅 — going a bit earlier or later means a shorter wait.";
       }
       if (q.includes("kid") || q.includes("family") || q.includes("child")) {
-        return "Families are very welcome — burgers, fries and shakes are a hit with kids! 👨‍👩‍👧";
+        return "Most restaurants welcome families 👨‍👩‍👧 — " + name + " should be a friendly spot for everyone!";
       }
       if (q.includes("thank")) {
-        return "My pleasure! Hope to see you soon at Mister York. 🍔";
+        return "My pleasure! Hope you enjoy " + name + ". 🐾";
       }
       // If nothing matches:
-      return "Good question! 🤔 In the full version I'll know every detail. For now, try asking about our burgers, chicken, loaded fries, milkshakes, or veggie options!";
+      return "Good question about " + name + "! 🤔 With a Gemini key I can read the real reviews and answer in detail. For now, try asking about busy times, veggie options, or prices!";
     }
 
     // ===== Make the chat work on screen =====
@@ -135,18 +133,24 @@
     }
 
     // ===== Ask the REAL AI (Gemini) =====
-    // Sends the question to Google's Gemini with a little description of the restaurant.
+    // Sends the question to Google's Gemini, telling it to BE a waiter at the place
+    // you actually searched — using the real info & reviews we looked up.
     async function askGemini(question) {
       const key = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey;
       const model = "gemini-2.0-flash";  // if this ever errors, try "gemini-1.5-flash"
       const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
 
-      // This tells Gemini WHO to be and what it knows. (Later we'll feed it real reviews.)
+      // This tells Gemini WHO to be and what it really knows about THIS place.
+      // currentPlace + placeContext are filled in by the lookup when the page loads.
       const aboutTony =
-        "You are Tony, a warm, friendly waiter at Mister York — a new American-style " +
-        "restaurant in Landskrona, Sweden. The menu: smash burgers, crispy chicken, " +
-        "vegetarian alternatives, loaded fries, and milkshakes. Answer guests briefly " +
-        "(1-3 sentences), like a real waiter. Reply in the SAME language the guest uses. " +
+        "You are Tony, a warm, friendly waiter at " + currentPlace + " in " + currentCity + ". " +
+        "Answer guests briefly (1-3 sentences), like a real waiter. " +
+        "Reply in the SAME language the guest uses. " +
+        (placeContext
+          ? "Here is what we ACTUALLY know about the place — base your answers ONLY on this, " +
+            "and never invent dishes, prices, or facts:\n" + placeContext + "\n"
+          : "You don't have the menu or reviews yet, so don't invent specifics — if asked a " +
+            "detail you don't know, say so honestly and suggest checking the menu. ") +
         "If you don't know a detail, say so honestly.";
 
       const body = {
@@ -154,12 +158,30 @@
         contents: [{ parts: [{ text: question }] }],
       };
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("status " + res.status);
+      // a tiny helper so we can try the call again if we're rate-limited
+      function callOnce() {
+        return fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      }
+
+      let res = await callOnce();
+
+      // 429 = "too many requests" (free limit). Wait a few seconds and try ONE more time.
+      if (res.status === 429) {
+        await new Promise(function (r) { setTimeout(r, 4000); });
+        res = await callOnce();
+      }
+
+      if (!res.ok) {
+        // friendly, honest messages instead of a scary raw code
+        if (res.status === 429) throw new Error("busy");          // still rate-limited
+        if (res.status === 400 || res.status === 403) throw new Error("key");
+        throw new Error("status " + res.status);
+      }
+
       const data = await res.json();
       return data.candidates[0].content.parts[0].text;
     }
@@ -181,11 +203,23 @@
             chat.scrollTop = chat.scrollHeight;
           })
           .catch(function (err) {
-            thinking.textContent = "😅 I couldn't reach my AI brain. Double-check your key, or try again. (" + err.message + ")";
+            const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+            if (err.message === "busy") {
+              // 429 — free Gemini limit; NOT a key problem
+              thinking.textContent = sv
+                ? "😅 Just nu får jag för många frågor (gratisgränsen). Vänta ~1 minut och fråga igen! 🐾"
+                : "😅 I'm getting too many questions right now (the free limit). Wait ~1 minute and ask again! 🐾";
+            } else if (err.message === "key") {
+              thinking.textContent = sv
+                ? "🔑 Min AI-nyckel verkar fel. Kontrollera Gemini-nyckeln i config.js."
+                : "🔑 My AI key looks wrong. Please check the Gemini key in config.js.";
+            } else {
+              thinking.textContent = (sv ? "😅 Kunde inte nå min AI-hjärna. Försök igen. (" : "😅 I couldn't reach my AI brain. Try again. (") + err.message + ")";
+            }
           });
       } else {
-        // Demo mode: use the simple keyword brain.
-        setTimeout(function () { addMessage("waiter", waiterReply(text)); }, 500);
+        // Demo mode: use the simple keyword brain (now place-aware).
+        setTimeout(function () { addMessage("waiter", waiterReply(text, currentPlace)); }, 500);
       }
     }
 
@@ -202,11 +236,65 @@
       });
     });
 
-    // Tony greets you first
-    const waiterLang = localStorage.getItem("bitebuddy-lang") || "en";
-    addMessage("waiter", waiterLang === "sv"
-      ? "Hej! 👋 Jag är Tony, din kypare på Mister York. Fråga mig vad som helst innan du besöker!"
-      : "Hey! 👋 I'm Tony, your waiter at Mister York. Ask me anything before you visit!");
+    // ===== Who is Tony a waiter FOR? Whatever place you searched. =====
+    // These start as sensible fallbacks and get filled in by the lookup below.
+    let currentPlace = "this restaurant";
+    let currentCity = "Landskrona";
+    let placeContext = "";   // the real info + reviews we feed to Tony's AI brain
+
+    // Look up the real place you searched, then greet you by its name.
+    (async function startTony() {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      const subtitle = document.getElementById("waiter-subtitle");
+
+      // which city are we searching in? (matches the rest of the app)
+      const loc = localStorage.getItem("bitebuddy-location");
+      currentCity = (loc && loc !== "near") ? loc : "Landskrona";
+
+      // what did the user search on the home/results page?
+      const searched = (localStorage.getItem("bitebuddy-search") || "").trim();
+
+      // Try to look up the REAL place (reviews + info) so Tony actually knows it.
+      if (searched && typeof lookupPlace === "function") {
+        try {
+          const place = await lookupPlace(searched);
+          if (place && place.found) {
+            currentPlace = place.name || searched;
+
+            // Build Tony's "knowledge" from the real data we have (only what exists).
+            const bits = [];
+            if (place.cuisine) bits.push("Cuisine: " + place.cuisine);
+            if (place.rating)  bits.push("Rating: " + place.rating + "★ from " + place.count + " reviews");
+            if (place.address) bits.push("Address: " + place.address);
+            if (place.hours)   bits.push("Opening hours: " + place.hours);
+            // real reviews if we have them (Google), else the user's own notes
+            let reviews = (place.reviews && place.reviews.length)
+              ? place.reviews
+              : (typeof getUserNotes === "function" ? getUserNotes(currentPlace) : []);
+            if (reviews && reviews.length) {
+              bits.push("Real customer reviews:\n- " + reviews.slice(0, 5).join("\n- "));
+            }
+            placeContext = bits.join("\n");
+          } else if (searched) {
+            currentPlace = searched;   // not found, but still use what they typed
+          }
+        } catch (e) {
+          console.log("waiter place lookup error:", e);
+          if (searched) currentPlace = searched;
+        }
+      }
+
+      // Fill the subtitle with the REAL place name.
+      if (subtitle) {
+        subtitle.textContent = (sv ? "på " : "at ") + currentPlace + ", " + currentCity +
+          (sv ? " · fråga mig vad som helst innan du besöker!" : " · ask me anything before you visit!");
+      }
+
+      // Tony greets you first — by the real place's name.
+      addMessage("waiter", sv
+        ? "Hej! 👋 Jag är Tony, din kypare på " + currentPlace + ". Fråga mig vad som helst innan du besöker!"
+        : "Hey! 👋 I'm Tony, your waiter at " + currentPlace + ". Ask me anything before you visit!");
+    })();
   </script>
 
 </body>

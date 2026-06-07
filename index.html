@@ -11,6 +11,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BiteBuddy — Your buddy who knows where to eat</title>
 
+  <!-- ===== "SHARE TAGS" =====
+       These describe BiteBuddy to Google and to social media. When someone shares a
+       link, these decide the title, blurb, and picture that show up in the preview. -->
+  <meta name="description" content="BiteBuddy reads the reviews for you and gives a food pick made for your taste. Type a restaurant, get the verdict. 🐾">
+  <meta name="theme-color" content="#2F80ED">
+  <!-- Open Graph = the preview card on Facebook, Messenger, Discord, etc. -->
+  <meta property="og:title" content="BiteBuddy — Your buddy who knows where to eat 🍴">
+  <meta property="og:description" content="Type a restaurant, and Forky reads the reviews so you don't have to — plus a pick made for you.">
+  <meta property="og:image" content="logo.svg">
+  <meta property="og:type" content="website">
+
   <!-- The little icon shown on the browser tab = Forky! -->
   <link rel="icon" href="logo.svg" type="image/svg+xml">
 
@@ -33,7 +44,7 @@
       <a href="#how" data-i18n="nav.how">How it works</a>
       <!-- This link takes you to the profile page when clicked -->
       <a href="profile.html" data-i18n="nav.profile">🐾 Profile</a>
-      <a href="#" class="btn-ghost" data-i18n="nav.login">Log in</a>
+      <a href="signup.html" class="btn-ghost" data-i18n="nav.login">Log in</a>
       <!-- Language menu in the corner 🇬🇧🇸🇪 -->
       <select id="lang-select" class="lang-select" aria-label="Language">
         <option value="en">🇬🇧 English</option>
@@ -88,6 +99,17 @@
 
     <!-- Recent searches: tap one to jump straight back (filled in by script.js) -->
     <div id="recent" class="recent"></div>
+
+    <!-- Floating food doodles around Forky — pure decoration, hidden from screen readers.
+         (aria-hidden = assistive tech skips it, since it's just for fun/looks.) -->
+    <div class="hero-deco" aria-hidden="true">
+      <span class="d1">🍕</span>
+      <span class="d2">🍔</span>
+      <span class="d3">🍜</span>
+      <span class="d4">🥗</span>
+      <span class="d5">🍣</span>
+      <span class="d6">🧇</span>
+    </div>
   </main>
 
   <!-- ===== HOW IT WORKS ===== -->

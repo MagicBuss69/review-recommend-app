@@ -16,6 +16,8 @@ it once the core app (real review summary + personal pick) actually works.
 - **[sign-in-and-language.md](sign-in-and-language.md)** — site basics: real sign in / sign
   up (accounts), a language menu in the corner (English + Svenska), and a note that the
   current "Log in" button doesn't work yet.
+- **[map.md](map.md)** — a map on the website: pins for restaurants, click a pin for Forky's
+  summary, a "near me" view. Uses Google Maps API.
 
 ## 🗺️ When to build them
 

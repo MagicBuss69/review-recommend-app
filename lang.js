@@ -45,6 +45,8 @@ const translations = {
     /* results page */
     "results.banner": "✨ Demo result with sample data — real reviews coming soon!",
     "results.foryou": "💚 For you",
+    "results.ordertitle": "🍴 What to order",
+    "results.ordersub": "The dishes people rave about 👇",
     "results.waiterbtn": "👨‍🍳 Chat with the AI waiter before you go",
     "results.photonote": "📷 Photo placeholders — real photos arrive with Google later.",
     "results.infotitle": "ℹ️ Good to know",
@@ -68,9 +70,9 @@ const translations = {
     "waiter.subtitle": "at Mister York, Landskrona · ask me anything before you visit!",
     "waiter.placeholder": "Ask Tony... (e.g. 'what's good here?')",
     "waiter.askbtn": "Ask 🍽️",
-    "waiter.chip1": "Best burger?",
+    "waiter.chip1": "What's good?",
     "waiter.chip2": "Vegetarian?",
-    "waiter.chip3": "Milkshakes?",
+    "waiter.chip3": "Prices?",
     "waiter.chip4": "Busy times?",
 
     /* profile page */
@@ -104,6 +106,29 @@ const translations = {
     "profile.exclusivetitle": "👑 Exclusive: Top 10 banner",
     "profile.exclusivehint": "Can't be bought with points — only the leaderboard's best win it each month!",
     "profile.lockedpill": "🔒 Reach Top 10 to unlock",
+
+    /* sign up / log in page */
+    "signup.banner": "👀 Demo accounts are saved just in this browser for now — real accounts come later (with a server). 🐾",
+    "signup.title": "Join BiteBuddy 🐾",
+    "signup.sub": "Make a free account to save your tastes and picks.",
+    "signup.google": "Continue with Google",
+    "signup.or": "or",
+    "signup.name": "Your name",
+    "signup.namePh": "e.g. Magic",
+    "signup.email": "Email",
+    "signup.emailPh": "you@example.com",
+    "signup.password": "Password",
+    "signup.passwordPh": "Make a password",
+    "signup.create": "Create my account 🐾",
+    "signup.toggleprompt": "Already have an account?",
+    "signup.togglelink": "Log in",
+    "signup.note": "🔒 We'll never share your info. This is a safe demo — nothing leaves your device yet.",
+    "login.title": "Welcome back 🐾",
+    "login.sub": "Log in to see your tastes and picks.",
+    "login.btn": "Log in 🍴",
+    "login.passwordPh": "Your password",
+    "login.toggleprompt": "New here?",
+    "login.togglelink": "Create an account",
   },
 
   sv: {
@@ -140,6 +165,8 @@ const translations = {
     /* results page */
     "results.banner": "✨ Demoresultat med exempeldata — riktiga recensioner kommer snart!",
     "results.foryou": "💚 För dig",
+    "results.ordertitle": "🍴 Vad du ska beställa",
+    "results.ordersub": "Rätterna folk hyllar 👇",
     "results.waiterbtn": "👨‍🍳 Chatta med AI-kyparen innan du går",
     "results.photonote": "📷 Platshållare för foton — riktiga foton kommer med Google senare.",
     "results.infotitle": "ℹ️ Bra att veta",
@@ -163,9 +190,9 @@ const translations = {
     "waiter.subtitle": "på Mister York, Landskrona · fråga mig vad som helst innan du besöker!",
     "waiter.placeholder": "Fråga Tony... (t.ex. 'vad är gott här?')",
     "waiter.askbtn": "Fråga 🍽️",
-    "waiter.chip1": "Bästa burgaren?",
+    "waiter.chip1": "Vad är gott?",
     "waiter.chip2": "Vegetariskt?",
-    "waiter.chip3": "Milkshakes?",
+    "waiter.chip3": "Priser?",
     "waiter.chip4": "Rusningstider?",
 
     /* profile page */
@@ -199,6 +226,29 @@ const translations = {
     "profile.exclusivetitle": "👑 Exklusivt: Topp 10-banner",
     "profile.exclusivehint": "Kan inte köpas med poäng — bara topplistans bästa vinner den varje månad!",
     "profile.lockedpill": "🔒 Nå Topp 10 för att låsa upp",
+
+    /* sign up / log in page */
+    "signup.banner": "👀 Demokonton sparas bara i den här webbläsaren just nu — riktiga konton kommer senare (med en server). 🐾",
+    "signup.title": "Gå med i BiteBuddy 🐾",
+    "signup.sub": "Skapa ett gratis konto för att spara dina smaker och val.",
+    "signup.google": "Fortsätt med Google",
+    "signup.or": "eller",
+    "signup.name": "Ditt namn",
+    "signup.namePh": "t.ex. Magic",
+    "signup.email": "E-post",
+    "signup.emailPh": "du@exempel.com",
+    "signup.password": "Lösenord",
+    "signup.passwordPh": "Skapa ett lösenord",
+    "signup.create": "Skapa mitt konto 🐾",
+    "signup.toggleprompt": "Har du redan ett konto?",
+    "signup.togglelink": "Logga in",
+    "signup.note": "🔒 Vi delar aldrig dina uppgifter. Detta är en säker demo — inget lämnar din enhet än.",
+    "login.title": "Välkommen tillbaka 🐾",
+    "login.sub": "Logga in för att se dina smaker och val.",
+    "login.btn": "Logga in 🍴",
+    "login.passwordPh": "Ditt lösenord",
+    "login.toggleprompt": "Ny här?",
+    "login.togglelink": "Skapa ett konto",
   },
 };
 

@@ -10,6 +10,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BiteBuddy — Your result</title>
+  <meta name="description" content="Forky read the reviews and made a food pick just for your taste. 🐾">
+  <meta name="theme-color" content="#2F80ED">
+  <meta property="og:title" content="BiteBuddy — Your result 🍴">
+  <meta property="og:description" content="The reviews, summarised — plus a recommendation made for you.">
+  <meta property="og:image" content="logo.svg">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script src="config.js"></script>
@@ -17,6 +22,9 @@
 </head>
 
 <body>
+
+  <!-- real restaurant food shows here as a soft background (filled by JS if Google has photos) -->
+  <div id="bg-photos" class="bg-photos"></div>
 
   <!-- ===== TOP BAR ===== -->
   <header class="topbar">
@@ -74,6 +82,14 @@
         <section class="for-you">
           <div class="for-you-score" id="for-you-title" data-i18n="results.foryou">💚 For you</div>
           <p class="for-you-text" id="for-you-text"></p>
+        </section>
+
+        <!-- 🍴 What to order — auto-filled from the real reviews (hidden until we have dishes) -->
+        <section class="card-block order-card" id="order-card" style="display:none;">
+          <h2 data-i18n="results.ordertitle">🍴 What to order</h2>
+          <p class="muted-text" id="order-sub" style="margin-bottom:12px;"
+             data-i18n="results.ordersub">The dishes people rave about 👇</p>
+          <div id="order-chips" class="cuisine-chips"></div>
         </section>
 
         <a href="waiter.html" class="btn-waiter" data-i18n="results.waiterbtn">👨‍🍳 Chat with the AI waiter before you go</a>
@@ -247,6 +263,43 @@
           });
         }
 
+        // 📸 real photos: if Google gave us pictures, replace the emoji placeholders
+        if (place.photos && place.photos.length) {
+          const strip = document.querySelector(".photo-strip");
+          const photoNote = document.querySelector(".photo-note");
+          if (strip) {
+            strip.innerHTML = "";                       // clear the 🍽️🍔🥗🍰 placeholders
+            const spots = ["t1", "t2", "t3", "t4"];     // same magazine layout as the placeholders
+            place.photos.forEach(function (url, i) {
+              const img = document.createElement("img");
+              img.className = "photo-tile " + (spots[i] || ""); // reuse the tile look + position
+              img.src = url;
+              img.alt = (place.name || "restaurant") + " photo";
+              img.loading = "lazy";                     // don't slow the page; load as needed
+              // if one photo fails to load, hide just that tile (stay tidy)
+              img.onerror = function () { img.style.display = "none"; };
+              strip.appendChild(img);
+            });
+          }
+          if (photoNote) {
+            photoNote.textContent = sv
+              ? "📷 Riktiga foton från Google."
+              : "📷 Real photos from Google.";
+          }
+
+          // 🖼️ use the first real photo as a soft, blurred page background
+          const bg = document.getElementById("bg-photos");
+          if (bg) {
+            // preload it first so it only fades in once it's actually ready
+            const pre = new Image();
+            pre.onload = function () {
+              bg.style.backgroundImage = "url('" + place.photos[0] + "')";
+              bg.classList.add("show");
+            };
+            pre.src = place.photos[0];
+          }
+        }
+
         // free map (OpenStreetMap embed — no key needed!)
         if (place.lat && place.lon) {
           const lat = parseFloat(place.lat), lon = parseFloat(place.lon), d = 0.0025;
@@ -330,6 +383,52 @@
           (result.bad || []).forEach(function (p) { out.push({ kind: "bad", text: "👎 " + p }); });
           say(out.length ? out : [{ kind: "muted-text", text: result.summary || "" }]);
           banner.textContent = (sv ? "🤖 AI-sammanfattning av " : "🤖 AI summary of ") + reviews.length + " " + srcLabel;
+
+          // ---------- 🍴 WHAT TO ORDER (the heart of feature #1: do the work for them) ----------
+          const dishes = (result.dishes || []).filter(Boolean);
+          if (dishes.length) {
+            const orderCard = document.getElementById("order-card");
+            const orderChips = document.getElementById("order-chips");
+
+            // the foods this user likes/dislikes (so we can give a PERSONAL pick)
+            const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
+            const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+            // does any word of a liked/disliked food appear in the dish name?
+            function matches(dish, list) {
+              const d = dish.toLowerCase();
+              return list.some(function (f) { return f && d.indexOf(f.toLowerCase()) !== -1; });
+            }
+
+            let topMatch = null;   // the first dish that matches something the user likes
+            dishes.forEach(function (dish) {
+              const chip = document.createElement("span");
+              chip.className = "cuisine-chip";
+              if (matches(dish, likes)) {            // a dish the user will probably love 💚
+                chip.className += " chip-love";
+                chip.textContent = "💚 " + dish;
+                if (!topMatch) topMatch = dish;
+              } else if (matches(dish, dislikes)) {  // a dish to gently warn about
+                chip.className += " chip-avoid";
+                chip.textContent = "⚠️ " + dish;
+              } else {
+                chip.textContent = "🍴 " + dish;
+              }
+              orderChips.appendChild(chip);
+            });
+            orderCard.style.display = "block";
+
+            // upgrade the "For you" pick from a guess into a REAL recommendation
+            const forYou = document.getElementById("for-you-text");
+            if (topMatch) {
+              forYou.innerHTML = sv
+                ? "Perfekt för dig — prova <strong>" + topMatch + "</strong>! 💚"
+                : "Perfect for you — try the <strong>" + topMatch + "</strong>! 💚";
+            } else if (likes.length === 0 && dislikes.length === 0) {
+              forYou.innerHTML = sv
+                ? "Folk älskar <strong>" + dishes[0] + "</strong> här. 🍴"
+                : "People love the <strong>" + dishes[0] + "</strong> here. 🍴";
+            }
+          }
         } catch (e) {
           banner.textContent = (sv ? "😅 Kunde inte sammanfatta (" : "😅 Couldn't summarise (") + e.message + ").";
           say(reviews.slice(0, 5).map(function (r) { return { kind: "good", text: "💬 " + r }; }));

@@ -10,6 +10,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BiteBuddy — My Profile</title>
+  <meta name="description" content="Your BiteBuddy profile — tastes, badges, and food picks made for you. 🐾">
+  <meta name="theme-color" content="#2F80ED">
+  <meta property="og:title" content="BiteBuddy — My Profile 🐾">
+  <meta property="og:description" content="Save the foods you love and unlock picks made just for your taste.">
+  <meta property="og:image" content="logo.svg">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
 
   <!-- Load the SHARED styles first (colors, topbar, footer)... -->
@@ -30,7 +35,7 @@
     </div>
     <nav class="nav">
       <a href="index.html" data-i18n="nav.home">Home</a>
-      <a href="#" class="btn-ghost" data-i18n="nav.logout">Log out</a>
+      <a href="#" id="logout-link" class="btn-ghost" data-i18n="nav.logout">Log out</a>
       <select id="lang-select" class="lang-select" aria-label="Language">
         <option value="en">🇬🇧 English</option>
         <option value="sv">🇸🇪 Svenska</option>
@@ -52,7 +57,8 @@
         <img src="logo.svg" alt="Your Forky avatar" class="avatar">
       </div>
 
-      <h1 class="profile-name">Forky_Fan_2026</h1>
+      <!-- shows your real name once you've signed up (otherwise a friendly default) -->
+      <h1 class="profile-name" id="profile-name">Forky_Fan_2026</h1>
       <p class="profile-handle" data-i18n="profile.handle">🍴 Member since June 2026</p>
 
       <!-- The 3 big numbers -->
@@ -175,6 +181,25 @@
         localStorage.setItem('bitebuddy-banner', color);  // remember it for next time
       });
     });
+
+
+    /* ===== ACCOUNT (show your real name once you've signed up) ===== */
+    (function () {
+      const acc = JSON.parse(localStorage.getItem('bitebuddy-account') || 'null');
+      if (acc && acc.name) {
+        document.getElementById('profile-name').textContent = acc.name;
+      }
+
+      // "Log out" — forget the login on this device and head home.
+      const logout = document.getElementById('logout-link');
+      if (logout) {
+        logout.addEventListener('click', function (e) {
+          e.preventDefault();
+          localStorage.removeItem('bitebuddy-loggedin');   // keep tastes; just sign out
+          window.location.href = 'index.html';
+        });
+      }
+    })();
 
 
     /* ===== MY TASTES (likes & dislikes that power the "FOR YOU" picks) ===== */

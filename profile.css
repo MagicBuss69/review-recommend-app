@@ -1,44 +1,46 @@
 /*
   BiteBuddy — Profile page styles (the extra looks JUST for profile.html)
-  We also load the shared styles.css first, so colors/topbar/footer already match.
+  We also load the shared styles.css first, so colours/fonts/topbar/footer match.
   This file only adds the NEW pieces: the banner, badges, milestones, shop, etc.
+  Updated to use the shared design "tokens" (--r, --shadow, etc.) so it stays
+  in sync with the playful homepage look. 🍴
 */
 
-/* The whole profile sits in a centered column, like the other pages */
+/* The whole profile sits in a centred column, like the other pages */
 .profile {
   max-width: 680px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding: 22px 20px 60px;
 }
 
 /* ===== THE PROFILE CARD (banner + avatar + name) ===== */
 .profile-card {
   background: var(--white);
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   overflow: hidden;                 /* keeps the banner corners rounded */
-  box-shadow: 0 8px 28px rgba(47, 128, 237, 0.15);
+  box-shadow: var(--shadow);
 }
 
-/* The custom banner = a colorful strip at the top.
-   We start it blue; clicking a color swatch below changes it (see profile.html). */
+/* The custom banner = a colourful strip at the top.
+   We start it on-brand; clicking a colour swatch below changes it. */
 .banner {
-  height: 120px;
-  background: linear-gradient(135deg, var(--blue), var(--green));
+  height: 130px;
+  background: var(--grad-brand);
 }
 
 /* The avatar (Forky) overlaps the banner a little, like real profiles */
-.avatar-wrap { text-align: center; margin-top: -45px; }
+.avatar-wrap { text-align: center; margin-top: -48px; }
 .avatar {
-  width: 90px;
-  height: 90px;
+  width: 96px;
+  height: 96px;
   background: var(--white);
   border-radius: 50%;               /* makes it a circle */
   padding: 10px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 18px rgba(47, 128, 237, 0.25);
 }
 
-.profile-name { text-align: center; font-size: 26px; font-weight: 800; margin-top: 8px; }
-.profile-handle { text-align: center; color: var(--muted); margin-bottom: 18px; }
+.profile-name { text-align: center; font-family: "Baloo 2", sans-serif; font-size: 28px; font-weight: 800; margin-top: 10px; }
+.profile-handle { text-align: center; color: var(--muted); font-weight: 600; margin-bottom: 20px; }
 
 /* ===== STATS ROW (points / streak / places) ===== */
 .stats {
@@ -46,30 +48,43 @@
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;                  /* stack nicely on small phones */
-  padding: 0 18px 22px;
+  padding: 0 18px 24px;
 }
 .stat {
   flex: 1;
   min-width: 120px;
   background: var(--bg);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: var(--r);
+  padding: 18px;
   text-align: center;
+  transition: transform var(--fast);
 }
-.stat-num { font-size: 26px; font-weight: 800; color: var(--blue); }
-.stat-num.green { color: var(--green); }
-.stat-label { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.stat:hover { transform: translateY(-4px); }
+/* gradient numbers so the big stats really pop */
+.stat-num {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  background: var(--grad-blue);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.stat-num.green { background: var(--grad-green); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat-label { color: var(--muted); font-size: 14px; font-weight: 600; margin-top: 4px; }
 
 /* ===== SHARED LOOK FOR EACH SECTION BELOW ===== */
 .panel {
   background: var(--white);
-  border-radius: 18px;
-  padding: 22px 24px;
+  border-radius: var(--r-lg);
+  padding: 24px 26px;
   margin-top: 18px;
-  box-shadow: 0 6px 20px rgba(47, 128, 237, 0.10);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--fast), box-shadow var(--fast);
 }
-.panel h2 { font-size: 20px; margin-bottom: 6px; }
-.panel .hint { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+.panel:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.panel h2 { font-family: "Baloo 2", sans-serif; font-size: 21px; margin-bottom: 6px; }
+.panel .hint { color: var(--muted); font-size: 14px; font-weight: 600; margin-bottom: 16px; }
 
 /* ===== MY TASTES (likes & dislikes) ===== */
 .taste-add { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -77,34 +92,36 @@
   flex: 1;
   min-width: 160px;
   border: 2px solid #DCE6F5;
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  padding: 12px 16px;
   font-size: 16px;
   font-family: inherit;
+  font-weight: 600;
   color: var(--ink);
   outline: none;
+  transition: border-color var(--fast), box-shadow var(--fast);
 }
-.taste-input:focus { border-color: var(--blue); }
+.taste-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.12); }
 /* the Dislike button reuses the ghost look but needs a white background on a <button> */
-.taste-dislike-btn { background: var(--white); font-size: 16px; cursor: pointer; }
+.taste-dislike-btn { background: var(--white); font-size: 16px; cursor: pointer; font-family: inherit; }
 
-.taste-h { font-size: 15px; margin: 16px 0 8px; }
+.taste-h { font-family: "Baloo 2", sans-serif; font-size: 16px; margin: 18px 0 8px; }
 .taste-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.taste-empty { color: var(--muted); font-size: 14px; }
+.taste-empty { color: var(--muted); font-size: 14px; font-weight: 600; }
 
-/* each food shows as a colored pill */
+/* each food shows as a coloured pill */
 .taste-chip {
   display: flex;
   align-items: center;
   gap: 6px;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 600;
+  border-radius: var(--r-pill);
+  padding: 9px 14px;
+  font-weight: 700;
   font-size: 14px;
 }
-.taste-chip.like { background: #E6F7EE; color: var(--green-dark); }     /* soft green */
+.taste-chip.like { background: #E3F9EC; color: var(--green-dark); }     /* soft green */
 .taste-chip.dislike { background: #FDEAEA; color: #C0392B; }            /* soft red */
-.taste-chip .x { cursor: pointer; font-weight: 800; opacity: 0.55; }
+.taste-chip .x { cursor: pointer; font-weight: 800; opacity: 0.55; transition: opacity var(--fast); }
 .taste-chip .x:hover { opacity: 1; }
 
 /* ===== BADGES ===== */
@@ -114,61 +131,66 @@
   align-items: center;
   gap: 8px;
   background: var(--bg);
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-weight: 600;
+  border-radius: var(--r-pill);
+  padding: 9px 16px;
+  font-weight: 700;
   font-size: 14px;
+  transition: transform var(--fast);
 }
+.badge:hover { transform: translateY(-3px) scale(1.03); }
 .badge .emoji { font-size: 18px; }
 /* A locked badge looks faded so you know it's not earned yet */
 .badge.locked { opacity: 0.45; }
+.badge.locked:hover { transform: none; }   /* locked ones don't react — they're not earned */
 
 /* ===== MILESTONES (never-fade progress bars) ===== */
-.milestone { margin-bottom: 16px; }
+.milestone { margin-bottom: 18px; }
 .milestone:last-child { margin-bottom: 0; }
-.milestone-top { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.milestone-top { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
 .bar {
   background: var(--bg);
-  border-radius: 999px;
-  height: 14px;
+  border-radius: var(--r-pill);
+  height: 16px;
   overflow: hidden;
 }
 .bar-fill {
-  background: var(--green);
+  background: var(--grad-green);
   height: 100%;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
+  transition: width 0.6s ease;
 }
 
 /* ===== COSMETIC SHOP (spend points to change the banner) ===== */
 .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
-/* Each swatch is a clickable colored circle */
+/* Each swatch is a clickable coloured circle */
 .swatch {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 3px solid var(--white);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: transform var(--fast);
 }
-.swatch:hover { transform: scale(1.1); }
+.swatch:hover { transform: scale(1.15) rotate(8deg); }
 
 /* ===== EXCLUSIVE (top-contender only) ===== */
 .exclusive {
   background: linear-gradient(135deg, #6a3df0, #2F80ED);  /* special purple→blue, looks rare */
   color: var(--white);
-  border-radius: 18px;
-  padding: 22px 24px;
+  border-radius: var(--r-lg);
+  padding: 24px 26px;
   margin-top: 18px;
   text-align: center;
+  box-shadow: 0 14px 34px rgba(106, 61, 240, 0.28);
 }
-.exclusive h2 { color: var(--white); }
-.exclusive .hint { color: rgba(255,255,255,0.85); }
+.exclusive h2 { font-family: "Baloo 2", sans-serif; color: var(--white); }
+.exclusive .hint { color: rgba(255,255,255,0.85); font-weight: 600; }
 .locked-pill {
   display: inline-block;
   background: rgba(255,255,255,0.2);
-  border-radius: 999px;
-  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  padding: 9px 18px;
   font-weight: 700;
   margin-top: 6px;
 }

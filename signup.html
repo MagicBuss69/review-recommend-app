@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!--
+  BiteBuddy — Sign up / Log in page
+  One page that does BOTH: a "Sign up" form and a "Log in" form. A link at the
+  bottom flips between the two (no page reload needed).
+
+  HONEST NOTE: real accounts need a server to remember people safely. For now this
+  saves a DEMO account only in THIS browser (localStorage), just so the flow feels
+  real. The "Continue with Google" button is the spot where real Google sign-in
+  (Firebase) will plug in later — set up with your brother. 🐾
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBuddy — Join in</title>
+  <meta name="description" content="Make a free BiteBuddy account to save your tastes and get picks made for you. 🐾">
+  <meta name="theme-color" content="#2F80ED">
+  <meta property="og:title" content="Join BiteBuddy 🐾">
+  <meta property="og:description" content="Free account — save your tastes and unlock personal food picks.">
+  <meta property="og:image" content="logo.svg">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- ===== TOP BAR (same as every page so it feels like one app) ===== -->
+  <header class="topbar">
+    <a href="index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <img src="logo.svg" alt="Forky the BiteBuddy mascot" class="brand-logo">
+      <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
+    </a>
+    <nav class="nav">
+      <a href="index.html" data-i18n="nav.home">Home</a>
+      <select id="lang-select" class="lang-select" aria-label="Language">
+        <option value="en">🇬🇧 English</option>
+        <option value="sv">🇸🇪 Svenska</option>
+      </select>
+    </nav>
+  </header>
+
+  <!-- honest heads-up that accounts are demo-only for now -->
+  <div class="demo-banner" data-i18n="signup.banner">👀 Demo accounts are saved just in this browser for now — real accounts come later (with a server). 🐾</div>
+
+  <main class="auth" id="auth">
+    <div class="auth-card">
+      <img src="logo.svg" alt="Forky waving hello" class="auth-logo">
+      <h1 class="auth-title" id="auth-title" data-i18n="signup.title">Join BiteBuddy 🐾</h1>
+      <p class="auth-sub" id="auth-sub" data-i18n="signup.sub">Make a free account to save your tastes and picks.</p>
+
+      <!-- Continue with Google (the real Google sign-in plugs in here later) -->
+      <button class="google-btn" id="google-btn">
+        <!-- the official Google "G", drawn inline so it always shows (no internet needed) -->
+        <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22 22-9.8 22-22c0-1.3-.1-2.3-.4-3.5z"/>
+          <path fill="#FF3D00" d="M3.3 12.7l6.6 4.8C11.7 13.1 17.4 9.9 24 9.9c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 4.1 29.6 2 24 2 15.6 2 8.3 6.8 3.3 12.7z"/>
+          <path fill="#4CAF50" d="M24 46c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5c-2 1.5-4.6 2.4-7.6 2.4-5.2 0-9.6-3.3-11.2-7.9l-6.6 5.1C8.2 41.1 15.5 46 24 46z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.5 5.5c-.5.4 7.1-5.2 7.1-15 0-1.3-.1-2.3-.2-3.5z"/>
+        </svg>
+        <span id="google-text" data-i18n="signup.google">Continue with Google</span>
+      </button>
+
+      <div class="auth-divider"><span data-i18n="signup.or">or</span></div>
+
+      <!-- the email form -->
+      <div class="auth-field" id="name-field">
+        <label class="auth-label" for="name-input" data-i18n="signup.name">Your name</label>
+        <input type="text" id="name-input" class="auth-input" autocomplete="name"
+               data-i18n-placeholder="signup.namePh" placeholder="e.g. Magic">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="email-input" data-i18n="signup.email">Email</label>
+        <input type="email" id="email-input" class="auth-input" autocomplete="email"
+               data-i18n-placeholder="signup.emailPh" placeholder="you@example.com">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="password-input" data-i18n="signup.password">Password</label>
+        <input type="password" id="password-input" class="auth-input" autocomplete="new-password"
+               data-i18n-placeholder="signup.passwordPh" placeholder="Make a password">
+      </div>
+
+      <button class="btn-primary auth-submit" id="auth-submit" data-i18n="signup.create">Create my account 🐾</button>
+
+      <p class="auth-msg" id="auth-msg"></p>
+
+      <p class="auth-toggle">
+        <span id="toggle-prompt" data-i18n="signup.toggleprompt">Already have an account?</span>
+        <a id="toggle-link" data-i18n="signup.togglelink">Log in</a>
+      </p>
+    </div>
+
+    <p class="auth-note" data-i18n="signup.note">🔒 We'll never share your info. This is a safe demo — nothing leaves your device yet.</p>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
+  </footer>
+
+  <!-- the language system (English + Svenska) -->
+  <script src="lang.js"></script>
+
+  <script>
+    /* ===== SIGN UP / LOG IN ===== */
+    // Is the page currently showing "sign up" or "log in"?
+    let mode = "signup";
+
+    // Grab the bits of the page we change.
+    const auth        = document.getElementById("auth");
+    const titleEl     = document.getElementById("auth-title");
+    const subEl       = document.getElementById("auth-sub");
+    const submitEl    = document.getElementById("auth-submit");
+    const promptEl    = document.getElementById("toggle-prompt");
+    const linkEl      = document.getElementById("toggle-link");
+    const passwordEl  = document.getElementById("password-input");
+    const msg         = document.getElementById("auth-msg");
+
+    const nameInput   = document.getElementById("name-input");
+    const emailInput  = document.getElementById("email-input");
+
+    // Tiny helper: are we in Swedish right now? (so messages match the language)
+    function isSv() { return (localStorage.getItem("bitebuddy-lang") || "en") === "sv"; }
+
+    // Flip between the two modes. We just swap each element's data-i18n KEY, then ask
+    // lang.js to re-apply the current language — so it stays bilingual for free. 🌍
+    function setMode(next) {
+      mode = next;
+      msg.textContent = "";
+      msg.className = "auth-msg";
+
+      if (mode === "login") {
+        auth.classList.add("login-mode");                 // CSS hides the name field
+        titleEl.setAttribute("data-i18n", "login.title");
+        subEl.setAttribute("data-i18n", "login.sub");
+        submitEl.setAttribute("data-i18n", "login.btn");
+        promptEl.setAttribute("data-i18n", "login.toggleprompt");
+        linkEl.setAttribute("data-i18n", "login.togglelink");
+        passwordEl.setAttribute("data-i18n-placeholder", "login.passwordPh");
+      } else {
+        auth.classList.remove("login-mode");
+        titleEl.setAttribute("data-i18n", "signup.title");
+        subEl.setAttribute("data-i18n", "signup.sub");
+        submitEl.setAttribute("data-i18n", "signup.create");
+        promptEl.setAttribute("data-i18n", "signup.toggleprompt");
+        linkEl.setAttribute("data-i18n", "signup.togglelink");
+        passwordEl.setAttribute("data-i18n-placeholder", "signup.passwordPh");
+      }
+      // re-run the translator so the swapped keys turn into real words
+      if (typeof setLanguage === "function") setLanguage(localStorage.getItem("bitebuddy-lang") || "en");
+    }
+
+    linkEl.addEventListener("click", function () { setMode(mode === "signup" ? "login" : "signup"); });
+
+    // "Continue with Google" — honest placeholder until real Google sign-in is set up.
+    document.getElementById("google-btn").addEventListener("click", function () {
+      msg.className = "auth-msg";
+      msg.textContent = isSv()
+        ? "🔜 Google-inloggning kommer snart — den behöver lite uppsättning med din bror först!"
+        : "🔜 Google sign-in is coming soon — it needs a quick setup with your brother first!";
+    });
+
+    // A very light email check (just looks for an @ and a dot — friendly, not strict).
+    function looksLikeEmail(e) { return /.+@.+\..+/.test(e); }
+
+    // Show a red error message.
+    function showError(text) { msg.className = "auth-msg error"; msg.textContent = text; }
+
+    // The big button: create the account, or log in.
+    submitEl.addEventListener("click", function () {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const pass = passwordEl.value;
+
+      if (!looksLikeEmail(email)) { showError(isSv() ? "📧 Skriv en giltig e-postadress." : "📧 Please enter a valid email."); return; }
+      if (pass.length < 4) { showError(isSv() ? "🔑 Lösenordet behöver minst 4 tecken." : "🔑 Password needs at least 4 characters."); return; }
+
+      if (mode === "signup") {
+        if (name === "") { showError(isSv() ? "🐾 Vad heter du?" : "🐾 What's your name?"); return; }
+        // Save the demo account (only in this browser for now).
+        localStorage.setItem("bitebuddy-account", JSON.stringify({ name: name, email: email }));
+        localStorage.setItem("bitebuddy-loggedin", "yes");
+        msg.className = "auth-msg";
+        msg.textContent = isSv() ? "🎉 Konto skapat! Tar dig till din profil…" : "🎉 Account created! Taking you to your profile…";
+      } else {
+        // Log in: check the demo account saved on this browser.
+        const acc = JSON.parse(localStorage.getItem("bitebuddy-account") || "null");
+        if (!acc || acc.email.toLowerCase() !== email.toLowerCase()) {
+          showError(isSv() ? "🤔 Hittade inget konto med den e-posten på den här enheten." : "🤔 No account found with that email on this device.");
+          return;
+        }
+        localStorage.setItem("bitebuddy-loggedin", "yes");
+        msg.className = "auth-msg";
+        msg.textContent = (isSv() ? "👋 Välkommen tillbaka, " : "👋 Welcome back, ") + acc.name + "!";
+      }
+
+      // Off to the profile after a friendly little pause.
+      setTimeout(function () { window.location.href = "profile.html"; }, 1000);
+    });
+
+    // Let people press Enter to submit.
+    [nameInput, emailInput, passwordEl].forEach(function (el) {
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter") submitEl.click(); });
+    });
+  </script>
+</body>
+</html>

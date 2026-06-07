@@ -38,7 +38,8 @@ async function fetchPlace(placeName) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
       // only ask for the fields we need (keeps it cheap + fast)
-      "X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.reviews,places.formattedAddress",
+      // added "places.photos" → Google now hands back real photos of the place 📸
+      "X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.reviews,places.formattedAddress,places.photos",
     },
     body: JSON.stringify({ textQuery: query }),
   });
@@ -52,6 +53,17 @@ async function fetchPlace(placeName) {
     .map(function (r) { return r.text && r.text.text ? r.text.text : ""; })
     .filter(Boolean);
 
+  // 📸 Turn Google's photo "tickets" into real image links.
+  // Each photo has a "name" (the ticket). We swap it for the actual picture at
+  // the Places photo address. maxWidthPx=600 keeps the images small & fast.
+  // We take up to 4 photos to fill the photo strip on the results page.
+  const photos = (p.photos || [])
+    .slice(0, 4)
+    .map(function (ph) {
+      return "https://places.googleapis.com/v1/" + ph.name +
+             "/media?maxWidthPx=600&key=" + key;
+    });
+
   return {
     found: true,
     name: p.displayName ? p.displayName.text : placeName,
@@ -59,6 +71,7 @@ async function fetchPlace(placeName) {
     count: p.userRatingCount || 0,
     address: p.formattedAddress || "",
     reviews: reviews,
+    photos: photos,   // 📸 real pictures of the place (empty if Google had none)
   };
 }
 
@@ -76,8 +89,12 @@ async function summarizeReviews(placeName, reviews) {
   const rules =
     "You summarise restaurant reviews HONESTLY. Use ONLY the reviews provided — " +
     "never invent dishes, prices, or facts. If something is not mentioned, do not claim it. " +
+    "Also pick the top dishes that reviewers actually PRAISE (the things to order). " +
+    "Only include a dish if a review really mentions it. If none are named, use an empty list. " +
     "Reply ONLY as JSON in this shape: " +
-    '{"summary":"one friendly sentence","good":["short point","short point"],"bad":["short point"]}. ' +
+    '{"summary":"one friendly sentence","good":["short point","short point"],' +
+    '"bad":["short point"],"dishes":["dish name","dish name"]}. ' +
+    "List at most 4 dishes, most-loved first. " +
     "Reply in the same language as the reviews.";
 
   const reviewText = reviews.map(function (r, i) { return (i + 1) + ". " + r; }).join("\n");
