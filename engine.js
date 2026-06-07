@@ -106,17 +106,29 @@ async function summarizeReviews(placeName, reviews) {
   ❗ It has NO reviews — for those we use the users' own notes (below).
   Returns { found:true, name, address, cuisine, website, hours, source } or { found:false }.
 */
+// one OpenStreetMap search, with an 8s timeout so it can never hang forever
+async function osmSearch(q) {
+  const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
+    "&addressdetails=1&namedetails=1&extratags=1&limit=1&q=" + encodeURIComponent(q);
+  const ctrl = new AbortController();
+  const timer = setTimeout(function () { ctrl.abort(); }, 8000);
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" }, signal: ctrl.signal });
+    if (!res.ok) throw new Error("OpenStreetMap status " + res.status);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchPlaceOSM(placeName) {
   const loc = localStorage.getItem("bitebuddy-location");
-  const query = placeName + ((loc && loc !== "near") ? ", " + loc : ", Landskrona, Sweden");
+  const city = (loc && loc !== "near") ? loc : "Landskrona";
 
-  const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
-    "&addressdetails=1&namedetails=1&extratags=1&limit=1&q=" + encodeURIComponent(query);
-
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error("OpenStreetMap status " + res.status);
-
-  const data = await res.json();
+  // Try several ways to find it before giving up (more bulletproof).
+  let data = await osmSearch(placeName + ", " + city + ", Sweden");
+  if (!data || data.length === 0) data = await osmSearch(placeName + ", Sweden");
+  if (!data || data.length === 0) data = await osmSearch(placeName);
   if (!data || data.length === 0) return { found: false };
 
   const p = data[0];

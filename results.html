@@ -112,6 +112,7 @@
   <!-- ===== THE HONEST, FREE-FIRST CONTROLLER ===== -->
   <script>
     (async function () {
+     try {
       const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
 
       const banner      = document.getElementById("banner");
@@ -195,7 +196,7 @@
           starsEl.textContent = "📍 " + (sv ? "Hittad via " : "found via ") + place.source;
         }
       } else {
-        starsEl.textContent = sv ? "Kunde inte hitta stället 🤔" : "Couldn't find the place 🤔";
+        starsEl.textContent = sv ? "🆕 Nytt eller olistat ställe" : "🆕 New or unlisted place";
       }
 
       // show a little badge when this was reused from the cache (no internet call!)
@@ -286,7 +287,13 @@
 
       // ---------- 5) Show / summarise the reviews ----------
       if (reviews.length === 0) {
-        banner.textContent = sv ? "📝 Inga recensioner än — bli först att skriva en anteckning nedan!" : "📝 No reviews yet — be the first to add a note below!";
+        if (place && place.found) {
+          banner.textContent = sv ? "📝 Inga recensioner än — bli först att skriva en anteckning nedan!" : "📝 No reviews yet — be the first to add a note below!";
+        } else {
+          banner.textContent = sv
+            ? "🆕 Vi har ingen kartinfo för \"" + searched + "\" än — kanske är det helt nytt! Lägg till första anteckningen nedan. 🐾"
+            : "🆕 We don't have map info for \"" + searched + "\" yet — it might be brand new! Add the first note below. 🐾";
+        }
         oneSay(sv ? "Inga recensioner än för \"" + shownName + "\"." : "No reviews yet for \"" + shownName + "\".");
         return;
       }
@@ -314,6 +321,12 @@
           : "ℹ️ Showing real reviews. Add a Gemini key for an AI summary.";
         say(reviews.slice(0, 5).map(function (r) { return { kind: "good", text: "💬 " + r }; }));
       }
+     } catch (err) {
+       // Bulletproof: never leave a blank page. Show a friendly note; the note box still works.
+       console.log("results controller error:", err);
+       var b = document.getElementById("banner");
+       if (b) b.textContent = "😅 Something hiccuped loading this place — but you can still add your note below! 🐾";
+     }
     })();
   </script>
 
