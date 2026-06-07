@@ -1,0 +1,138 @@
+/*
+  BiteBuddy — Profile page styles (the extra looks JUST for profile.html)
+  We also load the shared styles.css first, so colors/topbar/footer already match.
+  This file only adds the NEW pieces: the banner, badges, milestones, shop, etc.
+*/
+
+/* The whole profile sits in a centered column, like the other pages */
+.profile {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+
+/* ===== THE PROFILE CARD (banner + avatar + name) ===== */
+.profile-card {
+  background: var(--white);
+  border-radius: 18px;
+  overflow: hidden;                 /* keeps the banner corners rounded */
+  box-shadow: 0 8px 28px rgba(47, 128, 237, 0.15);
+}
+
+/* The custom banner = a colorful strip at the top.
+   We start it blue; clicking a color swatch below changes it (see profile.html). */
+.banner {
+  height: 120px;
+  background: linear-gradient(135deg, var(--blue), var(--green));
+}
+
+/* The avatar (Forky) overlaps the banner a little, like real profiles */
+.avatar-wrap { text-align: center; margin-top: -45px; }
+.avatar {
+  width: 90px;
+  height: 90px;
+  background: var(--white);
+  border-radius: 50%;               /* makes it a circle */
+  padding: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+.profile-name { text-align: center; font-size: 26px; font-weight: 800; margin-top: 8px; }
+.profile-handle { text-align: center; color: var(--muted); margin-bottom: 18px; }
+
+/* ===== STATS ROW (points / streak / places) ===== */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;                  /* stack nicely on small phones */
+  padding: 0 18px 22px;
+}
+.stat {
+  flex: 1;
+  min-width: 120px;
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-num { font-size: 26px; font-weight: 800; color: var(--blue); }
+.stat-num.green { color: var(--green); }
+.stat-label { color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+/* ===== SHARED LOOK FOR EACH SECTION BELOW ===== */
+.panel {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-top: 18px;
+  box-shadow: 0 6px 20px rgba(47, 128, 237, 0.10);
+}
+.panel h2 { font-size: 20px; margin-bottom: 6px; }
+.panel .hint { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+/* ===== BADGES ===== */
+.badge-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.badge .emoji { font-size: 18px; }
+/* A locked badge looks faded so you know it's not earned yet */
+.badge.locked { opacity: 0.45; }
+
+/* ===== MILESTONES (never-fade progress bars) ===== */
+.milestone { margin-bottom: 16px; }
+.milestone:last-child { margin-bottom: 0; }
+.milestone-top { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.bar {
+  background: var(--bg);
+  border-radius: 999px;
+  height: 14px;
+  overflow: hidden;
+}
+.bar-fill {
+  background: var(--green);
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ===== COSMETIC SHOP (spend points to change the banner) ===== */
+.swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Each swatch is a clickable colored circle */
+.swatch {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid var(--white);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.swatch:hover { transform: scale(1.1); }
+
+/* ===== EXCLUSIVE (top-contender only) ===== */
+.exclusive {
+  background: linear-gradient(135deg, #6a3df0, #2F80ED);  /* special purple→blue, looks rare */
+  color: var(--white);
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-top: 18px;
+  text-align: center;
+}
+.exclusive h2 { color: var(--white); }
+.exclusive .hint { color: rgba(255,255,255,0.85); }
+.locked-pill {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 700;
+  margin-top: 6px;
+}

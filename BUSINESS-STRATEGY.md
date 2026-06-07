@@ -41,6 +41,24 @@ free version that turns superfans into paying members is the main money engine. 
 
 ---
 
+## 📍 3.5 Launch city: LANDSKRONA, Sweden 🇸🇪 (decided 2026-06-07)
+
+Start in Magic's home town — Landskrona, Skåne. Smart because:
+- 🏠 **Home advantage** — Magic lives there; can visit restaurants & knows the scene.
+- 🤏 **Small enough to OWN** — realistic to cover *every* restaurant in town and become
+  "the app that has all of Landskrona". (Impossible in a huge city.)
+- 🆕 **Newly-opened restaurants = the hook** — new places want attention; locals are
+  curious. BiteBuddy helps both. Lead marketing with "the new spots in Landskrona".
+- ⛴️ **Some tourists** (Ven island ferry passes through) → reason to support English too.
+
+**Language:** reviews are mostly in Swedish; support Swedish + English (for tourists).
+
+**Expansion ladder:** Landskrona → Helsingborg → Malmö + Skåne → rest of Sweden → beyond.
+Own one circle before moving to the next.
+
+**First mission:** (1) list Landskrona's restaurants, (2) highlight newly-opened ones,
+(3) show 10 local friends/family, (4) improve from their feedback.
+
 ## 🧲 4. Getting the FIRST users (the real challenge)
 
 Remember: the #1 thing that kills new apps is **too few users**, not too many.

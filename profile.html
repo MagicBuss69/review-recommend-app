@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+  BiteBuddy — Profile page (a MOCKUP / preview)
+  Everything here uses PRETEND numbers. The real points/badges will come later
+  once the app has accounts + a server to remember each person.
+  This page shows what your ideas LOOK like, and a few buttons really work.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBuddy — My Profile</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+
+  <!-- Load the SHARED styles first (colors, topbar, footer)... -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- ...then the EXTRA styles just for this page -->
+  <link rel="stylesheet" href="profile.css">
+</head>
+
+<body>
+
+  <!-- ===== TOP BAR (same as the homepage so it feels like one app) ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+        <img src="logo.svg" alt="Forky the BiteBuddy mascot" class="brand-logo">
+        <span class="brand-name"><span class="blue">Bite</span><span class="green">Buddy</span></span>
+      </a>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="#" class="btn-ghost">Log out</a>
+    </nav>
+  </header>
+
+  <!-- A friendly, honest heads-up that this is a preview with fake numbers -->
+  <div class="demo-banner">👀 Preview — these points and badges are pretend, just to show the idea!</div>
+
+  <main class="profile">
+
+    <!-- ===== THE PROFILE CARD ===== -->
+    <section class="profile-card">
+      <!-- This banner's color changes when you click a swatch lower down -->
+      <div class="banner" id="banner"></div>
+
+      <div class="avatar-wrap">
+        <img src="logo.svg" alt="Your Forky avatar" class="avatar">
+      </div>
+
+      <h1 class="profile-name">Forky_Fan_2026</h1>
+      <p class="profile-handle">🍴 Member since June 2026</p>
+
+      <!-- The 3 big numbers -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num">1,250</div>
+          <div class="stat-label">💎 Points</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num green">3</div>
+          <div class="stat-label">🔥 Week streak</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">17</div>
+          <div class="stat-label">🍽️ Places tried</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BADGES ===== -->
+    <section class="panel">
+      <h2>🏅 My badges</h2>
+      <p class="hint">Earn these by trying places, writing helpful tips, and keeping streaks.</p>
+      <div class="badge-row">
+        <span class="badge"><span class="emoji">🌮</span> Taco Explorer</span>
+        <span class="badge"><span class="emoji">🍕</span> Pizza Pro</span>
+        <span class="badge"><span class="emoji">✍️</span> Helpful Reviewer</span>
+        <span class="badge"><span class="emoji">🔥</span> 3-Week Streak</span>
+        <!-- Locked = not earned yet, shown faded -->
+        <span class="badge locked"><span class="emoji">🍣</span> Sushi Master (locked)</span>
+        <span class="badge locked"><span class="emoji">👑</span> Top 10 (locked)</span>
+      </div>
+    </section>
+
+    <!-- ===== MILESTONES (never-fade progress) ===== -->
+    <section class="panel">
+      <h2>🎯 Milestones</h2>
+      <p class="hint">These never disappear — no pressure, just keep going at your own pace!</p>
+
+      <div class="milestone">
+        <div class="milestone-top"><span>Try 25 places</span><span>17 / 25</span></div>
+        <div class="bar"><div class="bar-fill" style="width:68%"></div></div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-top"><span>Write 10 helpful tips</span><span>6 / 10</span></div>
+        <div class="bar"><div class="bar-fill" style="width:60%"></div></div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-top"><span>Earn 2,000 points</span><span>1,250 / 2,000</span></div>
+        <div class="bar"><div class="bar-fill" style="width:62%"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== COSMETIC SHOP (spend points → change banner) ===== -->
+    <section class="panel">
+      <h2>🎨 Customize: banner color</h2>
+      <p class="hint">Spend points on looks! Click a color to try it on your banner above. 💎</p>
+      <div class="swatches">
+        <!-- data-color tells the script what color to use. Try clicking them! -->
+        <div class="swatch" style="background:linear-gradient(135deg,#2F80ED,#27AE60)" data-color="linear-gradient(135deg,#2F80ED,#27AE60)" title="Blue → Green"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#FF8008,#FFC837)" data-color="linear-gradient(135deg,#FF8008,#FFC837)" title="Sunset"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#6a3df0,#2F80ED)" data-color="linear-gradient(135deg,#6a3df0,#2F80ED)" title="Galaxy"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#11998e,#38ef7d)" data-color="linear-gradient(135deg,#11998e,#38ef7d)" title="Mint"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#eb3349,#f45c43)" data-color="linear-gradient(135deg,#eb3349,#f45c43)" title="Cherry"></div>
+      </div>
+    </section>
+
+    <!-- ===== EXCLUSIVE (top contenders only) ===== -->
+    <section class="exclusive">
+      <h2>👑 Exclusive: Top 10 banner</h2>
+      <p class="hint">Can't be bought with points — only the leaderboard's best win it each month!</p>
+      <span class="locked-pill">🔒 Reach Top 10 to unlock</span>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER (matches the homepage) ===== -->
+  <footer class="footer">
+    <p>🐾 BiteBuddy — made with curiosity by Magic.</p>
+  </footer>
+
+  <!--
+    A tiny bit of JavaScript = the "magic" that makes clicking work.
+    It listens for clicks on the color swatches and recolors the banner.
+  -->
+  <script>
+    // Find the banner strip and every color swatch on the page.
+    const banner = document.getElementById('banner');
+    const swatches = document.querySelectorAll('.swatch');
+
+    // For each swatch, when it's clicked, paint the banner with that swatch's color.
+    swatches.forEach(function (swatch) {
+      swatch.addEventListener('click', function () {
+        // 'dataset.color' reads the data-color="..." we wrote in the HTML.
+        banner.style.background = swatch.dataset.color;
+      });
+    });
+  </script>
+</body>
+</html>
