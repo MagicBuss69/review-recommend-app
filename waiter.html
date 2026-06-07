@@ -63,6 +63,21 @@
       <button class="chip" data-q="Tell me about the milkshakes" data-i18n="waiter.chip3">Milkshakes?</button>
       <button class="chip" data-q="Is it busy at lunch?" data-i18n="waiter.chip4">Busy times?</button>
     </div>
+
+    <!-- ===== MAKE TONY A REAL AI ===== -->
+    <!-- Paste a free Gemini key to power Tony. It is saved ONLY in this browser,
+         never in the code and never on GitHub. -->
+    <div id="key-box" class="key-box">
+      <p>🔑 <strong>Make Tony a REAL AI!</strong> Paste your free Gemini API key
+         — it stays only on your computer.</p>
+      <div class="key-row">
+        <input type="password" id="gemini-key" class="link-input" placeholder="Paste Gemini API key...">
+        <button id="save-key" class="btn-primary">Save</button>
+      </div>
+      <p class="key-note">⚠️ Never share this key or put it in your code/GitHub. <a href="https://aistudio.google.com/apikey" target="_blank">Get a free key →</a></p>
+    </div>
+
+    <p id="key-status" class="key-status"></p>
   </main>
 
   <footer class="footer">
@@ -121,13 +136,45 @@
     const chatInput = document.getElementById("chat-input");
     const chatBtn = document.getElementById("chat-btn");
 
-    // Add one message bubble to the chat (who = "waiter" or "you")
+    // Add one message bubble to the chat (who = "waiter" or "you").
+    // We RETURN the bubble so we can update it later (e.g. replace "..." with the AI reply).
     function addMessage(who, text) {
       const bubble = document.createElement("div");
       bubble.className = "bubble " + who;
       bubble.textContent = text;
       chat.appendChild(bubble);
       chat.scrollTop = chat.scrollHeight; // keep newest message in view
+      return bubble;
+    }
+
+    // ===== Ask the REAL AI (Gemini) =====
+    // Sends the question to Google's Gemini with a little description of the restaurant.
+    async function askGemini(question) {
+      const key = localStorage.getItem("bitebuddy-gemini-key");
+      const model = "gemini-2.0-flash";  // if this ever errors, try "gemini-1.5-flash"
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
+
+      // This tells Gemini WHO to be and what it knows. (Later we'll feed it real reviews.)
+      const aboutTony =
+        "You are Tony, a warm, friendly waiter at Mister York — a new American-style " +
+        "restaurant in Landskrona, Sweden. The menu: smash burgers, crispy chicken, " +
+        "vegetarian alternatives, loaded fries, and milkshakes. Answer guests briefly " +
+        "(1-3 sentences), like a real waiter. Reply in the SAME language the guest uses. " +
+        "If you don't know a detail, say so honestly.";
+
+      const body = {
+        system_instruction: { parts: [{ text: aboutTony }] },
+        contents: [{ parts: [{ text: question }] }],
+      };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("status " + res.status);
+      const data = await res.json();
+      return data.candidates[0].content.parts[0].text;
     }
 
     // Send whatever is typed
@@ -136,10 +183,23 @@
       if (text === "") return;
       addMessage("you", text);
       chatInput.value = "";
-      // Tony "thinks" for a moment, then replies
-      setTimeout(function () {
-        addMessage("waiter", waiterReply(text));
-      }, 500);
+
+      const hasKey = localStorage.getItem("bitebuddy-gemini-key");
+      if (hasKey) {
+        // Real AI mode: show a "thinking" bubble, then fill it with Gemini's reply.
+        const thinking = addMessage("waiter", "🐾 ...");
+        askGemini(text)
+          .then(function (reply) {
+            thinking.textContent = reply;
+            chat.scrollTop = chat.scrollHeight;
+          })
+          .catch(function (err) {
+            thinking.textContent = "😅 I couldn't reach my AI brain. Double-check your key, or try again. (" + err.message + ")";
+          });
+      } else {
+        // Demo mode: use the simple keyword brain.
+        setTimeout(function () { addMessage("waiter", waiterReply(text)); }, 500);
+      }
     }
 
     chatBtn.addEventListener("click", send);
@@ -160,6 +220,40 @@
     addMessage("waiter", waiterLang === "sv"
       ? "Hej! 👋 Jag är Tony, din kypare på Mister York. Fråga mig vad som helst innan du besöker!"
       : "Hey! 👋 I'm Tony, your waiter at Mister York. Ask me anything before you visit!");
+
+
+    // ===== API KEY BOX (saves your key ONLY on this computer) =====
+    const keyBox = document.getElementById("key-box");
+    const keyInput = document.getElementById("gemini-key");
+    const saveKeyBtn = document.getElementById("save-key");
+    const keyStatus = document.getElementById("key-status");
+
+    // When a key is saved, hide the box and show that Tony is now a real AI.
+    function showKeyState() {
+      if (localStorage.getItem("bitebuddy-gemini-key")) {
+        keyBox.style.display = "none";
+        keyStatus.innerHTML = "✅ Tony is powered by real AI! <a href='#' id='clear-key'>Remove key</a>";
+        const clear = document.getElementById("clear-key");
+        if (clear) clear.addEventListener("click", function (e) {
+          e.preventDefault();
+          localStorage.removeItem("bitebuddy-gemini-key");
+          showKeyState();
+        });
+      } else {
+        keyBox.style.display = "block";
+        keyStatus.textContent = "";
+      }
+    }
+
+    saveKeyBtn.addEventListener("click", function () {
+      const k = keyInput.value.trim();
+      if (k === "") { keyStatus.textContent = "🐾 Paste your key first!"; return; }
+      localStorage.setItem("bitebuddy-gemini-key", k);  // saved only in THIS browser
+      keyInput.value = "";
+      showKeyState();
+    });
+
+    showKeyState();
   </script>
 
 </body>

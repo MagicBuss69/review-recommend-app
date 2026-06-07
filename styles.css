@@ -306,6 +306,19 @@ body {
   margin-top: 28px;
 }
 
+/* ===== AI KEY BOX (make Tony a real AI) ===== */
+.key-box {
+  background: #FFF6D9;            /* soft yellow = a friendly notice */
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: #6b5800;
+}
+.key-row { display: flex; gap: 8px; margin: 10px 0; }
+.key-note { font-size: 12px; margin-top: 4px; }
+.key-status { text-align: center; margin-top: 12px; color: var(--green-dark); font-weight: 600; }
+
 /* ===== AI WAITER CHAT ===== */
 .waiter {
   max-width: 620px;

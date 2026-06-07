@@ -111,5 +111,11 @@ staying cheap means low downside if few come, and the growth tools are ready if 
   later connect a real AI (Gemini) so he can answer anything. Fits Magic's love of AI.
 - The "Find out!" button now navigates to the demo results page.
 
-> Status: First real code done — the homepage. Next: results page, then the
-> review-reading "brain" (needs an official API + AI).
+- **AI Waiter is now REAL (Gemini):** `waiter.html` calls the Google Gemini API when a
+  key is saved. **Security:** the key is stored ONLY in the browser (localStorage), never
+  in the code or on GitHub. `.gitignore` blocks common key files. For a public launch the
+  key must move to a small server (TODO with brother). Without a key, Tony uses the demo brain.
+- **Languages:** English + Svenska across all pages via `lang.js` (data-i18n system).
+
+> Status: AI waiter works with a real Gemini key (free, no card). Still TODO: real review
+> data via Google Places API (needs billing/parent), and a server to hide keys for launch.

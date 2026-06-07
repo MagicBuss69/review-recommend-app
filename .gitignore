@@ -1,0 +1,12 @@
+# 🔒 Never let secret keys get saved to GitHub!
+# If you ever put a key in a file, name it one of these so git ignores it.
+.env
+.env.*
+config.js
+secrets.js
+*.key
+keys.txt
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
