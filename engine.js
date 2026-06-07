@@ -184,15 +184,32 @@ async function fetchPlaceOSM(placeName) {
   Returns a list of { name, food }. If anything fails it returns [] — the caller then
   falls back to a small built-in list, so the button NEVER breaks.
 */
-async function nearbyFoodPlaces(city) {
-  const c = (city && city !== "near") ? city : "Landskrona";
-  try {
-    // 1) find the city's coordinates
-    const g = await osmSearch(c + ", Sweden");
-    if (!g || !g.length) return [];
-    const lat = g[0].lat, lon = g[0].lon;
+// Did the user choose "Near me" (in any language / form) rather than type a city?
+function bbIsNear(loc) {
+  const s = (loc || "").toLowerCase().trim();
+  return s === "" || s === "near" || s.indexOf("near me") >= 0 || s.indexOf("nära") >= 0 || s.indexOf("📍") >= 0;
+}
+// Their real location, saved by the 📍 button (or null if they never shared it).
+function bbGetGeo() {
+  try { return JSON.parse(localStorage.getItem("bitebuddy-geo") || "null"); } catch (e) { return null; }
+}
 
-    // 2) ask Overpass for nearby restaurants, cafés & fast food
+async function nearbyFoodPlaces(loc) {
+  try {
+    // 1) work out WHERE to look:
+    let lat, lon;
+    const geo = bbGetGeo();
+    if (bbIsNear(loc) && geo && geo.lat) {
+      lat = geo.lat; lon = geo.lon;                 // real "near me" coordinates 📍
+    } else {
+      const city = bbIsNear(loc) ? "Landskrona" : loc;   // a typed city (or default)
+      let g = await osmSearch(city + ", Sweden");
+      if (!g || !g.length) g = await osmSearch(city); // try without the country too
+      if (!g || !g.length) return [];
+      lat = g[0].lat; lon = g[0].lon;
+    }
+
+    // 2) ask Overpass for nearby restaurants, cafés & fast food (with their coordinates)
     const query =
       "[out:json][timeout:10];" +
       '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););" +
@@ -211,7 +228,8 @@ async function nearbyFoodPlaces(city) {
       return (data.elements || [])
         .map(function (e) {
           const t = e.tags || {};
-          return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null };
+          // keep lat/lon too → the Explore map uses them to drop pins 📍
+          return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null, lat: e.lat, lon: e.lon };
         })
         .filter(function (p) {
           if (!p.name) return false;
@@ -226,6 +244,26 @@ async function nearbyFoodPlaces(city) {
   } catch (e) {
     return [];   // any hiccup → let the caller use its fallback list
   }
+}
+
+/*
+  🔥 WEEKLY STREAK helpers (shared). A streak counts the WEEKS in a row you use
+  BiteBuddy — friendlier than a daily streak (nobody tries a restaurant every day).
+*/
+function bbWeekKey(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = d.getUTCDay() || 7;                 // Monday=1 … Sunday=7
+  d.setUTCDate(d.getUTCDate() + 4 - day);         // nearest Thursday = ISO week anchor
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return d.getUTCFullYear() + "-W" + weekNo;
+}
+// Mark "I used BiteBuddy this week" (call when a real place is searched).
+function bbMarkActiveWeek() {
+  const wk = bbWeekKey(new Date());
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem("bitebuddy-active-weeks") || "[]"); } catch (e) { arr = []; }
+  if (arr.indexOf(wk) === -1) { arr.push(wk); localStorage.setItem("bitebuddy-active-weeks", JSON.stringify(arr)); }
 }
 
 /*

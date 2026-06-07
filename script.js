@@ -141,14 +141,51 @@ if (suggestionsEl && typeof searchSuggestions === "function") {
 const recommendBtn = document.getElementById("recommend-btn");
 const recommendCard = document.getElementById("recommend-card");
 
-// Location picker — choose "near me" or a specific city (great when travelling!).
+// Location — TYPE any city, pick a suggestion, or tap 📍 for your real location.
 // We save the choice so it's remembered next time.
-const locationSelect = document.getElementById("location-select");
+const locationInput = document.getElementById("location-input");
+const nearMeBtn = document.getElementById("near-me-btn");
+const locSv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+
+// restore the saved location into the box
 const savedLoc = localStorage.getItem("bitebuddy-location");
-if (savedLoc) locationSelect.value = savedLoc;
-locationSelect.addEventListener("change", function () {
-  localStorage.setItem("bitebuddy-location", locationSelect.value);
+if (savedLoc === "near") {
+  if (localStorage.getItem("bitebuddy-geo")) locationInput.value = locSv ? "📍 Nära mig" : "📍 Near me";
+} else if (savedLoc) {
+  locationInput.value = savedLoc;
+}
+
+// save whatever the user types
+locationInput.addEventListener("change", function () {
+  const v = locationInput.value.trim();
+  localStorage.setItem("bitebuddy-location", v || "near");
+  // typing a real city clears any old saved GPS location
+  if (v && !/near|nära|📍/i.test(v)) localStorage.removeItem("bitebuddy-geo");
 });
+
+// 📍 "Near me" — ask the browser for the real location (always OPTIONAL, never required).
+if (nearMeBtn) {
+  nearMeBtn.addEventListener("click", function () {
+    if (!navigator.geolocation) {
+      alert(locSv ? "Din webbläsare kan inte dela plats — skriv en stad. 🐾" : "Your browser can't share location — type a city instead. 🐾");
+      return;
+    }
+    nearMeBtn.textContent = "⏳";
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        localStorage.setItem("bitebuddy-geo", JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude }));
+        localStorage.setItem("bitebuddy-location", "near");
+        locationInput.value = locSv ? "📍 Nära mig" : "📍 Near me";
+        nearMeBtn.textContent = "📍";
+      },
+      function () {
+        nearMeBtn.textContent = "📍";
+        alert(locSv ? "Kunde inte hämta din plats — skriv en stad istället. 🐾" : "Couldn't get your location — type a city instead. 🐾");
+      },
+      { timeout: 8000 }
+    );
+  });
+}
 
 // A few real Landskrona spots for the demo
 const landskronaPlaces = [
@@ -178,7 +215,7 @@ function cuisineEmoji(food) {
 let lastPickName = ""; // remember the last pick so we don't repeat it twice in a row
 
 recommendBtn.addEventListener("click", async function () {
-  const loc = locationSelect.value;
+  const loc = locationInput.value.trim();
   const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
 
   recommendCard.innerHTML = '<span class="spinner"></span> ' +
@@ -193,12 +230,17 @@ recommendBtn.addEventListener("click", async function () {
   // (it's a REAL Landskrona list). For other cities we DON'T fake it — we ask to retry,
   // so Forky never shows a Landskrona place when you picked Malmö. 🛡️
   if (!pool || pool.length < 3) {
-    if (loc === "near" || loc === "Landskrona") {
+    const lc = loc.toLowerCase();
+    const nearish = lc === "" || /near|nära|📍/.test(lc);
+    const hasGeo = !!localStorage.getItem("bitebuddy-geo");
+    // only the built-in Landskrona list is REAL → use it just for Landskrona / near-without-GPS
+    if (lc === "landskrona" || (nearish && !hasGeo)) {
       pool = landskronaPlaces;
     } else {
+      const where = nearish ? (sv ? "din plats" : "your area") : loc;
       recommendCard.innerHTML = sv
-        ? "😅 Forky kunde inte nå matkartan för <strong>" + loc + "</strong> just nu — försök igen om en stund!"
-        : "😅 Forky couldn't reach the food map for <strong>" + loc + "</strong> right now — try again in a moment!";
+        ? "😅 Forky kunde inte nå matkartan för <strong>" + where + "</strong> just nu — försök igen om en stund!"
+        : "😅 Forky couldn't reach the food map for <strong>" + where + "</strong> right now — try again in a moment!";
       return;
     }
   }

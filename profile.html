@@ -81,6 +81,13 @@
       </div>
     </section>
 
+    <!-- ===== 🔥 WEEKLY STREAK (never-guilt: counts weeks, not days) ===== -->
+    <section class="panel">
+      <h2 data-i18n="profile.streaktitle">🔥 Weekly streak</h2>
+      <p class="hint" data-i18n="profile.streakhint">Use BiteBuddy at least once a week to keep your streak — no daily pressure!</p>
+      <div id="streak-display" class="streak-display"></div>
+    </section>
+
     <!-- ===== MY TASTES (this is what powers the "FOR YOU" picks!) ===== -->
     <section class="panel">
       <h2 data-i18n="profile.tastestitle">🍽️ My tastes</h2>
@@ -125,16 +132,18 @@
 
     <!-- ===== COSMETIC SHOP (spend points → change banner) ===== -->
     <section class="panel">
-      <h2 data-i18n="profile.shoptitle">🎨 Customize: banner color</h2>
-      <p class="hint" data-i18n="profile.shophint">Spend points on looks! Click a color to try it on your banner above. 💎</p>
-      <div class="swatches">
-        <!-- data-color tells the script what color to use. Try clicking them! -->
-        <div class="swatch" style="background:linear-gradient(135deg,#2F80ED,#27AE60)" data-color="linear-gradient(135deg,#2F80ED,#27AE60)" title="Blue → Green"></div>
-        <div class="swatch" style="background:linear-gradient(135deg,#FF8008,#FFC837)" data-color="linear-gradient(135deg,#FF8008,#FFC837)" title="Sunset"></div>
-        <div class="swatch" style="background:linear-gradient(135deg,#6a3df0,#2F80ED)" data-color="linear-gradient(135deg,#6a3df0,#2F80ED)" title="Galaxy"></div>
-        <div class="swatch" style="background:linear-gradient(135deg,#11998e,#38ef7d)" data-color="linear-gradient(135deg,#11998e,#38ef7d)" title="Mint"></div>
-        <div class="swatch" style="background:linear-gradient(135deg,#eb3349,#f45c43)" data-color="linear-gradient(135deg,#eb3349,#f45c43)" title="Cherry"></div>
+      <h2 data-i18n="profile.shoptitle">🎨 Banner shop</h2>
+      <p class="hint" data-i18n="profile.shophint">Spend points to UNLOCK banners. Once unlocked, switch between them freely! 💎</p>
+      <p class="shop-balance" id="shop-balance"></p>
+      <div class="swatches" id="swatches">
+        <!-- data-cost = points needed to unlock. The first one is free (your starter). -->
+        <div class="swatch" data-id="bluegreen" data-cost="0"   style="background:linear-gradient(135deg,#2F80ED,#27AE60)" data-color="linear-gradient(135deg,#2F80ED,#27AE60)" title="Blue → Green (free)"></div>
+        <div class="swatch" data-id="sunset"    data-cost="50"  style="background:linear-gradient(135deg,#FF8008,#FFC837)" data-color="linear-gradient(135deg,#FF8008,#FFC837)" title="Sunset"></div>
+        <div class="swatch" data-id="mint"      data-cost="100" style="background:linear-gradient(135deg,#11998e,#38ef7d)" data-color="linear-gradient(135deg,#11998e,#38ef7d)" title="Mint"></div>
+        <div class="swatch" data-id="galaxy"    data-cost="200" style="background:linear-gradient(135deg,#6a3df0,#2F80ED)" data-color="linear-gradient(135deg,#6a3df0,#2F80ED)" title="Galaxy"></div>
+        <div class="swatch" data-id="cherry"    data-cost="350" style="background:linear-gradient(135deg,#eb3349,#f45c43)" data-color="linear-gradient(135deg,#eb3349,#f45c43)" title="Cherry"></div>
       </div>
+      <p class="shop-msg" id="shop-msg"></p>
     </section>
 
     <!-- ===== EXCLUSIVE (top contenders only) ===== -->
@@ -160,21 +169,7 @@
     It listens for clicks on the color swatches and recolors the banner.
   -->
   <script>
-    /* ===== BANNER COLOR (click to change — and it now REMEMBERS your pick) ===== */
-    const banner = document.getElementById('banner');
-    const swatches = document.querySelectorAll('.swatch');
-
-    // If you picked a color before, use it again when the page opens.
-    const savedBanner = localStorage.getItem('bitebuddy-banner');
-    if (savedBanner) banner.style.background = savedBanner;
-
-    swatches.forEach(function (swatch) {
-      swatch.addEventListener('click', function () {
-        const color = swatch.dataset.color;   // reads the data-color="..." from the HTML
-        banner.style.background = color;
-        localStorage.setItem('bitebuddy-banner', color);  // remember it for next time
-      });
-    });
+    /* (Banner colours + unlocking are handled by the points-shop script lower down.) */
 
 
     /* ===== ACCOUNT (show your real name once you've signed up) =====
@@ -409,6 +404,126 @@
         });
       }
       render();
+    })();
+  </script>
+
+  <!-- ===== 🔥 WEEKLY STREAK (counts weeks you used BiteBuddy, with a 1-week grace) ===== -->
+  <script>
+    (function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      // same ISO-week key as engine.js, so they agree
+      function weekKey(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const day = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - day);
+        const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const wn = Math.ceil((((d - ys) / 86400000) + 1) / 7);
+        return d.getUTCFullYear() + "-W" + wn;
+      }
+      function streak() {
+        let arr;
+        try { arr = JSON.parse(localStorage.getItem("bitebuddy-active-weeks") || "[]"); } catch (e) { arr = []; }
+        if (!arr.length) return 0;
+        const set = {};
+        arr.forEach(function (w) { set[w] = 1; });
+        const d = new Date();
+        // allow this week OR last week as the start (so it doesn't break the instant you blink)
+        if (!set[weekKey(d)]) { d.setDate(d.getDate() - 7); if (!set[weekKey(d)]) return 0; }
+        let s = 0;
+        while (set[weekKey(d)]) { s++; d.setDate(d.getDate() - 7); }
+        return s;
+      }
+      const el = document.getElementById("streak-display");
+      const n = streak();
+      if (n <= 0) {
+        el.innerHTML = '<span class="streak-zero">' +
+          (sv ? "Börja din streak den här veckan! 🔥" : "Start your streak this week! 🔥") + "</span>";
+      } else {
+        const label = sv ? (n === 1 ? "vecka i rad" : "veckor i rad") : (n === 1 ? "week in a row" : "weeks in a row");
+        el.innerHTML = '<span class="streak-num">🔥 ' + n + '</span> <span class="streak-label">' + label + "</span>";
+      }
+    })();
+  </script>
+
+  <!-- ===== 💎 BANNER SHOP (spend points to unlock banners — a real economy) ===== -->
+  <script>
+    (function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+
+      // total points you've EARNED (same rule as the stats above)
+      function earnedPoints() {
+        function n(key) { try { return JSON.parse(localStorage.getItem(key) || "[]").length; } catch (e) { return 0; } }
+        const places = n("bitebuddy-history");
+        const notes  = n("bitebuddy-notes");
+        const tastes = n("bitebuddy-likes") + n("bitebuddy-dislikes");
+        const favs   = n("bitebuddy-favorites");
+        return places * 10 + notes * 25 + tastes * 5 + favs * 5;
+      }
+      function getSpent() { return parseInt(localStorage.getItem("bitebuddy-spent") || "0", 10) || 0; }
+      function setSpent(v) { localStorage.setItem("bitebuddy-spent", String(v)); }
+      function available() { return Math.max(0, earnedPoints() - getSpent()); }
+      function getUnlocked() { try { return JSON.parse(localStorage.getItem("bitebuddy-unlocked-banners") || "[]"); } catch (e) { return []; } }
+      function isUnlocked(id, cost) { return cost === 0 || getUnlocked().indexOf(id) >= 0; }
+      function unlock(id) {
+        const u = getUnlocked();
+        if (u.indexOf(id) < 0) { u.push(id); localStorage.setItem("bitebuddy-unlocked-banners", JSON.stringify(u)); }
+      }
+
+      const banner = document.getElementById("banner");
+      const balanceEl = document.getElementById("shop-balance");
+      const msg = document.getElementById("shop-msg");
+      const swatches = document.querySelectorAll("#swatches .swatch");
+
+      // restore the banner you picked before
+      const savedBanner = localStorage.getItem("bitebuddy-banner");
+      if (savedBanner) banner.style.background = savedBanner;
+
+      function paintBalance() {
+        balanceEl.textContent = (sv ? "💎 Du har " : "💎 You have ") + available() + (sv ? " poäng att spendera" : " points to spend");
+      }
+      function paintSwatches() {
+        swatches.forEach(function (s) {
+          const id = s.dataset.id, cost = parseInt(s.dataset.cost || "0", 10);
+          const old = s.querySelector(".swatch-cost");
+          if (old) old.remove();
+          if (isUnlocked(id, cost)) {
+            s.classList.remove("locked");
+          } else {
+            s.classList.add("locked");
+            const tag = document.createElement("span");
+            tag.className = "swatch-cost";
+            tag.textContent = "💎" + cost;
+            s.appendChild(tag);
+          }
+        });
+      }
+
+      swatches.forEach(function (s) {
+        s.addEventListener("click", function () {
+          const id = s.dataset.id, cost = parseInt(s.dataset.cost || "0", 10), color = s.dataset.color;
+          if (!isUnlocked(id, cost)) {
+            if (available() >= cost) {
+              setSpent(getSpent() + cost);    // spend the points
+              unlock(id);
+              msg.textContent = sv ? "🎉 Upplåst!" : "🎉 Unlocked!";
+              paintBalance(); paintSwatches();
+            } else {
+              msg.textContent = sv
+                ? "Inte tillräckligt med poäng än — fortsätt använda BiteBuddy! 💎"
+                : "Not enough points yet — keep using BiteBuddy! 💎";
+              return;
+            }
+          } else {
+            msg.textContent = "";
+          }
+          // apply + remember the banner
+          banner.style.background = color;
+          localStorage.setItem("bitebuddy-banner", color);
+        });
+      });
+
+      paintBalance();
+      paintSwatches();
     })();
   </script>
 </body>

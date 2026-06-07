@@ -383,6 +383,7 @@
 
       const shownName = (place && place.name) || searched;
       setupFavButton(shownName);   // ⭐ wire up the Save button for this place
+      if (typeof bbMarkActiveWeek === "function") bbMarkActiveWeek();   // 🔥 you used BiteBuddy this week!
 
       // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
       if (reviews.length === 0) {

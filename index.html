@@ -44,6 +44,7 @@
     </div>
     <nav class="nav">
       <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="explore.html" data-i18n="nav.explore">🗺️ Explore</a>
       <!-- Profile only shows when you're logged in -->
       <a href="profile.html" data-auth="in" data-i18n="nav.profile">🐾 Profile</a>
       <!-- "Log in" when logged out; swaps to "Log out" when logged in -->
@@ -64,16 +65,26 @@
     <h1 class="hero-title"><span class="blue">Bite</span><span class="green">Buddy</span></h1>
     <p class="hero-tagline" data-i18n="hero.tagline">Your buddy who knows where to eat. 🐾</p>
 
-    <!-- Location picker: "near me" OR a specific city (handy when you're travelling!) -->
+    <!-- Location: TYPE any city, pick a suggestion, or tap 📍 for your real location -->
     <div class="location-bar">
-      <label for="location-select" data-i18n="loc.label">📍 Location:</label>
-      <select id="location-select" class="location-select">
-        <option value="near" data-i18n="loc.near">Near me (closest)</option>
-        <option value="Landskrona">Landskrona</option>
-        <option value="Helsingborg">Helsingborg</option>
-        <option value="Malmö">Malmö</option>
-        <option value="Lund">Lund</option>
-      </select>
+      <label for="location-input" data-i18n="loc.label">📍 Location:</label>
+      <input
+        type="text"
+        id="location-input"
+        class="location-select"
+        list="city-list"
+        data-i18n-placeholder="loc.placeholder"
+        placeholder="Type a city, or tap 📍">
+      <!-- suggestions while typing (you can still type anything that's not listed) -->
+      <datalist id="city-list">
+        <option value="Landskrona"></option>
+        <option value="Helsingborg"></option>
+        <option value="Malmö"></option>
+        <option value="Lund"></option>
+        <option value="Helsingør"></option>
+        <option value="Copenhagen"></option>
+      </datalist>
+      <button id="near-me-btn" class="near-me-btn" type="button" title="Use my location">📍</button>
     </div>
 
     <!-- The paste-a-link box + button -->
