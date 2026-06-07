@@ -189,7 +189,19 @@ recommendBtn.addEventListener("click", async function () {
   if (typeof nearbyFoodPlaces === "function") {
     try { pool = await nearbyFoodPlaces(loc); } catch (e) { pool = []; }
   }
-  if (!pool || pool.length < 3) pool = landskronaPlaces;   // safety net — always works
+  // If the live lookup failed, only fall back to the built-in list for Landskrona/near
+  // (it's a REAL Landskrona list). For other cities we DON'T fake it — we ask to retry,
+  // so Forky never shows a Landskrona place when you picked Malmö. 🛡️
+  if (!pool || pool.length < 3) {
+    if (loc === "near" || loc === "Landskrona") {
+      pool = landskronaPlaces;
+    } else {
+      recommendCard.innerHTML = sv
+        ? "😅 Forky kunde inte nå matkartan för <strong>" + loc + "</strong> just nu — försök igen om en stund!"
+        : "😅 Forky couldn't reach the food map for <strong>" + loc + "</strong> right now — try again in a moment!";
+      return;
+    }
+  }
 
   // Pick a random place that isn't the same as last time.
   let pick = pool[Math.floor(Math.random() * pool.length)];
