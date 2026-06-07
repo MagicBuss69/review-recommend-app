@@ -205,7 +205,8 @@
       return "🍴";
     }
 
-    // try to find a real photo of a food (free TheMealDB API, no key). Returns a URL or null.
+    // try to find a real photo of a dish (free TheMealDB API, no key). Picks a RANDOM
+    // match so the same dish can look different — returns a URL or null.
     async function fetchFoodImage(term) {
       try {
         const ctrl = new AbortController();
@@ -214,29 +215,36 @@
         clearTimeout(timer);
         if (r.ok) {
           const d = await r.json();
-          if (d.meals && d.meals[0] && d.meals[0].strMealThumb) return d.meals[0].strMealThumb;
+          if (d.meals && d.meals.length) {
+            const m = d.meals[Math.floor(Math.random() * d.meals.length)];   // vary the picture
+            if (m && m.strMealThumb) return m.strMealThumb;
+          }
         }
       } catch (e) { /* offline / no match → emoji fallback */ }
       return null;
     }
 
-    // show a little gallery of foods the user likes
-    function renderTasteFood() {
+    // gallery of THIS restaurant's loved dishes — the ones matching your taste come first.
+    function renderTasteFood(dishes, likes) {
       const card = document.getElementById("taste-food-card");
       const strip = document.getElementById("taste-food-strip");
       if (!card || !strip) return;
-      const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
-      if (!likes.length) return;              // no tastes → keep it hidden
+      dishes = (dishes || []).filter(Boolean);
+      if (!dishes.length) { card.style.display = "none"; return; }   // no real dishes → hide (stay specific)
+
+      likes = likes || [];
+      function liked(dish) { return likes.some(function (f) { return f && dish.toLowerCase().indexOf(f.toLowerCase()) >= 0; }); }
+      // your matches first, then the rest
+      const ordered = dishes.slice().sort(function (a, b) { return (liked(b) ? 1 : 0) - (liked(a) ? 1 : 0); });
 
       card.style.display = "block";
       strip.innerHTML = "";
-      likes.slice(0, 4).forEach(function (food) {
+      ordered.slice(0, 4).forEach(function (dish) {
         const tile = document.createElement("div");
         tile.className = "taste-food-tile";
-        tile.innerHTML = '<div class="tf-emoji">' + foodEmoji(food) + '</div><div class="tf-name">' + food + "</div>";
+        tile.innerHTML = '<div class="tf-emoji">' + foodEmoji(dish) + '</div><div class="tf-name">' + (liked(dish) ? "💚 " : "") + dish + "</div>";
         strip.appendChild(tile);
-        // swap in a real photo if we can find one
-        fetchFoodImage(food).then(function (url) {
+        fetchFoodImage(dish).then(function (url) {
           if (url) { tile.style.backgroundImage = "url('" + url + "')"; tile.classList.add("has-photo"); }
         });
       });
@@ -469,7 +477,6 @@
       const shownName = (place && place.name) || searched;
       setupFavButton(shownName);   // ⭐ wire up the Save button for this place
       if (typeof bbMarkActiveWeek === "function") bbMarkActiveWeek();   // 🔥 you used BiteBuddy this week!
-      renderTasteFood();           // 🍕 show pictures of food you might like
 
       // 📋 reliable "See the menu" button — real website if we have it, else a web search
       (function () {
@@ -592,6 +599,9 @@
               });
               if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = "block"; }
             }
+
+            // 🍕 picture THIS place's loved dishes (your taste-matches first)
+            renderTasteFood(dishes, likes);
           }
         } catch (e) {
           banner.textContent = (sv ? "😅 Kunde inte sammanfatta (" : "😅 Couldn't summarise (") + e.message + ").";
