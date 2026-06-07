@@ -97,6 +97,14 @@
           <div id="order-chips" class="cuisine-chips"></div>
         </section>
 
+        <!-- 🍽️ Your perfect meal — a main (matched to your taste) + pairings, all from real reviews -->
+        <section class="card-block" id="meal-card" style="display:none;">
+          <h2 data-i18n="results.mealtitle">🍽️ Your perfect meal</h2>
+          <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.mealsub">A full meal from dishes people love here 💚</p>
+          <div id="meal-items" class="meal-items"></div>
+          <p id="meal-menu-link" class="meal-menu-link"></p>
+        </section>
+
         <!-- 🍕 Food YOU might like — pictures based on your saved tastes (hidden if you have none) -->
         <section class="card-block" id="taste-food-card" style="display:none;">
           <h2 data-i18n="results.tastefoodtitle">🍕 Food you might like</h2>
@@ -546,6 +554,31 @@
               forYou.innerHTML = sv
                 ? "Folk älskar <strong>" + dishes[0] + "</strong> här. 🍴"
                 : "People love the <strong>" + dishes[0] + "</strong> here. 🍴";
+            }
+
+            // ===== 🍽️ YOUR PERFECT MEAL (honest: only dishes people actually mention) =====
+            const mealCard = document.getElementById("meal-card");
+            const mealItems = document.getElementById("meal-items");
+            if (mealCard && mealItems) {
+              const mainDish = topMatch || dishes[0];                                   // your taste, else most-loved
+              const pairings = dishes.filter(function (d) { return d !== mainDish; }).slice(0, 2);
+              let mhtml = '<div class="meal-row meal-main"><span class="meal-ic">🍽️</span><div><strong>' + mainDish + "</strong>" +
+                '<div class="meal-tag">' + (topMatch ? (sv ? "matchar din smak 💚" : "matches your taste 💚") : (sv ? "mest hyllad här" : "most loved here")) + "</div></div></div>";
+              pairings.forEach(function (p) {
+                mhtml += '<div class="meal-row"><span class="meal-ic">➕</span><div>' + p + "</div></div>";
+              });
+              if (!pairings.length) {
+                mhtml += '<div class="meal-row muted-text">' + (sv ? "(för få rätter nämnda för ett tillägg)" : "(too few dishes mentioned to add a pairing)") + "</div>";
+              }
+              mealItems.innerHTML = mhtml;
+              // a link to the REAL menu, if we know it
+              const menuLink = place.menu || place.website;
+              const mlEl = document.getElementById("meal-menu-link");
+              if (menuLink && mlEl) {
+                mlEl.innerHTML = '<a href="' + menuLink + '" target="_blank" rel="noopener" class="map-link">' +
+                  (sv ? "📋 Se hela menyn →" : "📋 See the full menu →") + "</a>";
+              }
+              mealCard.style.display = "block";
             }
           }
         } catch (e) {
