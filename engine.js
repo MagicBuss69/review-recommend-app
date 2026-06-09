@@ -238,7 +238,28 @@ function bbGetGeo() {
   try { return JSON.parse(localStorage.getItem("bitebuddy-geo") || "null"); } catch (e) { return null; }
 }
 
+// Several Overpass servers — if one is busy/down, we just try the next one.
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.openstreetmap.fr/api/interpreter",
+];
+
+// a cache key for "places near here" so the button, taste button and homepage list share it
+function bbNearbyCacheKey(loc) {
+  const geo = bbGetGeo();
+  if (bbIsNear(loc) && geo && geo.lat) return "near:" + Number(geo.lat).toFixed(3) + "," + Number(geo.lon).toFixed(3);
+  return "city:" + (bbIsNear(loc) ? "landskrona" : (loc || "").toLowerCase());
+}
+
 async function nearbyFoodPlaces(loc) {
+  // 0) reuse a recent result (2 hours) so we don't re-ask the map service every click
+  const cacheKey = "bitebuddy-nearby:" + bbNearbyCacheKey(loc);
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (raw) { const o = JSON.parse(raw); if (o && o.d && o.d.length && (Date.now() - o.t) < 2 * 60 * 60 * 1000) return o.d; }
+  } catch (e) {}
+
   try {
     // 1) work out WHERE to look:
     let lat, lon;
@@ -253,38 +274,45 @@ async function nearbyFoodPlaces(loc) {
       lat = g[0].lat; lon = g[0].lon;
     }
 
-    // 2) ask Overpass for nearby restaurants, cafés & fast food (with their coordinates)
+    // 2) ask Overpass (trying each server in turn) for nearby restaurants, cafés & fast food
     const query =
-      "[out:json][timeout:10];" +
+      "[out:json][timeout:12];" +
       '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););" +
       "out 80;";
-    const ctrl = new AbortController();
-    const timer = setTimeout(function () { ctrl.abort(); }, 9000);
-    try {
-      const res = await fetch("https://overpass-api.de/api/interpreter", {
-        method: "POST",
-        body: "data=" + encodeURIComponent(query),
-        signal: ctrl.signal,
-      });
-      if (!res.ok) return [];
-      const data = await res.json();
-      const seen = {};
-      return (data.elements || [])
-        .map(function (e) {
-          const t = e.tags || {};
-          // keep lat/lon too → the Explore map uses them to drop pins 📍
-          return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null, lat: e.lat, lon: e.lon };
-        })
-        .filter(function (p) {
-          if (!p.name) return false;
-          const k = p.name.toLowerCase();
-          if (seen[k]) return false;       // drop duplicates
-          seen[k] = true;
-          return true;
+    let data = null;
+    for (let i = 0; i < OVERPASS_ENDPOINTS.length && !data; i++) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(function () { ctrl.abort(); }, 12000);
+      try {
+        const res = await fetch(OVERPASS_ENDPOINTS[i], {
+          method: "POST",
+          body: "data=" + encodeURIComponent(query),
+          signal: ctrl.signal,
         });
-    } finally {
-      clearTimeout(timer);
+        if (res.ok) data = await res.json();        // got it — stop trying servers
+      } catch (e) { /* this server failed → try the next one */ }
+      finally { clearTimeout(timer); }
     }
+    if (!data) return [];
+
+    const seen = {};
+    const list = (data.elements || [])
+      .map(function (e) {
+        const t = e.tags || {};
+        // keep lat/lon too → the Explore map uses them to drop pins 📍
+        return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null, lat: e.lat, lon: e.lon };
+      })
+      .filter(function (p) {
+        if (!p.name) return false;
+        const k = p.name.toLowerCase();
+        if (seen[k]) return false;       // drop duplicates
+        seen[k] = true;
+        return true;
+      });
+
+    // remember it so the next click is instant and reliable
+    if (list.length) { try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), d: list })); } catch (e) {} }
+    return list;
   } catch (e) {
     return [];   // any hiccup → let the caller use its fallback list
   }
