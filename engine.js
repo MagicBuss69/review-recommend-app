@@ -245,11 +245,16 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass.openstreetmap.fr/api/interpreter",
 ];
 
-// a cache key for "places near here" so the button, taste button and homepage list share it
+// Names that look like NON-eateries (a youth/culture house, library, school, gym…) even
+// if OSM tagged them with a café. We drop these so recommendations are real food places.
+const NOT_A_RESTAURANT = /\b(kulturhus|arena|bibliotek|museum|skola|förskola|gymnasium|kyrka|mosk|gym|sjukhus|vårdcentral|apotek|station|simhall|ishall|idrottsplats|fritidsgård|teater|biograf|rådhus|kommun)\b/i;
+
+// a cache key for "places near here" so the button, taste button and homepage list share it.
+// The ":v2" bumps it so older cached lists (which had non-restaurants) are thrown away.
 function bbNearbyCacheKey(loc) {
   const geo = bbGetGeo();
-  if (bbIsNear(loc) && geo && geo.lat) return "near:" + Number(geo.lat).toFixed(3) + "," + Number(geo.lon).toFixed(3);
-  return "city:" + (bbIsNear(loc) ? "landskrona" : (loc || "").toLowerCase());
+  if (bbIsNear(loc) && geo && geo.lat) return "v2:near:" + Number(geo.lat).toFixed(3) + "," + Number(geo.lon).toFixed(3);
+  return "v2:city:" + (bbIsNear(loc) ? "landskrona" : (loc || "").toLowerCase());
 }
 
 async function nearbyFoodPlaces(loc) {
@@ -304,6 +309,7 @@ async function nearbyFoodPlaces(loc) {
       })
       .filter(function (p) {
         if (!p.name) return false;
+        if (NOT_A_RESTAURANT.test(p.name)) return false;   // skip culture houses, libraries, etc.
         const k = p.name.toLowerCase();
         if (seen[k]) return false;       // drop duplicates
         seen[k] = true;

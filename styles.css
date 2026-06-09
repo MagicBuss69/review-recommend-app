@@ -410,7 +410,7 @@ html:not(.is-admin) [data-admin] { display: none !important; }
 .page-deco span:nth-child(6) { top: 30%; right: 13%; font-size: 34px; animation-delay: 2.5s; }
 
 /* ===== ✨ RECOMMENDED RESTAURANTS LIST ===== */
-.recos { max-width: 680px; margin: 0 auto; padding: 6px 20px 44px; text-align: center; }
+.recos { max-width: 680px; margin: 14px auto 6px; text-align: center; }
 .recos h2 { font-family: "Baloo 2", sans-serif; font-size: 28px; margin-bottom: 6px; }
 .recos-sub { color: var(--muted); font-weight: 600; margin-bottom: 18px; }
 .recos-sub:empty { display: none; }

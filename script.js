@@ -453,14 +453,9 @@ async function loadRecos() {
   listEl.innerHTML = '<div class="loading-row"><span class="spinner"></span> ' +
     (sv ? "Forky letar efter bra ställen…" : "Forky is finding good spots…") + "</div>";
 
-  // get nearby places (cached per location/GPS)
-  const cacheKey = "bitebuddy-recos:" + loc.toLowerCase() + ":" + (localStorage.getItem("bitebuddy-geo") || "");
-  let pool = readRecoCache(cacheKey);
-  if (!pool) {
-    pool = [];
-    if (typeof nearbyFoodPlaces === "function") { try { pool = await nearbyFoodPlaces(loc); } catch (e) { pool = []; } }
-    if (pool && pool.length) writeRecoCache(cacheKey, pool);
-  }
+  // get nearby places (nearbyFoodPlaces now caches internally, shared with the buttons)
+  let pool = [];
+  if (typeof nearbyFoodPlaces === "function") { try { pool = await nearbyFoodPlaces(loc); } catch (e) { pool = []; } }
 
   // fallback (only honest for Landskrona / near-without-GPS)
   if (!pool || !pool.length) {
