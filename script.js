@@ -17,9 +17,9 @@ const recent = document.getElementById("recent");
 
 // Save a place into the history: newest first, no duplicates, keep only the latest 6.
 function addToHistory(name) {
-  let hist = JSON.parse(localStorage.getItem("bitebuddy-history") || "[]");
+  let hist = bbParse("bitebuddy-history", []);
   // drop any older copy of the same name, so it jumps back to the top
-  hist = hist.filter(function (item) { return item.name.toLowerCase() !== name.toLowerCase(); });
+  hist = hist.filter(function (item) { return item && item.name && item.name.toLowerCase() !== name.toLowerCase(); });
   hist.unshift({ name: name, time: Date.now() });   // add to the front with the current time
   hist = hist.slice(0, 6);                            // keep the list short
   localStorage.setItem("bitebuddy-history", JSON.stringify(hist));
@@ -27,25 +27,28 @@ function addToHistory(name) {
 
 // Turn a saved time into friendly text like "just now" or "2h ago" (the time mechanic!).
 function timeAgo(ms) {
+  const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
   const secs = Math.floor((Date.now() - ms) / 1000);
-  if (secs < 60) return "just now";
+  if (secs < 60) return sv ? "nyss" : "just now";
   const mins = Math.floor(secs / 60);
-  if (mins < 60) return mins + "m ago";
+  if (mins < 60) return mins + (sv ? " min sedan" : "m ago");
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours + "h ago";
-  return Math.floor(hours / 24) + "d ago";
+  if (hours < 24) return hours + (sv ? " tim sedan" : "h ago");
+  return Math.floor(hours / 24) + (sv ? " dgr sedan" : "d ago");
 }
 
 // Draw the recent list and make each item tappable to reopen that result.
 function renderHistory() {
   if (!recent) return;
-  const hist = JSON.parse(localStorage.getItem("bitebuddy-history") || "[]");
+  const hist = bbParse("bitebuddy-history", []);
   if (hist.length === 0) { recent.innerHTML = ""; return; }
+  const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
 
-  let html = '<div class="recent-title">🕘 Recent</div><div class="recent-list">';
+  let html = '<div class="recent-title">🕘 ' + (sv ? "Senaste" : "Recent") + '</div><div class="recent-list">';
   hist.forEach(function (item) {
-    html += '<button class="recent-chip" data-name="' + item.name.replace(/"/g, "&quot;") + '">' +
-            item.name + ' <span class="recent-time">' + timeAgo(item.time) + '</span></button>';
+    if (!item || !item.name) return;
+    html += '<button class="recent-chip" data-name="' + escapeHtml(item.name) + '">' +
+            escapeHtml(item.name) + ' <span class="recent-time">' + timeAgo(item.time) + '</span></button>';
   });
   html += '</div>';
   recent.innerHTML = html;
@@ -114,8 +117,8 @@ if (suggestionsEl && typeof searchSuggestions === "function") {
         list.forEach(function (s) {
           const item = document.createElement("div");
           item.className = "suggestion";
-          item.innerHTML = "🍽️ <strong>" + s.name + "</strong>" +
-            (s.area ? ' <span class="sugg-area">' + s.area + "</span>" : "");
+          item.innerHTML = "🍽️ <strong>" + escapeHtml(s.name) + "</strong>" +
+            (s.area ? ' <span class="sugg-area">' + escapeHtml(s.area) + "</span>" : "");
           item.addEventListener("click", function () {
             input.value = s.name;
             suggestionsEl.innerHTML = "";
@@ -169,7 +172,7 @@ function toggleClear() {
 function addLocHistory(loc) {
   const v = (loc || "").trim();
   if (!isRealCity(v)) return;                       // skip blank / near-me
-  let h = JSON.parse(localStorage.getItem("bitebuddy-loc-history") || "[]");
+  let h = bbParse("bitebuddy-loc-history", []);
   h = h.filter(function (x) { return x.toLowerCase() !== v.toLowerCase(); });  // no duplicates
   h.unshift(v);                                     // newest first
   h = h.slice(0, 6);                                // keep it short
@@ -178,13 +181,13 @@ function addLocHistory(loc) {
 function renderLocHistory() {
   const el = document.getElementById("loc-history");
   if (!el) return;
-  const h = JSON.parse(localStorage.getItem("bitebuddy-loc-history") || "[]");
+  const h = bbParse("bitebuddy-loc-history", []);
   if (!h.length) { el.innerHTML = ""; return; }
   const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
   let html = '<span class="loc-history-title">' + (sv ? "🕘 Senaste:" : "🕘 Recent:") + "</span>";
   h.forEach(function (c) {
-    const safe = c.replace(/"/g, "&quot;");
-    html += '<span class="loc-chip"><button class="loc-go" data-loc="' + safe + '">' + c +
+    const safe = escapeHtml(c);
+    html += '<span class="loc-chip"><button class="loc-go" data-loc="' + safe + '">' + safe +
             '</button><span class="loc-x" data-loc="' + safe + '" title="Remove">✕</span></span>';
   });
   el.innerHTML = html;
@@ -205,7 +208,7 @@ function renderLocHistory() {
   el.querySelectorAll(".loc-x").forEach(function (x) {
     x.addEventListener("click", function () {
       const v = x.dataset.loc;
-      let list = JSON.parse(localStorage.getItem("bitebuddy-loc-history") || "[]");
+      let list = bbParse("bitebuddy-loc-history", []);
       list = list.filter(function (c) { return c.toLowerCase() !== v.toLowerCase(); });
       localStorage.setItem("bitebuddy-loc-history", JSON.stringify(list));
       renderLocHistory();
@@ -333,7 +336,7 @@ recommendBtn.addEventListener("click", async function () {
   lastPickName = pick.name;
 
   const emoji = pick.emoji || cuisineEmoji(pick.food);
-  const foodLine = pick.food ? '<div class="pick-food">' + pick.food + "</div>" : "";
+  const foodLine = pick.food ? '<div class="pick-food">' + escapeHtml(pick.food) + "</div>" : "";
 
   // Remember the pick so the results page ("See details") shows this place.
   localStorage.setItem("bitebuddy-search", pick.name);
@@ -341,7 +344,7 @@ recommendBtn.addEventListener("click", async function () {
 
   recommendCard.innerHTML =
     '<div class="pick-emoji">' + emoji + "</div>" +
-    '<div class="pick-title">' + (sv ? "Forky väljer: " : "Forky picks: ") + "<strong>" + pick.name + "</strong></div>" +
+    '<div class="pick-title">' + (sv ? "Forky väljer: " : "Forky picks: ") + "<strong>" + escapeHtml(pick.name) + "</strong></div>" +
     foodLine +
     '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Se detaljer 🔍" : "See details 🔍") + "</a>";
 
@@ -362,8 +365,8 @@ function tasteScore(place, likes, dislikes) {
 const tasteBtn = document.getElementById("taste-btn");
 if (tasteBtn) tasteBtn.addEventListener("click", async function () {
   const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
-  const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
-  const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+  const likes = bbParse("bitebuddy-likes", []);
+  const dislikes = bbParse("bitebuddy-dislikes", []);
 
   // need to know your tastes first
   if (!likes.length) {
@@ -414,8 +417,9 @@ if (tasteBtn) tasteBtn.addEventListener("click", async function () {
 
   const place = chosen.p;
   const emoji = place.emoji || cuisineEmoji(place.food);
+  const matchSafe = escapeHtml(chosen.matched);
   const why = chosen.matched
-    ? (sv ? "💚 För att du gillar <strong>" + chosen.matched + "</strong>" : "💚 Because you like <strong>" + chosen.matched + "</strong>")
+    ? (sv ? "💚 För att du gillar <strong>" + matchSafe + "</strong>" : "💚 Because you like <strong>" + matchSafe + "</strong>")
     : (sv ? "💚 Vald för din smak (inget perfekt matchade — men inget du ogillar!)" : "💚 Picked for your taste (no perfect match nearby — but nothing you dislike!)");
 
   localStorage.setItem("bitebuddy-search", place.name);
@@ -423,9 +427,9 @@ if (tasteBtn) tasteBtn.addEventListener("click", async function () {
 
   recommendCard.innerHTML =
     '<div class="pick-emoji">' + emoji + "</div>" +
-    '<div class="pick-title">' + (sv ? "För dig: " : "For you: ") + "<strong>" + place.name + "</strong></div>" +
+    '<div class="pick-title">' + (sv ? "För dig: " : "For you: ") + "<strong>" + escapeHtml(place.name) + "</strong></div>" +
     '<div class="pick-food">' + why + "</div>" +
-    (place.food ? '<div class="pick-food">' + place.food + "</div>" : "") +
+    (place.food ? '<div class="pick-food">' + escapeHtml(place.food) + "</div>" : "") +
     '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Se detaljer 🔍" : "See details 🔍") + "</a>";
 
   renderHistory();
@@ -433,21 +437,14 @@ if (tasteBtn) tasteBtn.addEventListener("click", async function () {
 
 
 /* ===== ✨ RECOMMENDED RESTAURANTS LIST (real picks for your location) ===== */
-// a tiny 2-hour cache so we don't hammer the map service on every visit
-function readRecoCache(key) {
-  try { const o = JSON.parse(localStorage.getItem(key) || "null"); if (o && (Date.now() - o.t) < 2 * 60 * 60 * 1000) return o.d; } catch (e) {}
-  return null;
-}
-function writeRecoCache(key, d) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), d: d })); } catch (e) {} }
-
 async function loadRecos() {
   const listEl = document.getElementById("recos-list");
   const subEl = document.getElementById("recos-sub");
   if (!listEl) return;
   const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
   const loc = (localStorage.getItem("bitebuddy-location") || "").trim();
-  const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
-  const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+  const likes = bbParse("bitebuddy-likes", []);
+  const dislikes = bbParse("bitebuddy-dislikes", []);
 
   if (subEl) subEl.textContent = "";
   listEl.innerHTML = '<div class="loading-row"><span class="spinner"></span> ' +
@@ -481,8 +478,8 @@ async function loadRecos() {
     const btn = document.createElement("button");
     btn.className = "reco-item";
     btn.innerHTML = '<span class="reco-emoji">' + emoji + "</span>" +
-      '<span class="reco-info"><span class="reco-name">' + (item.m ? "💚 " : "") + place.name + "</span>" +
-      (place.food ? '<span class="reco-food">' + place.food + "</span>" : "") + "</span>" +
+      '<span class="reco-info"><span class="reco-name">' + (item.m ? "💚 " : "") + escapeHtml(place.name) + "</span>" +
+      (place.food ? '<span class="reco-food">' + escapeHtml(place.food) + "</span>" : "") + "</span>" +
       '<span class="reco-go">→</span>';
     btn.addEventListener("click", function () { goToPlace(place.name); });
     listEl.appendChild(btn);
@@ -506,7 +503,7 @@ feedbackBtn.addEventListener("click", function () {
   }
 
   // Save it so you can read it later in the Admin Panel.
-  const saved = JSON.parse(localStorage.getItem("bitebuddy-feedback") || "[]");
+  const saved = bbParse("bitebuddy-feedback", []);
   saved.push({ text: text, time: Date.now() });
   localStorage.setItem("bitebuddy-feedback", JSON.stringify(saved));
 

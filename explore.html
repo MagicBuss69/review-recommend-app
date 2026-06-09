@@ -59,7 +59,7 @@
         <option value="Malmö"></option>
         <option value="Lund"></option>
       </datalist>
-      <button id="explore-near" class="near-me-btn" type="button" title="Use my location">📍</button>
+      <button id="explore-near" class="near-me-btn" type="button" title="Use my location" aria-label="Use my location">📍</button>
       <button id="explore-go" class="btn-primary" data-i18n="explore.showbtn">Show places 🍴</button>
     </div>
 
@@ -91,6 +91,14 @@
       if (saved === "near") { if (localStorage.getItem("bitebuddy-geo")) input.value = sv ? "📍 Nära mig" : "📍 Near me"; }
       else if (saved) input.value = saved;
 
+      // if the map library didn't load (offline / CDN blocked), fail gracefully
+      if (!window.L) {
+        if (statusEl) statusEl.textContent = sv
+          ? "😅 Kunde inte ladda kartan — kolla din internetanslutning och ladda om."
+          : "😅 Couldn't load the map — check your internet and reload.";
+        return;
+      }
+
       // set up the map (centred on Landskrona to start)
       const map = L.map("map").setView([55.8703, 12.8300], 13);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -114,11 +122,14 @@
         }
 
         const markers = withCoords.map(function (p) {
-          const enc = encodeURIComponent(p.name);
-          const food = p.food ? "<br>" + p.food : "";
-          const btn = '<br><a href="#" onclick="goPlace(\'' + enc + '\');return false;" class="map-link">' +
-            (sv ? "Se Forkys recension →" : "See Forky's review →") + "</a>";
-          return L.marker([p.lat, p.lon]).bindPopup("<strong>🍴 " + p.name + "</strong>" + food + btn);
+          // build the popup as a real element (safe from HTML injection AND from names
+          // with apostrophes like "McDonald's", which used to break an inline onclick)
+          const div = document.createElement("div");
+          div.innerHTML = "<strong>🍴 " + escapeHtml(p.name) + "</strong>" +
+            (p.food ? "<br>" + escapeHtml(p.food) : "") +
+            '<br><a href="#" class="map-link">' + (sv ? "Se Forkys recension →" : "See Forky's review →") + "</a>";
+          div.querySelector("a").addEventListener("click", function (e) { e.preventDefault(); goPlace(p.name); });
+          return L.marker([p.lat, p.lon]).bindPopup(div);
         });
         pinLayer = L.featureGroup(markers).addTo(map);
         map.fitBounds(pinLayer.getBounds().pad(0.2));   // zoom to fit all pins

@@ -110,7 +110,7 @@
         <!-- 🍕 Food YOU might like — pictures based on your saved tastes (hidden if you have none) -->
         <section class="card-block" id="taste-food-card" style="display:none;">
           <h2 data-i18n="results.tastefoodtitle">🍕 Food you might like</h2>
-          <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.tastefoodsub">A few things from your tastes 💚</p>
+          <p class="muted-text" style="margin-bottom:12px;" data-i18n="results.tastefoodsub">Dishes loved here — your taste-matches first 💚</p>
           <div id="taste-food-strip" class="taste-food-strip"></div>
         </section>
 
@@ -242,7 +242,7 @@
       ordered.slice(0, 4).forEach(function (dish) {
         const tile = document.createElement("div");
         tile.className = "taste-food-tile";
-        tile.innerHTML = '<div class="tf-emoji">' + foodEmoji(dish) + '</div><div class="tf-name">' + (liked(dish) ? "💚 " : "") + dish + "</div>";
+        tile.innerHTML = '<div class="tf-emoji">' + foodEmoji(dish) + '</div><div class="tf-name">' + (liked(dish) ? "💚 " : "") + escapeHtml(dish) + "</div>";
         strip.appendChild(tile);
         fetchFoodImage(dish).then(function (url) {
           if (url) { tile.style.backgroundImage = "url('" + url + "')"; tile.classList.add("has-photo"); }
@@ -445,13 +445,23 @@
         }
 
         // info rows (only added if the data exists — keeps it honest)
-        function addInfo(icon, label, value) {
+        function addInfo(icon, label, value) {           // value is plain TEXT (auto-escaped)
           if (!value) return;
           const row = document.createElement("div");
           row.className = "info-row";
           row.innerHTML = '<span class="info-ic">' + icon + '</span>' +
                           '<span class="info-label">' + label + ":</span> " +
-                          '<span class="info-val">' + value + "</span>";
+                          '<span class="info-val">' + escapeHtml(value) + "</span>";
+          infoEl.appendChild(row);
+        }
+        function addInfoLink(icon, label, rawUrl, text) {  // a SAFE external link row (https only)
+          const url = safeUrl(rawUrl);
+          if (!url) return;
+          const row = document.createElement("div");
+          row.className = "info-row";
+          row.innerHTML = '<span class="info-ic">' + icon + '</span>' +
+                          '<span class="info-label">' + label + ":</span> " +
+                          '<span class="info-val"><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + text + "</a></span>";
           infoEl.appendChild(row);
         }
         function yn(v) {
@@ -462,10 +472,8 @@
         }
         addInfo("🕐", sv ? "Öppettider" : "Hours", place.hours);
         addInfo("📞", sv ? "Telefon" : "Phone", place.phone);
-        if (place.website) addInfo("🌐", sv ? "Webbplats" : "Website",
-          '<a href="' + place.website + '" target="_blank">' + (sv ? "Besök →" : "Visit →") + "</a>");
-        if (place.menu) addInfo("📋", sv ? "Meny" : "Menu",
-          '<a href="' + place.menu + '" target="_blank">' + (sv ? "Se meny →" : "See menu →") + "</a>");
+        addInfoLink("🌐", sv ? "Webbplats" : "Website", place.website, sv ? "Besök →" : "Visit →");
+        addInfoLink("📋", sv ? "Meny" : "Menu", place.menu, sv ? "Se meny →" : "See menu →");
         addInfo("🥗", sv ? "Vegetariskt" : "Vegetarian", yn(place.vegetarian));
         addInfo("🥡", sv ? "Avhämtning" : "Takeaway", yn(place.takeaway));
         addInfo("☀️", sv ? "Uteservering" : "Outdoor seating", yn(place.outdoor));
@@ -572,13 +580,15 @@
             // upgrade the "For you" pick from a guess into a REAL recommendation
             const forYou = document.getElementById("for-you-text");
             if (topMatch) {
+              const tm = escapeHtml(topMatch);
               forYou.innerHTML = sv
-                ? "Perfekt för dig — prova <strong>" + topMatch + "</strong>! 💚"
-                : "Perfect for you — try the <strong>" + topMatch + "</strong>! 💚";
+                ? "Perfekt för dig — prova <strong>" + tm + "</strong>! 💚"
+                : "Perfect for you — try the <strong>" + tm + "</strong>! 💚";
             } else if (likes.length === 0 && dislikes.length === 0) {
+              const d0 = escapeHtml(dishes[0]);
               forYou.innerHTML = sv
-                ? "Folk älskar <strong>" + dishes[0] + "</strong> här. 🍴"
-                : "People love the <strong>" + dishes[0] + "</strong> here. 🍴";
+                ? "Folk älskar <strong>" + d0 + "</strong> här. 🍴"
+                : "People love the <strong>" + d0 + "</strong> here. 🍴";
             }
 
             // ===== 🍽️ YOUR PERFECT MEAL (courses + drink — only from real reviews) =====
@@ -600,10 +610,10 @@
                 if (!c.val) return;     // skip courses reviewers didn't mention (stay honest)
                 mhtml += '<div class="meal-row' + (c.main ? " meal-main" : "") + '">' +
                   '<span class="meal-ic">' + c.ic + "</span>" +
-                  '<div><span class="meal-course">' + (sv ? c.sv : c.en) + ":</span> <strong>" + c.val + "</strong>" +
+                  '<div><span class="meal-course">' + (sv ? c.sv : c.en) + ":</span> <strong>" + escapeHtml(c.val) + "</strong>" +
                   (c.tag ? '<div class="meal-tag">' + c.tag + "</div>" : "") + "</div></div>";
               });
-              if (meal.note) mhtml += '<p class="meal-note-text">“' + meal.note + '”</p>';   // a tasty detail
+              if (meal.note) mhtml += '<p class="meal-note-text">“' + escapeHtml(meal.note) + '”</p>';   // a tasty detail
               if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = "block"; }
             }
 
@@ -624,7 +634,10 @@
        // Bulletproof: never leave a blank page. Show a friendly note; the note box still works.
        console.log("results controller error:", err);
        var b = document.getElementById("banner");
-       if (b) b.textContent = "😅 Something hiccuped loading this place — but you can still add your note below! 🐾";
+       var svErr = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+       if (b) b.textContent = svErr
+         ? "😅 Något krånglade när stället laddades — men du kan fortfarande lägga till din kommentar nedan! 🐾"
+         : "😅 Something hiccuped loading this place — but you can still add your note below! 🐾";
      }
     })();
   </script>
@@ -636,15 +649,18 @@
     const noteMessage = document.getElementById("note-message");
 
     noteBtn.addEventListener("click", function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
       const text = noteInput.value.trim();
-      if (text === "") { noteMessage.textContent = "🐾 Type your note first!"; return; }
+      if (text === "") { noteMessage.textContent = sv ? "🐾 Skriv din kommentar först!" : "🐾 Type your note first!"; return; }
 
       const place = document.getElementById("place-name").textContent || "Unknown";
-      const saved = JSON.parse(localStorage.getItem("bitebuddy-notes") || "[]");
+      const saved = bbParse("bitebuddy-notes", []);
       saved.push({ place: place, text: text });   // tie each note to its place
       localStorage.setItem("bitebuddy-notes", JSON.stringify(saved));
 
-      noteMessage.textContent = "🐾 Thanks! Your note was added — refresh to see it in the summary. 💚";
+      noteMessage.textContent = sv
+        ? "🐾 Tack! Din kommentar lades till — ladda om för att se den i sammanfattningen. 💚"
+        : "🐾 Thanks! Your note was added — refresh to see it in the summary. 💚";
       noteInput.value = "";
     });
   </script>

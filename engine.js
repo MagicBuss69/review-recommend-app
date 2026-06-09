@@ -16,6 +16,24 @@ function getGoogleMapsKey() {
   return (window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.googleMapsKey) || null;
 }
 
+/* ---- SAFETY HELPERS (shared everywhere engine.js is loaded) ----
+   escapeHtml: makes ANY text safe to drop into innerHTML, so a sneaky restaurant/dish
+   name (or something a user typed) can never inject HTML/scripts. */
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+// safe JSON.parse from localStorage — never throws on a corrupted value
+function bbParse(key, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key) || "null"); return v == null ? fallback : v; }
+  catch (e) { return fallback; }
+}
+// only allow http(s) links (blocks javascript:/data: etc.) for safe external links
+function safeUrl(u) {
+  return (typeof u === "string" && /^https?:\/\//i.test(u.trim())) ? u.trim() : null;
+}
+
 /*
   STEP 1 — fetch the REAL place from Google Maps (Places API "New").
   Returns: { found:true, name, rating, count, address, reviews:[texts] }
@@ -116,40 +134,6 @@ async function summarizeReviews(placeName, reviews) {
   const body = {
     system_instruction: { parts: [{ text: rules }] },
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: "application/json" },
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("Gemini status " + res.status);
-
-  const data = await res.json();
-  return JSON.parse(data.candidates[0].content.parts[0].text);
-}
-
-/*
-  💬 SUMMARISE FEEDBACK — the AI reads a user's message and boils it down to one line,
-  plus a type (idea / bug / praise / other) and a mood. Used by the feedback box so YOU
-  get a quick, clear read of what people said. Returns null if there's no Gemini key.
-*/
-async function summarizeFeedback(text) {
-  const key = getGeminiKey();
-  if (!key) return null;
-
-  const model = "gemini-2.0-flash";
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
-
-  const rules =
-    "You read short user feedback for a food app called BiteBuddy. Reply ONLY as JSON: " +
-    '{"summary":"one short friendly sentence","type":"idea|bug|praise|other","mood":"😀|😐|😕"}. ' +
-    "Keep the summary under 15 words.";
-
-  const body = {
-    system_instruction: { parts: [{ text: rules }] },
-    contents: [{ parts: [{ text: text }] }],
     generationConfig: { responseMimeType: "application/json" },
   };
 
@@ -441,17 +425,3 @@ async function searchSuggestions(text) {
   }
 }
 
-/*
-  Rough check: does this look like a real place name, or just random gibberish?
-  Used to politely DECLINE nonsense (e.g. "asdfgh") instead of treating it as a place.
-  Kept lenient so it never rejects a real (even foreign) name by mistake.
-*/
-function looksLikeGibberish(text) {
-  const t = (text || "").trim().toLowerCase();
-  const letters = t.replace(/[^a-zåäöéè]/g, "");
-  if (letters.length < 2) return true;                       // too short to be a name
-  const vowels = (letters.match(/[aeiouyåäöéè]/g) || []).length;
-  if (letters.length >= 4 && vowels / letters.length < 0.18) return true; // almost no vowels
-  if (/[bcdfghjklmnpqrstvwxz]{6,}/.test(t)) return true;     // long run of consonants
-  return false;
-}
