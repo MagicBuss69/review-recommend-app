@@ -198,6 +198,7 @@ function renderLocHistory() {
       addLocHistory(v);                              // bump it to the front
       toggleClear();
       renderLocHistory();
+      loadRecos();                                   // refresh recommendations
     });
   });
   // ✕ on a chip → remove just that city from history
@@ -221,6 +222,7 @@ locationInput.addEventListener("change", function () {
     addLocHistory(v);
     renderLocHistory();
   }
+  loadRecos();   // refresh the recommendation list for the new location
 });
 locationInput.addEventListener("input", toggleClear);   // show/hide the ✕ as you type
 
@@ -252,6 +254,7 @@ if (nearMeBtn) {
         localStorage.setItem("bitebuddy-location", "near");
         locationInput.value = locSv ? "📍 Nära mig" : "📍 Near me";
         nearMeBtn.textContent = "📍";
+        loadRecos();   // refresh recommendations for your real location
       },
       function () {
         nearMeBtn.textContent = "📍";
@@ -427,6 +430,70 @@ if (tasteBtn) tasteBtn.addEventListener("click", async function () {
 
   renderHistory();
 });
+
+
+/* ===== ✨ RECOMMENDED RESTAURANTS LIST (real picks for your location) ===== */
+// a tiny 2-hour cache so we don't hammer the map service on every visit
+function readRecoCache(key) {
+  try { const o = JSON.parse(localStorage.getItem(key) || "null"); if (o && (Date.now() - o.t) < 2 * 60 * 60 * 1000) return o.d; } catch (e) {}
+  return null;
+}
+function writeRecoCache(key, d) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), d: d })); } catch (e) {} }
+
+async function loadRecos() {
+  const listEl = document.getElementById("recos-list");
+  const subEl = document.getElementById("recos-sub");
+  if (!listEl) return;
+  const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+  const loc = (localStorage.getItem("bitebuddy-location") || "").trim();
+  const likes = JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]");
+  const dislikes = JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]");
+
+  if (subEl) subEl.textContent = "";
+  listEl.innerHTML = '<div class="loading-row"><span class="spinner"></span> ' +
+    (sv ? "Forky letar efter bra ställen…" : "Forky is finding good spots…") + "</div>";
+
+  // get nearby places (cached per location/GPS)
+  const cacheKey = "bitebuddy-recos:" + loc.toLowerCase() + ":" + (localStorage.getItem("bitebuddy-geo") || "");
+  let pool = readRecoCache(cacheKey);
+  if (!pool) {
+    pool = [];
+    if (typeof nearbyFoodPlaces === "function") { try { pool = await nearbyFoodPlaces(loc); } catch (e) { pool = []; } }
+    if (pool && pool.length) writeRecoCache(cacheKey, pool);
+  }
+
+  // fallback (only honest for Landskrona / near-without-GPS)
+  if (!pool || !pool.length) {
+    const lc = loc.toLowerCase();
+    const nearish = lc === "" || /near|nära|📍/.test(lc);
+    const hasGeo = !!localStorage.getItem("bitebuddy-geo");
+    if (lc === "landskrona" || (nearish && !hasGeo)) pool = landskronaPlaces;
+    else { listEl.innerHTML = '<p class="recos-empty">' + (sv ? "Inga rekommendationer just nu — prova en stad eller 📍." : "No recommendations right now — try a city or 📍.") + "</p>"; return; }
+  }
+
+  // score by your taste, best first
+  const scored = pool.map(function (p) { const t = tasteScore(p, likes, dislikes); return { p: p, s: t.score, m: t.matched }; });
+  scored.sort(function (a, b) { return b.s - a.s; });
+  const top = scored.slice(0, 6);
+
+  const where = (loc && !/near|nära|📍/i.test(loc)) ? loc : (sv ? "nära dig" : "near you");
+  if (subEl) subEl.textContent = (likes.length ? (sv ? "Matchat till din smak · " : "Matched to your taste · ") : "") + (sv ? "i " : "in ") + where + " 🍴";
+
+  listEl.innerHTML = "";
+  top.forEach(function (item) {
+    const place = item.p;
+    const emoji = place.emoji || cuisineEmoji(place.food);
+    const btn = document.createElement("button");
+    btn.className = "reco-item";
+    btn.innerHTML = '<span class="reco-emoji">' + emoji + "</span>" +
+      '<span class="reco-info"><span class="reco-name">' + (item.m ? "💚 " : "") + place.name + "</span>" +
+      (place.food ? '<span class="reco-food">' + place.food + "</span>" : "") + "</span>" +
+      '<span class="reco-go">→</span>';
+    btn.addEventListener("click", function () { goToPlace(place.name); });
+    listEl.appendChild(btn);
+  });
+}
+loadRecos();   // show the list when the homepage opens
 
 
 /* ===== FEEDBACK BOX ===== */
