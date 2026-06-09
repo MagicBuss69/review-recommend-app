@@ -105,7 +105,7 @@ async function summarizeReviews(placeName, reviews) {
   const key = getGeminiKey();
   if (!key) return null;
 
-  const model = "gemini-2.0-flash"; // if this errors, try "gemini-1.5-flash"
+  const model = "gemini-2.5-flash"; // if this errors, try "gemini-flash-latest"
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
 
   // reply in the language the USER picked on the site (not the reviews' language)

@@ -142,7 +142,7 @@
     // you actually searched — using the real info & reviews we looked up.
     async function askGemini(question) {
       const key = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey;
-      const model = "gemini-2.0-flash";  // if this ever errors, try "gemini-1.5-flash"
+      const model = "gemini-2.5-flash";  // if this ever errors, try "gemini-flash-latest"
       const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
 
       // This tells Gemini WHO to be and what it really knows about THIS place.
