@@ -478,25 +478,20 @@
       setupFavButton(shownName);   // ⭐ wire up the Save button for this place
       if (typeof bbMarkActiveWeek === "function") bbMarkActiveWeek();   // 🔥 you used BiteBuddy this week!
 
-      // 📋 "See the menu" — try hard to link DIRECTLY to the actual menu
-      (async function () {
+      // 📋 "See the menu" — SAFE + reliable.
+      // We only follow a direct link if it's a SECURE (https) site, because old restaurant
+      // sites can be down (won't load) or hijacked by scam sites (your browser flags those
+      // as "dangerous"). Otherwise we send you to a Google menu search, which always loads
+      // and is safe.
+      (function () {
         const mlt = document.getElementById("menu-link-top");
         if (!mlt) return;
-        const label = sv ? "📋 Se menyn" : "📋 See the menu";
+        // a link is only trusted if it clearly starts with https://
+        function safe(u) { return (typeof u === "string" && /^https:\/\//i.test(u.trim())) ? u.trim() : null; }
         const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent((place.name || searched) + " menu");
-        function setLink(url) { mlt.innerHTML = '<a href="' + url + '" target="_blank" rel="noopener" class="menu-btn">' + label + "</a>"; }
-
-        // show the best link we already have right away (direct menu > website > web search)
-        setLink(place.menu || place.website || searchUrl);
-
-        // no direct menu yet? ask OpenStreetMap — it often stores the real menu URL (website:menu)
-        if (!place.menu && typeof fetchPlaceOSM === "function") {
-          try {
-            const osm = await fetchPlaceOSM(place.name || searched);
-            if (osm && osm.found && osm.menu) setLink(osm.menu);                       // 🎯 a true, direct menu link
-            else if (osm && osm.found && !place.website && osm.website) setLink(osm.website);
-          } catch (e) { /* keep the link we already set */ }
-        }
+        const url = safe(place.menu) || safe(place.website) || searchUrl;
+        mlt.innerHTML = '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="menu-btn">' +
+          (sv ? "📋 Se menyn" : "📋 See the menu") + "</a>";
       })();
 
       // ---------- 3) Reviews: Google's, else the users' own notes (FREE) ----------
