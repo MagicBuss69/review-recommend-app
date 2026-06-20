@@ -99,17 +99,41 @@ async function fetchPlace(placeName) {
 
 /*
   STEP 2 — ask Gemini to summarise ONLY those real reviews (grounded = no inventing).
-  Returns { summary, good:[...], bad:[...] } or null if there's no Gemini key.
+  Returns { summary, good:[...], bad:[...] } or null if neither key nor proxy is set.
+
+  Two modes:
+  - Local dev:   uses geminiKey from config.js directly (fast, no rate limit)
+  - Production:  uses proxyUrl from config.js → Cloudflare Worker holds the key safely
+                 and limits each visitor to 3 summaries per day
 */
 async function summarizeReviews(placeName, reviews) {
-  const key = getGeminiKey();
-  if (!key) return null;
+  const key      = getGeminiKey();
+  const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
 
-  const model = "gemini-2.5-flash"; // if this errors, try "gemini-flash-latest"
+  if (!key && !proxyUrl) return null;
+
+  const lang = (localStorage.getItem("bitebuddy-lang") || "en") === "sv" ? "sv" : "en";
+
+  // ── Production path: call the proxy (key stays hidden, rate-limited) ────
+  if (proxyUrl) {
+    const res = await fetch(proxyUrl + "/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ placeName: placeName, reviews: reviews, lang: lang }),
+    });
+    if (res.status === 429) {
+      const data = await res.json();
+      throw new Error(data.message || "Daily search limit reached — come back tomorrow!");
+    }
+    if (!res.ok) throw new Error("Proxy error " + res.status);
+    return await res.json();
+  }
+
+  // ── Local dev path: call Gemini directly with the key from config.js ────
+  const model = "gemini-2.5-flash";
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
 
-  // reply in the language the USER picked on the site (not the reviews' language)
-  const lang = (localStorage.getItem("bitebuddy-lang") || "en") === "sv" ? "Swedish" : "English";
+  const language = lang === "sv" ? "Swedish" : "English";
 
   const rules =
     "You summarise restaurant reviews HONESTLY. Use ONLY the reviews provided — " +
@@ -126,7 +150,7 @@ async function summarizeReviews(placeName, reviews) {
     "main, plus a side, a drink and a dessert IF mentioned. In 'note', write ONE friendly " +
     "sentence describing the meal with real details reviewers give (taste, portion, why it's good). " +
     'Leave any field an empty string "" when reviewers do not mention it — NEVER invent items. ' +
-    "Always reply in " + lang + ", even if the reviews are in another language.";
+    "Always reply in " + language + ", even if the reviews are in another language.";
 
   const reviewText = reviews.map(function (r, i) { return (i + 1) + ". " + r; }).join("\n");
   const prompt = "Restaurant: " + placeName + "\nReviews:\n" + reviewText;
