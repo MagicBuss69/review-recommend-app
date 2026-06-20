@@ -1151,6 +1151,58 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
 .footer-links a { color: var(--blue); font-weight: 800; text-decoration: none; }
 .footer-links a:hover { text-decoration: underline; }
 
+/* ===== TASTE GATE — Forky's sign-up card for guests on results page ===== */
+.taste-gate-card {
+  text-align: center;
+  padding: 28px 20px 24px;
+}
+.taste-gate-card .gate-forky {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #eaf1ff;
+  padding: 10px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(37,99,235,.12);
+}
+.taste-gate-card h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text, #1a1a2e);
+}
+.taste-gate-card p {
+  font-size: 0.92rem;
+  color: var(--muted, #6b7280);
+  line-height: 1.55;
+  margin: 0 auto 20px;
+  max-width: 290px;
+}
+.taste-gate-card .gate-signup-btn {
+  display: inline-block;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 11px 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue, #2563eb), #1d4ed8);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(37,99,235,.30);
+  transition: transform .15s, box-shadow .15s;
+}
+.taste-gate-card .gate-signup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37,99,235,.35);
+}
+.taste-gate-card .gate-login-link {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: var(--muted, #6b7280);
+  text-decoration: none;
+}
+.taste-gate-card .gate-login-link:hover { text-decoration: underline; }
+
 /* ===== RESPONSIVE: look good & centred on EVERY device ===== */
 img, iframe { max-width: 100%; }
 
