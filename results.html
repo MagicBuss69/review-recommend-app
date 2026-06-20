@@ -566,12 +566,14 @@
       if (hasGemini) {
         banner.textContent = sv ? "🤖 Sammanfattar riktiga recensioner…" : "🤖 Summarising real reviews…";
         try {
-          const result = await summarizeReviews(shownName, reviews);
+          const result = await summarizeReviewsCached(shownName, reviews);
           const out = [];
           (result.good || []).forEach(function (p) { out.push({ kind: "good", text: "👍 " + p }); });
           (result.bad || []).forEach(function (p) { out.push({ kind: "bad", text: "👎 " + p }); });
           say(out.length ? out : [{ kind: "muted-text", text: result.summary || "" }]);
-          banner.textContent = (sv ? "🤖 AI-sammanfattning av " : "🤖 AI summary of ") + reviews.length + " " + srcLabel;
+          banner.textContent = result._fromCache
+            ? (sv ? "⚡ Snabbladdad (sparad sammanfattning)" : "⚡ Loaded instantly (saved summary)")
+            : (sv ? "🤖 AI-sammanfattning av " : "🤖 AI summary of ") + reviews.length + " " + srcLabel;
 
           // ---------- 🍴 WHAT TO ORDER (the heart of feature #1: do the work for them) ----------
           const dishes = (result.dishes || []).filter(Boolean);

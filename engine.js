@@ -149,6 +149,23 @@ async function summarizeReviews(placeName, reviews) {
 }
 
 /*
+  Cached version of summarizeReviews — checks localStorage first.
+  Key includes the language so switching English↔Swedish gives a fresh summary.
+  Expires after 1 day (reviews can change; we want summaries to stay honest).
+*/
+async function summarizeReviewsCached(placeName, reviews) {
+  const lang = localStorage.getItem("bitebuddy-lang") || "en";
+  const key = "ai:" + lang + ":" + placeName.toLowerCase();
+
+  const cached = cacheGet(key, 1);   // 1 day for AI summaries
+  if (cached) { cached._fromCache = true; return cached; }
+
+  const result = await summarizeReviews(placeName, reviews);
+  if (result) cacheSet(key, result);
+  return result;
+}
+
+/*
   FREE place lookup via OpenStreetMap (Nominatim) — no key, no credit card! 🆓
   Gives the real place + basic info (address, cuisine, website, hours).
   ❗ It has NO reviews — for those we use the users' own notes (below).
@@ -349,13 +366,13 @@ function getUserNotes(placeName) {
   This is the SIMPLE level (browser-only). The BIG win — one fetch helping ALL users —
   comes later with the shared cache on the Raspberry Pi server.
 */
-function cacheGet(key) {
+function cacheGet(key, maxAgeDays) {
   try {
     const raw = localStorage.getItem("bitebuddy-cache:" + key);
     if (!raw) return null;
     const obj = JSON.parse(raw);
     const ageDays = (Date.now() - obj.time) / (1000 * 60 * 60 * 24);
-    if (ageDays > 7) return null;          // expire after a week to stay fresh
+    if (ageDays > (maxAgeDays || 7)) return null;   // default 7 days; AI summaries use 1
     return obj.data;
   } catch (e) { return null; }
 }
