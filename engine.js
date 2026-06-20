@@ -157,7 +157,7 @@ async function summarizeReviewsCached(placeName, reviews) {
   const lang = localStorage.getItem("bitebuddy-lang") || "en";
   const key = "ai:" + lang + ":" + placeName.toLowerCase();
 
-  const cached = cacheGet(key, 1);   // 1 day for AI summaries
+  const cached = cacheGet(key, 7);   // 7 days for AI summaries (reviews don't change fast)
   if (cached) { cached._fromCache = true; return cached; }
 
   const result = await summarizeReviews(placeName, reviews);
