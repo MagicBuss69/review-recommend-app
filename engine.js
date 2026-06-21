@@ -8,6 +8,12 @@
   invents anything. No keys → the page is honest about having no real data yet.
 */
 
+// Safety net: if config.js didn't load (e.g. on GitHub Pages), define an empty config
+// so nothing crashes when checking for keys.
+if (!window.BITEBUDDY_CONFIG) {
+  window.BITEBUDDY_CONFIG = { geminiKey: "", googleMapsKey: "", proxyUrl: "", adminEmail: "" };
+}
+
 // ---- read the keys from config.js (return null if empty/missing) ----
 function getGeminiKey() {
   return (window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey) || null;
