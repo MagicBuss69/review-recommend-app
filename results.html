@@ -583,8 +583,8 @@
             const orderChips = document.getElementById("order-chips");
 
             // taste data — only loaded for logged-in users (guests get plain chips with no personal highlights)
-            const likes = loggedIn ? JSON.parse(localStorage.getItem(“bitebuddy-likes”) || “[]”) : [];
-            const dislikes = loggedIn ? JSON.parse(localStorage.getItem(“bitebuddy-dislikes”) || “[]”) : [];
+            const likes = loggedIn ? JSON.parse(localStorage.getItem("bitebuddy-likes") || "[]") : [];
+            const dislikes = loggedIn ? JSON.parse(localStorage.getItem("bitebuddy-dislikes") || "[]") : [];
             function matches(dish, list) {
               const d = dish.toLowerCase();
               return list.some(function (f) { return f && d.indexOf(f.toLowerCase()) !== -1; });
@@ -593,62 +593,62 @@
             // dish chips — basic list is FREE for everyone; taste highlights (💚/⚠️) need an account
             let topMatch = null;
             dishes.forEach(function (dish) {
-              const chip = document.createElement(“span”);
-              chip.className = “cuisine-chip”;
+              const chip = document.createElement("span");
+              chip.className = "cuisine-chip";
               if (loggedIn && matches(dish, likes)) {
-                chip.className += “ chip-love”;
-                chip.textContent = “💚 “ + dish;
+                chip.className += " chip-love";
+                chip.textContent = "💚 " + dish;
                 if (!topMatch) topMatch = dish;
               } else if (loggedIn && matches(dish, dislikes)) {
-                chip.className += “ chip-avoid”;
-                chip.textContent = “⚠️ “ + dish;
+                chip.className += " chip-avoid";
+                chip.textContent = "⚠️ " + dish;
               } else {
-                chip.textContent = “🍴 “ + dish;
+                chip.textContent = "🍴 " + dish;
               }
               orderChips.appendChild(chip);
             });
-            orderCard.style.display = “block”;
+            orderCard.style.display = "block";
 
             // everything below is PERSONAL — only for logged-in users
             if (loggedIn) {
-              // upgrade the “For you” pick from a guess into a REAL recommendation
-              const forYou = document.getElementById(“for-you-text”);
+              // upgrade the "For you" pick from a guess into a REAL recommendation
+              const forYou = document.getElementById("for-you-text");
               if (topMatch) {
                 const tm = escapeHtml(topMatch);
                 forYou.innerHTML = sv
-                  ? “Perfekt för dig — prova <strong>” + tm + “</strong>! 💚”
-                  : “Perfect for you — try the <strong>” + tm + “</strong>! 💚”;
+                  ? "Perfekt för dig — prova <strong>" + tm + "</strong>! 💚"
+                  : "Perfect for you — try the <strong>" + tm + "</strong>! 💚";
               } else if (likes.length === 0 && dislikes.length === 0) {
                 const d0 = escapeHtml(dishes[0]);
                 forYou.innerHTML = sv
-                  ? “Folk älskar <strong>” + d0 + “</strong> här. 🍴”
-                  : “People love the <strong>” + d0 + “</strong> here. 🍴”;
+                  ? "Folk älskar <strong>" + d0 + "</strong> här. 🍴"
+                  : "People love the <strong>" + d0 + "</strong> here. 🍴";
               }
 
               // ===== 🍽️ YOUR PERFECT MEAL (courses + drink — only from real reviews) =====
               const meal = result.meal || {};
               const mainDish = topMatch || meal.main || dishes[0];
-              const drinkPick = meal.drink || (result.drinks && result.drinks[0]) || “”;
+              const drinkPick = meal.drink || (result.drinks && result.drinks[0]) || "";
               const courses = [
-                { ic: “🍽️”, en: “Main”, sv: “Huvudrätt”, val: mainDish, main: true,
-                  tag: topMatch ? (sv ? “matchar din smak 💚” : “matches your taste 💚”) : (sv ? “mest hyllad” : “most loved”) },
-                { ic: “🥗”, en: “Side”, sv: “Tillbehör”, val: meal.side },
-                { ic: “🥤”, en: “Drink”, sv: “Dryck”, val: drinkPick },
-                { ic: “🍰”, en: “Dessert”, sv: “Efterrätt”, val: meal.dessert },
+                { ic: "🍽️", en: "Main", sv: "Huvudrätt", val: mainDish, main: true,
+                  tag: topMatch ? (sv ? "matchar din smak 💚" : "matches your taste 💚") : (sv ? "mest hyllad" : "most loved") },
+                { ic: "🥗", en: "Side", sv: "Tillbehör", val: meal.side },
+                { ic: "🥤", en: "Drink", sv: "Dryck", val: drinkPick },
+                { ic: "🍰", en: "Dessert", sv: "Efterrätt", val: meal.dessert },
               ];
-              const mealCard = document.getElementById(“meal-card”);
-              const mealItems = document.getElementById(“meal-items”);
+              const mealCard = document.getElementById("meal-card");
+              const mealItems = document.getElementById("meal-items");
               if (mealCard && mealItems) {
-                let mhtml = “”;
+                let mhtml = "";
                 courses.forEach(function (c) {
                   if (!c.val) return;
-                  mhtml += '<div class=”meal-row' + (c.main ? “ meal-main” : “”) + '”>' +
-                    '<span class=”meal-ic”>' + c.ic + “</span>” +
-                    '<div><span class=”meal-course”>' + (sv ? c.sv : c.en) + “:</span> <strong>” + escapeHtml(c.val) + “</strong>” +
-                    (c.tag ? '<div class=”meal-tag”>' + c.tag + “</div>” : “”) + “</div></div>”;
+                  mhtml += '<div class="meal-row' + (c.main ? " meal-main" : "") + '">' +
+                    '<span class="meal-ic">' + c.ic + "</span>" +
+                    '<div><span class="meal-course">' + (sv ? c.sv : c.en) + ":</span> <strong>" + escapeHtml(c.val) + "</strong>" +
+                    (c.tag ? '<div class="meal-tag">' + c.tag + "</div>" : "") + "</div></div>";
                 });
-                if (meal.note) mhtml += '<p class=”meal-note-text”>”' + escapeHtml(meal.note) + '”</p>';
-                if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = “block”; }
+                if (meal.note) mhtml += '<p class="meal-note-text">"' + escapeHtml(meal.note) + '"</p>';
+                if (mhtml) { mealItems.innerHTML = mhtml; mealCard.style.display = "block"; }
               }
 
               // 🍕 picture THIS place's loved dishes (your taste-matches first)
