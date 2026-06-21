@@ -70,10 +70,31 @@ function renderHistory() {
 renderHistory();   // show the recent list when the page opens
 
 
-// Switch the page into "launching soon" mode if EARLY_ACCESS_URL is set
+// Switch the page into launch mode if EARLY_ACCESS_URL is set
 if (EARLY_ACCESS_URL) {
-  input.placeholder = "Restaurant search — launching soon! 🐾";
+  // Remove data-i18n so lang.js doesn't overwrite these back
+  button.removeAttribute("data-i18n");
+  input.removeAttribute("data-i18n-placeholder");
+
   button.textContent = "Get early access →";
+  input.placeholder = "BiteBuddy is launching soon 🐾";
+
+  // Hide everything that isn't the hero search box
+  // (nav links, recommendations, how it works, feedback — not ready for public yet)
+  var hide = [
+    ".nav a", ".nav select",           // nav links + language picker
+    ".location-bar", "#loc-history",   // location bar
+    "#suggestions", "#result-message", // search helpers
+    "#recos", ".or-divider",           // recommendations
+    ".reco-buttons", "#recommend-card",// "decide for me" buttons
+    "#recent",                         // recent searches
+    "#how", ".feedback",               // how it works + feedback box
+  ];
+  hide.forEach(function (sel) {
+    document.querySelectorAll(sel).forEach(function (el) {
+      el.style.display = "none";
+    });
+  });
 }
 
 // What happens when the button is clicked
