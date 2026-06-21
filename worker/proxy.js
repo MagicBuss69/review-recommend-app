@@ -49,7 +49,30 @@ export default {
       return new Response("Forbidden", { status: 403 });
     }
 
-    // ── Rate limiting ──────────────────────────────────────────────────────
+    // ── Parse the request body ─────────────────────────────────────────────
+    let body;
+    try { body = await request.json(); }
+    catch (e) { return new Response("Bad request body", { status: 400 }); }
+
+    // Is this visitor using the secret unlimited code? (set with: wrangler secret put UNLOCK_CODE)
+    // The real code lives ONLY here on the server — it's never in the public website code.
+    const unlimited = env.UNLOCK_CODE && body.unlockCode === env.UNLOCK_CODE;
+
+    // ── "/verify" — just checks if a code is correct (used by the profile page) ──
+    const url = new URL(request.url);
+    if (url.pathname.endsWith("/verify")) {
+      return new Response(
+        JSON.stringify({ valid: !!unlimited }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
+      );
+    }
+
+    const { placeName, reviews, lang } = body;
+    if (!placeName || !Array.isArray(reviews) || reviews.length === 0) {
+      return new Response("Missing placeName or reviews", { status: 400 });
+    }
+
+    // ── Rate limiting (SKIPPED for unlimited-code users) ────────────────────
     // Use the visitor's IP + today's date as the key.
     // expirationTtl of 90000s (~25h) means it auto-resets each day.
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
@@ -59,7 +82,7 @@ export default {
     const countRaw = await env.BB_KV.get(rateKey);
     const count = parseInt(countRaw || "0");
 
-    if (count >= DAILY_LIMIT) {
+    if (!unlimited && count >= DAILY_LIMIT) {
       return new Response(
         JSON.stringify({
           error: "daily_limit",
@@ -68,16 +91,6 @@ export default {
         }),
         { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
       );
-    }
-
-    // ── Parse the request body ─────────────────────────────────────────────
-    let body;
-    try { body = await request.json(); }
-    catch (e) { return new Response("Bad request body", { status: 400 }); }
-
-    const { placeName, reviews, lang } = body;
-    if (!placeName || !Array.isArray(reviews) || reviews.length === 0) {
-      return new Response("Missing placeName or reviews", { status: 400 });
     }
 
     // ── Call Gemini (same prompt as engine.js, key stays secret here) ──────
@@ -127,12 +140,14 @@ export default {
     const geminiData = await geminiRes.json();
     const result = JSON.parse(geminiData.candidates[0].content.parts[0].text);
 
-    // ── Increment the counter (expires in 25h so it resets each calendar day) ──
-    await env.BB_KV.put(rateKey, String(count + 1), { expirationTtl: 90000 });
+    // ── Increment the counter (unlimited users don't count toward the daily limit) ──
+    if (!unlimited) {
+      await env.BB_KV.put(rateKey, String(count + 1), { expirationTtl: 90000 });
+    }
 
     // ── Return the AI result + how many searches the user has left today ───
     return new Response(
-      JSON.stringify({ ...result, _searchesLeft: DAILY_LIMIT - count - 1 }),
+      JSON.stringify({ ...result, _searchesLeft: unlimited ? "∞" : DAILY_LIMIT - count - 1, _unlimited: unlimited }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
     );
   },

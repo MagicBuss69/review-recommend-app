@@ -122,10 +122,12 @@ async function summarizeReviews(placeName, reviews) {
 
   // ── Production path: call the proxy (key stays hidden, rate-limited) ────
   if (proxyUrl) {
+    // an optional secret code (typed in the profile page) that unlocks unlimited searches
+    const unlockCode = localStorage.getItem("bitebuddy-unlock-code") || "";
     const res = await fetch(proxyUrl + "/summarize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ placeName: placeName, reviews: reviews, lang: lang }),
+      body: JSON.stringify({ placeName: placeName, reviews: reviews, lang: lang, unlockCode: unlockCode }),
     });
     if (res.status === 429) {
       const data = await res.json();

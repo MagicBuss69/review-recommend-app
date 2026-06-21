@@ -112,6 +112,17 @@
       <div id="dislikes-list" class="taste-list"></div>
     </section>
 
+    <!-- ===== 🔑 UNLIMITED CODE (secret code → no daily search limit) ===== -->
+    <section class="panel">
+      <h2>🔑 Unlimited code</h2>
+      <p class="hint">Got a secret code? Enter it here to remove the 3-searches-per-day limit. ✨</p>
+      <div class="taste-add">
+        <input type="text" id="unlock-input" class="taste-input" placeholder="Enter your secret code...">
+        <button id="unlock-btn" class="btn-primary">Unlock</button>
+      </div>
+      <p class="shop-msg" id="unlock-msg"></p>
+    </section>
+
     <!-- ===== SAVED PLACES (your favorites) ===== -->
     <section class="panel">
       <h2 data-i18n="profile.savedtitle">⭐ Saved places</h2>
@@ -183,6 +194,50 @@
     <p data-i18n="footer">🐾 BiteBuddy — made with curiosity by Magic.</p>
     <p class="footer-links"><a href="about.html" data-i18n="nav.about">About</a></p>
   </footer>
+
+  <!-- ===== 🔑 UNLIMITED CODE (verify with the Worker, then save) ===== -->
+  <script>
+    (function () {
+      const input = document.getElementById("unlock-input");
+      const btn = document.getElementById("unlock-btn");
+      const msg = document.getElementById("unlock-msg");
+      const proxyUrl = (window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl) || "";
+
+      // if a code is already saved, show that unlimited is on
+      if (localStorage.getItem("bitebuddy-unlock-code")) {
+        msg.textContent = "✅ Unlimited is ON for this device.";
+        input.placeholder = "Unlimited active 🎉";
+      }
+
+      btn.addEventListener("click", async function () {
+        const code = input.value.trim();
+        if (!code) return;
+        if (!proxyUrl) { msg.textContent = "⚠️ No server set up yet."; return; }
+        msg.textContent = "Checking...";
+        try {
+          // ask the Worker if this code is correct (the real code lives only on the server)
+          const res = await fetch(proxyUrl + "/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ unlockCode: code }),
+          });
+          const data = await res.json();
+          if (data.valid) {
+            localStorage.setItem("bitebuddy-unlock-code", code);
+            msg.textContent = "🎉 Correct! Unlimited searches unlocked on this device.";
+            input.value = "";
+            input.placeholder = "Unlimited active 🎉";
+          } else {
+            msg.textContent = "❌ That code isn't right. Try again!";
+          }
+        } catch (e) {
+          msg.textContent = "⚠️ Couldn't reach the server. Check your internet.";
+        }
+      });
+
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") btn.click(); });
+    })();
+  </script>
 
   <!-- the language system (English + Svenska) -->
   <script src="lang.js"></script>
