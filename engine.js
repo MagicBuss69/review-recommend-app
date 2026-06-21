@@ -50,11 +50,26 @@ function safeUrl(u) {
 */
 async function fetchPlace(placeName) {
   const key = getGoogleMapsKey();
-  if (!key) return null;
+  const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
 
   // Aim the search at the right town (use the chosen location, else Landskrona).
   const loc = localStorage.getItem("bitebuddy-location");
   const query = placeName + ((loc && loc !== "near") ? ", " + loc : ", Landskrona");
+
+  // ── Production path: ask the Worker to do the Google search server-side ──
+  // (server-to-server has no referrer block, and the key stays hidden)
+  if (proxyUrl) {
+    const res = await fetch(proxyUrl + "/place", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query }),
+    });
+    if (!res.ok) throw new Error("Place lookup failed (" + res.status + ")");
+    return await res.json();   // already shaped like { found, name, reviews, photos, ... }
+  }
+
+  // ── Local dev path: call Google Places directly with the key from config.js ──
+  if (!key) return null;
 
   const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
     method: "POST",

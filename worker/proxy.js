@@ -1,21 +1,24 @@
 /*
-  BiteBuddy AI Proxy — Cloudflare Worker
-  =======================================
-  Keeps the Gemini key secret on the server.
-  Rate-limits each visitor to 3 AI summaries per day (resets at midnight UTC).
+  BiteBuddy Proxy — Cloudflare Worker
+  ===================================
+  Keeps BOTH keys secret on the server and does the work for the browser:
+    • /place      → searches Google Places (server-side, so no referrer block)
+    • /photo      → streams a Google place photo (so the key isn't in the image URL)
+    • /summarize  → turns reviews into an honest AI summary (Gemini)
+    • /verify     → checks the secret "unlimited" code (from the profile page)
 
-  DEPLOY STEPS (brother does this once):
-  1. npm install -g wrangler
-  2. wrangler login
-  3. wrangler kv:namespace create BB_KV   ← copy the id into wrangler.toml
-  4. wrangler secret put GEMINI_KEY        ← paste the Gemini API key when asked
-  5. wrangler deploy
-  6. Copy the Worker URL into BitteBuddy/config.js as proxyUrl
+  Rate-limits each visitor to 3 AI summaries per day (resets daily).
+  The unlimited code removes that limit for whoever knows it.
+
+  SECRETS (set once with wrangler):
+    wrangler secret put GEMINI_KEY     ← the Gemini API key
+    wrangler secret put MAPS_KEY       ← the Google Maps/Places API key
+    wrangler secret put UNLOCK_CODE    ← your secret "unlimited" code
 */
 
 const DAILY_LIMIT = 3;
 
-// Only accept requests from these origins (blocks random people from using your key)
+// Only accept browser requests from these sites (blocks strangers from using your keys)
 const ALLOWED_ORIGINS = [
   "https://magicbuss69.github.io",
   "http://localhost:8080",
@@ -26,76 +29,139 @@ function corsHeaders(origin) {
   const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Access-Control-Allow-Origin": allow,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
+}
+
+function json(obj, status, origin) {
+  return new Response(JSON.stringify(obj), {
+    status: status,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
 }
 
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-    // CORS preflight (browser sends this before the real request)
+    // CORS preflight (browser sends this before a real POST)
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
+    // ── /photo — stream a place photo (loaded by <img>, so no Origin/CORS check) ──
+    // The browser asks for /photo?name=places/XXX/photos/YYY and we fetch the real
+    // image from Google using the secret key, then hand back just the picture.
+    if (path.endsWith("/photo")) {
+      const name = url.searchParams.get("name");
+      if (!name) return new Response("Missing photo name", { status: 400 });
+      const photoUrl = "https://places.googleapis.com/v1/" + name +
+        "/media?maxWidthPx=600&key=" + env.MAPS_KEY;
+      const img = await fetch(photoUrl);
+      return new Response(img.body, {
+        status: img.status,
+        headers: {
+          "Content-Type": img.headers.get("Content-Type") || "image/jpeg",
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
+    // Everything below is POST only
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
-
-    // Block any origin that isn't in the allowed list
     if (!ALLOWED_ORIGINS.includes(origin)) {
       return new Response("Forbidden", { status: 403 });
     }
 
-    // ── Parse the request body ─────────────────────────────────────────────
+    // ── Parse the request body ──────────────────────────────────────────────
     let body;
     try { body = await request.json(); }
     catch (e) { return new Response("Bad request body", { status: 400 }); }
 
-    // Is this visitor using the secret unlimited code? (set with: wrangler secret put UNLOCK_CODE)
-    // The real code lives ONLY here on the server — it's never in the public website code.
-    const unlimited = env.UNLOCK_CODE && body.unlockCode === env.UNLOCK_CODE;
+    // ── /place — search Google Places on the server (no referrer block) ──────
+    if (path.endsWith("/place")) {
+      const query = body.query;
+      if (!query) return json({ error: "no_query" }, 400, origin);
 
-    // ── "/verify" — just checks if a code is correct (used by the profile page) ──
-    const url = new URL(request.url);
-    if (url.pathname.endsWith("/verify")) {
-      return new Response(
-        JSON.stringify({ valid: !!unlimited }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
+      const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": env.MAPS_KEY,
+          "X-Goog-FieldMask":
+            "places.displayName,places.rating,places.userRatingCount,places.reviews," +
+            "places.formattedAddress,places.photos,places.location,places.websiteUri",
+        },
+        body: JSON.stringify({ textQuery: query }),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        return json({ error: "places_error", status: res.status, detail: txt.slice(0, 300) }, 502, origin);
+      }
+
+      const data = await res.json();
+      if (!data.places || data.places.length === 0) return json({ found: false }, 200, origin);
+
+      const p = data.places[0];
+      const reviews = (p.reviews || [])
+        .map((r) => (r.text && r.text.text ? r.text.text : ""))
+        .filter(Boolean);
+
+      // photo URLs point back at THIS worker's /photo so the key stays hidden
+      const photos = (p.photos || []).slice(0, 4).map(
+        (ph) => url.origin + "/photo?name=" + encodeURIComponent(ph.name)
       );
+
+      return json({
+        found: true,
+        name: p.displayName ? p.displayName.text : query,
+        rating: p.rating || null,
+        count: p.userRatingCount || 0,
+        address: p.formattedAddress || "",
+        reviews: reviews,
+        photos: photos,
+        lat: p.location ? p.location.latitude : null,
+        lon: p.location ? p.location.longitude : null,
+        website: p.websiteUri || null,
+      }, 200, origin);
     }
 
+    // Is this visitor using the secret unlimited code? (lives ONLY here on the server)
+    const unlimited = env.UNLOCK_CODE && body.unlockCode === env.UNLOCK_CODE;
+
+    // ── /verify — just checks if a code is correct (used by the profile page) ──
+    if (path.endsWith("/verify")) {
+      return json({ valid: !!unlimited }, 200, origin);
+    }
+
+    // ── /summarize ──────────────────────────────────────────────────────────
     const { placeName, reviews, lang } = body;
     if (!placeName || !Array.isArray(reviews) || reviews.length === 0) {
       return new Response("Missing placeName or reviews", { status: 400 });
     }
 
-    // ── Rate limiting (SKIPPED for unlimited-code users) ────────────────────
-    // Use the visitor's IP + today's date as the key.
-    // expirationTtl of 90000s (~25h) means it auto-resets each day.
+    // Rate limiting (skipped for unlimited-code users)
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-    const today = new Date().toISOString().split("T")[0]; // e.g. "2026-06-20"
+    const today = new Date().toISOString().split("T")[0];
     const rateKey = "bb:" + ip + ":" + today;
-
-    const countRaw = await env.BB_KV.get(rateKey);
-    const count = parseInt(countRaw || "0");
+    const count = parseInt((await env.BB_KV.get(rateKey)) || "0");
 
     if (!unlimited && count >= DAILY_LIMIT) {
-      return new Response(
-        JSON.stringify({
-          error: "daily_limit",
-          limit: DAILY_LIMIT,
-          message: "You've used your 3 free AI summaries for today — come back tomorrow! 🐾",
-        }),
-        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
-      );
+      return json({
+        error: "daily_limit",
+        limit: DAILY_LIMIT,
+        message: "You've used your 3 free AI summaries for today — come back tomorrow! 🐾",
+      }, 429, origin);
     }
 
-    // ── Call Gemini (same prompt as engine.js, key stays secret here) ──────
     const language = lang === "sv" ? "Swedish" : "English";
-
     const rules =
       "You summarise restaurant reviews HONESTLY. Use ONLY the reviews provided — " +
       "never invent dishes, prices, or facts. If something is not mentioned, do not claim it. " +
@@ -112,17 +178,15 @@ export default {
       "Always reply in " + language + ", even if the reviews are in another language.";
 
     const reviewText = reviews.map((r, i) => (i + 1) + ". " + r).join("\n");
-
     const geminiBody = {
       system_instruction: { parts: [{ text: rules }] },
       contents: [{ parts: [{ text: "Restaurant: " + placeName + "\nReviews:\n" + reviewText }] }],
       generationConfig: { responseMimeType: "application/json" },
     };
 
-    const model = "gemini-2.5-flash";
     const geminiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/" + model +
-      ":generateContent?key=" + env.GEMINI_KEY;
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
+      env.GEMINI_KEY;
 
     const geminiRes = await fetch(geminiUrl, {
       method: "POST",
@@ -131,24 +195,19 @@ export default {
     });
 
     if (!geminiRes.ok) {
-      return new Response(
-        JSON.stringify({ error: "gemini_error", status: geminiRes.status }),
-        { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
-      );
+      return json({ error: "gemini_error", status: geminiRes.status }, 502, origin);
     }
 
     const geminiData = await geminiRes.json();
     const result = JSON.parse(geminiData.candidates[0].content.parts[0].text);
 
-    // ── Increment the counter (unlimited users don't count toward the daily limit) ──
     if (!unlimited) {
       await env.BB_KV.put(rateKey, String(count + 1), { expirationTtl: 90000 });
     }
 
-    // ── Return the AI result + how many searches the user has left today ───
-    return new Response(
-      JSON.stringify({ ...result, _searchesLeft: unlimited ? "∞" : DAILY_LIMIT - count - 1, _unlimited: unlimited }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders(origin) } }
+    return json(
+      { ...result, _searchesLeft: unlimited ? "∞" : DAILY_LIMIT - count - 1, _unlimited: unlimited },
+      200, origin
     );
   },
 };
