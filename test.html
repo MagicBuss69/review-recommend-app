@@ -43,15 +43,15 @@
     }
 
     async function runAll() {
-      // 1. Config
+      // 1. Config — in production we only need the proxyUrl. The keys live on the
+      // server now, so an EMPTY maps/gemini key in the browser is correct & secure.
       const cfg = window.BITEBUDDY_CONFIG || {};
-      const mapsOk = !!cfg.googleMapsKey;
       const proxyOk = !!cfg.proxyUrl;
-      set("r-config", mapsOk && proxyOk,
-        "Maps key: " + (mapsOk ? "present" : "MISSING") + " | Proxy URL: " + (proxyOk ? "present" : "MISSING"),
-        "googleMapsKey: " + (cfg.googleMapsKey ? cfg.googleMapsKey.slice(0,10)+"..." : "(empty)") +
-        "\nproxyUrl: " + (cfg.proxyUrl || "(empty)") +
-        "\ngeminiKey: " + (cfg.geminiKey ? "(set - local mode)" : "(empty - uses proxy)"));
+      set("r-config", proxyOk,
+        proxyOk ? "Proxy URL present — keys are safely on the server 🔒" : "Proxy URL MISSING",
+        "proxyUrl: " + (cfg.proxyUrl || "(empty)") +
+        "\ngoogleMapsKey in browser: " + (cfg.googleMapsKey ? "present (local dev)" : "(empty - secret on server ✅)") +
+        "\ngeminiKey in browser: " + (cfg.geminiKey ? "present (local dev)" : "(empty - secret on server ✅)"));
 
       // 2. Google Places
       try {
