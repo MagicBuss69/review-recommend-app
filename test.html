@@ -80,15 +80,21 @@
         set("r-verify", false, "Worker unreachable", e.message);
       }
 
-      // 4. Worker /summarize
+      // 4. Worker /summarize (sends your unlimited code if you've saved one)
       try {
+        const code = localStorage.getItem("bitebuddy-unlock-code") || "";
         const res = await fetch(cfg.proxyUrl + "/summarize", {
           method: "POST", headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({placeName:"Test", reviews:["great pizza"], lang:"en"})
+          body: JSON.stringify({placeName:"Test", reviews:["great pizza"], lang:"en", unlockCode: code})
         });
         const data = await res.json();
-        set("r-summary", res.ok, "AI summary worked (HTTP " + res.status + ")",
-          (data.summary || JSON.stringify(data)) + "\nsearchesLeft: " + data._searchesLeft);
+        // a 429 here just means the free daily limit (and no unlimited code) — that's expected, not a real failure
+        const ok = res.ok || res.status === 429;
+        const note = res.status === 429
+          ? "(daily limit reached — enter your code in Profile for unlimited)"
+          : "searchesLeft: " + data._searchesLeft + (data._unlimited ? " (unlimited code active 🎉)" : "");
+        set("r-summary", ok, res.ok ? "AI summary worked (HTTP 200)" : "Free limit reached (HTTP 429) — normal",
+          (data.summary || data.message || JSON.stringify(data)) + "\n" + note);
       } catch (e) {
         set("r-summary", false, "Summarize FAILED", e.message);
       }
