@@ -390,12 +390,65 @@ recommendBtn.addEventListener("click", async function () {
 
 
 /* ===== 💚 "SUITS MY TASTE" — recommend a nearby place that matches foods you like ===== */
-// score a place: +2 for each liked food it mentions, -3 for each disliked one.
+// Many "near me" places only carry a CUISINE word (like "italian"), not the dish you typed
+// (like "pizza"). This little dictionary bridges that gap: a food → the cuisine words that
+// usually serve it. So liking "pizza" still matches a place tagged "italian". 🍕→🇮🇹
+const FOOD_TO_CUISINE = {
+  pizza: ["italian", "pizza"],
+  pasta: ["italian"],
+  sushi: ["japanese", "sushi"],
+  ramen: ["japanese", "noodle"],
+  burger: ["american", "burger", "fast_food", "fast food"],
+  burgers: ["american", "burger", "fast_food", "fast food"],
+  taco: ["mexican"],
+  tacos: ["mexican"],
+  burrito: ["mexican"],
+  curry: ["indian", "thai"],
+  kebab: ["turkish", "kebab"],
+  falafel: ["middle eastern", "lebanese", "arab"],
+  noodles: ["chinese", "thai", "japanese", "noodle"],
+  dumplings: ["chinese"],
+  "dim sum": ["chinese"],
+  pho: ["vietnamese"],
+  pad: ["thai"],
+  thai: ["thai"],
+  steak: ["steak_house", "steak", "american"],
+  bbq: ["barbecue", "american"],
+  seafood: ["seafood", "fish"],
+  fish: ["seafood", "fish"],
+  vegan: ["vegan", "vegetarian"],
+  vegetarian: ["vegetarian", "vegan"],
+  coffee: ["cafe", "coffee_shop"],
+  cake: ["cafe", "bakery", "dessert"],
+  pastry: ["bakery", "cafe"],
+  "ice cream": ["ice_cream", "dessert"],
+};
+
+// Build every word we should look for when someone likes/dislikes a food: the food
+// itself PLUS its cuisine synonyms from the dictionary above.
+function foodSearchWords(food) {
+  const f = (food || "").toLowerCase().trim();
+  if (!f) return [];
+  const words = [f];
+  const extra = FOOD_TO_CUISINE[f];
+  if (extra) extra.forEach(function (w) { words.push(w); });
+  return words;
+}
+
+// score a place: +2 for each liked food it mentions (dish OR matching cuisine),
+// -3 for each disliked one.
 function tasteScore(place, likes, dislikes) {
   const hay = ((place.food || "") + " " + (place.name || "")).toLowerCase();
   let score = 0, matched = null;
-  likes.forEach(function (f) { if (f && hay.indexOf(f.toLowerCase()) >= 0) { score += 2; if (!matched) matched = f; } });
-  dislikes.forEach(function (f) { if (f && hay.indexOf(f.toLowerCase()) >= 0) score -= 3; });
+  likes.forEach(function (f) {
+    if (foodSearchWords(f).some(function (w) { return hay.indexOf(w) >= 0; })) {
+      score += 2;
+      if (!matched) matched = f;
+    }
+  });
+  dislikes.forEach(function (f) {
+    if (foodSearchWords(f).some(function (w) { return hay.indexOf(w) >= 0; })) score -= 3;
+  });
   return { score: score, matched: matched };
 }
 
@@ -518,7 +571,9 @@ async function loadRecos() {
   const top = scored.slice(0, 6);
 
   const where = (loc && !/near|nära|📍/i.test(loc)) ? loc : (sv ? "nära dig" : "near you");
-  if (subEl) subEl.textContent = (likes.length ? (sv ? "Matchat till din smak · " : "Matched to your taste · ") : "") + (sv ? "i " : "in ") + where + " 🍴";
+  // only claim "matched to your taste" when something in the list actually matched
+  const anyMatched = top.some(function (item) { return item.m; });
+  if (subEl) subEl.textContent = (likes.length && anyMatched ? (sv ? "Matchat till din smak · " : "Matched to your taste · ") : "") + (sv ? "i " : "in ") + where + " 🍴";
 
   listEl.innerHTML = "";
   top.forEach(function (item) {
