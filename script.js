@@ -8,7 +8,7 @@
 // will send visitors there instead of doing a search.
 // Set it back to "" when you're ready to launch for real.
 // ============================================================
-const EARLY_ACCESS_URL = ""; // ← paste your Google Form link here
+const EARLY_ACCESS_URL = "https://docs.google.com/forms/d/1m5x2vgG8qdKL2W5Rb60v-Mnqad25pUeZCg67kl2NrA0/viewform";
 
 // Grab the parts of the page we need to work with
 const input = document.getElementById("link-input");
