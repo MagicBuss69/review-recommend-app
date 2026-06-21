@@ -138,10 +138,23 @@ export default {
     // (403/CORS). Doing it here, server-to-server with a proper app name, just works.
     if (path.endsWith("/nearby")) {
       let lat = body.lat, lon = body.lon;
+      const cityIn = (body.city || "").trim();
+
+      // a cache key from the REQUEST, so every visitor shares popular lookups
+      const ckey = "nearby:v1:" + (cityIn
+        ? "city:" + cityIn.toLowerCase()
+        : "geo:" + Number(lat).toFixed(3) + "," + Number(lon).toFixed(3));
+
+      // 0) already looked this up recently? hand back the saved list INSTANTLY.
+      //    (Also rescues us when the map services are briefly down.)
+      try {
+        const hit = await env.BB_KV.get(ckey);
+        if (hit) return json(JSON.parse(hit), 200, origin);
+      } catch (e) {}
 
       // 1) no coords? turn the city name into coordinates (Nominatim needs an app User-Agent)
       if (!lat || !lon) {
-        const city = body.city || "Landskrona";
+        const city = cityIn || "Landskrona";
         const geoUrl = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
           encodeURIComponent(city + ", Sweden");
         try {
@@ -156,7 +169,7 @@ export default {
         if (!lat || !lon) return json({ places: [] }, 200, origin);
       }
 
-      // 2) ask Overpass for nearby restaurants/cafés/fast food (try each server in turn)
+      // 2) ask ALL Overpass servers AT ONCE and use whichever answers first (fast + reliable)
       const oquery = "[out:json][timeout:20];" +
         '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););out 80;";
       const OVERPASS = [
@@ -164,24 +177,21 @@ export default {
         "https://overpass.kumi.systems/api/interpreter",
         "https://overpass.openstreetmap.fr/api/interpreter",
       ];
-      let odata = null;
-      const debug = [];
-      for (let i = 0; i < OVERPASS.length && !odata; i++) {
-        try {
-          const r = await fetch(OVERPASS[i], {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "Accept": "application/json",
-              "User-Agent": "BiteBuddy/1.0 (restaurant recommender)",
-            },
-            body: "data=" + encodeURIComponent(oquery),
-          });
-          debug.push(OVERPASS[i].replace("https://", "") + " → " + r.status);
-          if (r.ok) odata = await r.json();
-        } catch (e) { debug.push(OVERPASS[i].replace("https://", "") + " → ERR " + (e.message || e)); }
+      function askOverpass(endpoint) {
+        return fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "User-Agent": "BiteBuddy/1.0 (restaurant recommender)",
+          },
+          body: "data=" + encodeURIComponent(oquery),
+        }).then((r) => { if (!r.ok) throw new Error(endpoint + " " + r.status); return r.json(); });
       }
-      if (!odata) return json({ places: [], lat: lat, lon: lon, _debug: debug }, 200, origin);
+      let odata = null;
+      try { odata = await Promise.any(OVERPASS.map(askOverpass)); }
+      catch (e) { /* every server failed */ }
+      if (!odata) return json({ places: [], lat: lat, lon: lon }, 200, origin);
 
       // 3) drop non-eateries (libraries, gyms…) and duplicates, then return a clean list
       const notFood = /\b(kulturhus|arena|bibliotek|museum|skola|förskola|gymnasium|kyrka|mosk|gym|sjukhus|vårdcentral|apotek|station|simhall|ishall|idrottsplats|fritidsgård|teater|biograf|rådhus|kommun)\b/i;
@@ -199,7 +209,12 @@ export default {
           return true;
         });
 
-      return json({ places: places, lat: lat, lon: lon }, 200, origin);
+      const result = { places: places, lat: lat, lon: lon };
+      // 4) save it for a day so the next person (and you) gets it instantly
+      if (places.length) {
+        try { await env.BB_KV.put(ckey, JSON.stringify(result), { expirationTtl: 86400 }); } catch (e) {}
+      }
+      return json(result, 200, origin);
     }
 
     // Is this visitor using the secret unlimited code? (lives ONLY here on the server)

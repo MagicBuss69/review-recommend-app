@@ -1267,20 +1267,25 @@ img, iframe { max-width: 100%; }
 
 /* ===== 📲 Share BiteBuddy button (homepage footer + results page) ===== */
 .share-btn {
-  display: inline-flex;
+  display: flex;                 /* block-level + full width so it matches the big button */
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  margin: 16px auto 6px;
+  margin: 14px 0 6px;
   background: var(--grad-blue);
   color: #fff;
   border: none;
   border-radius: var(--r-pill);
-  padding: 12px 26px;
+  padding: 13px 26px;            /* same padding + font as .btn-primary → same height */
   font-family: inherit;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 17px;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(47, 128, 237, 0.3);
+  box-shadow: 0 8px 18px rgba(47, 128, 237, 0.35);
   transition: transform var(--fast), filter var(--fast);
 }
 .share-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+/* in the homepage footer, keep it a compact centered button (not full width) */
+.footer .share-btn { display: inline-flex; width: auto; margin: 4px auto 10px; }
