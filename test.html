@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBuddy — Diagnostics</title>
+  <script src="config.production.js"></script>
+  <script src="config.js"></script>
+  <script src="engine.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 20px auto; padding: 0 16px; background:#f7f9fc; color:#222; }
+    h1 { color:#2F80ED; }
+    .row { background:#fff; border-radius:10px; padding:14px 16px; margin:10px 0; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+    .ok { color:#27AE60; font-weight:bold; }
+    .bad { color:#eb3349; font-weight:bold; }
+    .wait { color:#888; }
+    pre { background:#1e1e2e; color:#cdd6f4; padding:10px; border-radius:8px; overflow:auto; font-size:13px; white-space:pre-wrap; word-break:break-word; }
+    button { background:#2F80ED; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-size:16px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h1>🔧 BiteBuddy Diagnostics</h1>
+  <p>This checks every step and shows exactly what works and what breaks.</p>
+  <button id="run">▶ Run all tests</button>
+
+  <div class="row" id="r-config"><b>1. Config (keys loaded?)</b><div class="wait">…waiting</div></div>
+  <div class="row" id="r-places"><b>2. Google Places (find a restaurant)</b><div class="wait">…waiting</div></div>
+  <div class="row" id="r-verify"><b>3. Worker /verify (server reachable?)</b><div class="wait">…waiting</div></div>
+  <div class="row" id="r-summary"><b>4. Worker /summarize (AI summary)</b><div class="wait">…waiting</div></div>
+  <div class="row" id="r-full"><b>5. Full search (Mikis Pizzeria, end-to-end)</b><div class="wait">…waiting</div></div>
+
+  <script>
+    function set(id, ok, msg, detail) {
+      const el = document.getElementById(id);
+      el.querySelector(".wait, .ok, .bad")?.remove();
+      const d = el.querySelector("div") || document.createElement("div");
+      el.innerHTML = el.querySelector("b").outerHTML;
+      const status = document.createElement("div");
+      status.className = ok ? "ok" : "bad";
+      status.textContent = (ok ? "✅ " : "❌ ") + msg;
+      el.appendChild(status);
+      if (detail) { const pre = document.createElement("pre"); pre.textContent = detail; el.appendChild(pre); }
+    }
+
+    async function runAll() {
+      // 1. Config
+      const cfg = window.BITEBUDDY_CONFIG || {};
+      const mapsOk = !!cfg.googleMapsKey;
+      const proxyOk = !!cfg.proxyUrl;
+      set("r-config", mapsOk && proxyOk,
+        "Maps key: " + (mapsOk ? "present" : "MISSING") + " | Proxy URL: " + (proxyOk ? "present" : "MISSING"),
+        "googleMapsKey: " + (cfg.googleMapsKey ? cfg.googleMapsKey.slice(0,10)+"..." : "(empty)") +
+        "\nproxyUrl: " + (cfg.proxyUrl || "(empty)") +
+        "\ngeminiKey: " + (cfg.geminiKey ? "(set - local mode)" : "(empty - uses proxy)"));
+
+      // 2. Google Places
+      try {
+        const place = await fetchPlace("Mikis Pizzeria");
+        if (place && place.found) {
+          set("r-places", true, "Found: " + place.name + " (" + place.reviews.length + " reviews)",
+            "rating: " + place.rating + "\naddress: " + place.address);
+        } else if (place && !place.found) {
+          set("r-places", false, "Connected to Google, but NO place found for that name", JSON.stringify(place));
+        } else {
+          set("r-places", false, "No Maps key — fetchPlace returned null");
+        }
+      } catch (e) {
+        set("r-places", false, "Google Places FAILED", e.message + "\n\nThis usually means the API key's referrer restriction is blocking this site, or billing is off.");
+      }
+
+      // 3. Worker /verify
+      try {
+        const res = await fetch(cfg.proxyUrl + "/verify", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({unlockCode: "test"})
+        });
+        const data = await res.json();
+        set("r-verify", res.ok, "Server responded (HTTP " + res.status + ")", JSON.stringify(data));
+      } catch (e) {
+        set("r-verify", false, "Worker unreachable", e.message);
+      }
+
+      // 4. Worker /summarize
+      try {
+        const res = await fetch(cfg.proxyUrl + "/summarize", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({placeName:"Test", reviews:["great pizza"], lang:"en"})
+        });
+        const data = await res.json();
+        set("r-summary", res.ok, "AI summary worked (HTTP " + res.status + ")",
+          (data.summary || JSON.stringify(data)) + "\nsearchesLeft: " + data._searchesLeft);
+      } catch (e) {
+        set("r-summary", false, "Summarize FAILED", e.message);
+      }
+
+      // 5. Full end-to-end
+      try {
+        const place = await fetchPlace("Mikis Pizzeria");
+        if (!place || !place.found || !place.reviews.length) {
+          set("r-full", false, "Couldn't get place+reviews to summarize", JSON.stringify(place));
+          return;
+        }
+        const sum = await summarizeReviews(place.name, place.reviews);
+        set("r-full", true, "FULL SEARCH WORKS! 🎉", "Summary: " + (sum.summary || JSON.stringify(sum)));
+      } catch (e) {
+        set("r-full", false, "Full search FAILED", e.message);
+      }
+    }
+
+    document.getElementById("run").addEventListener("click", runAll);
+    runAll(); // auto-run on load
+  </script>
+</body>
+</html>
