@@ -547,3 +547,27 @@ feedbackBtn.addEventListener("click", function () {
   feedbackMessage.textContent = sv ? "🐾 Tack! Forky fångade din idé. 💚" : "🐾 Thanks! Forky caught your idea. 💚";
   feedbackInput.value = "";
 });
+
+
+/* ===== 📲 SHARE BITEBUDDY — native share sheet on phones, copy-link on computers ===== */
+const shareBtn = document.getElementById("share-btn");
+const shareMsg = document.getElementById("share-msg");
+if (shareBtn) {
+  shareBtn.addEventListener("click", async function () {
+    const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+    const url = "https://magicbuss69.github.io/review-recommend-app/";
+    const text = sv
+      ? "Kolla in BiteBuddy 🐾 — den läser recensionerna åt dig och föreslår vad du ska beställa!"
+      : "Check out BiteBuddy 🐾 — it reads the reviews for you and tells you what to order!";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "BiteBuddy", text: text, url: url }); // phone Share sheet
+      } else {
+        await navigator.clipboard.writeText(url);                            // computer: copy link
+        if (shareMsg) shareMsg.textContent = sv ? "🔗 Länk kopierad! Klistra in och dela. 💙" : "🔗 Link copied! Paste it anywhere to share. 💙";
+      }
+    } catch (e) {
+      if (shareMsg) shareMsg.textContent = sv ? "🔗 Dela den här länken: " + url : "🔗 Share this link: " + url;
+    }
+  });
+}

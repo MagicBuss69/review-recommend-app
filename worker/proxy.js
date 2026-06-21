@@ -133,6 +133,75 @@ export default {
       }, 200, origin);
     }
 
+    // ── /nearby — find food places near a city or coords (server-side, reliable) ──
+    // The free map services (Nominatim/Overpass) often BLOCK direct browser calls
+    // (403/CORS). Doing it here, server-to-server with a proper app name, just works.
+    if (path.endsWith("/nearby")) {
+      let lat = body.lat, lon = body.lon;
+
+      // 1) no coords? turn the city name into coordinates (Nominatim needs an app User-Agent)
+      if (!lat || !lon) {
+        const city = body.city || "Landskrona";
+        const geoUrl = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
+          encodeURIComponent(city + ", Sweden");
+        try {
+          const gres = await fetch(geoUrl, {
+            headers: { "User-Agent": "BiteBuddy/1.0 (restaurant recommender)", "Accept": "application/json" },
+          });
+          if (gres.ok) {
+            const g = await gres.json();
+            if (g && g.length) { lat = g[0].lat; lon = g[0].lon; }
+          }
+        } catch (e) { /* fall through → empty list */ }
+        if (!lat || !lon) return json({ places: [] }, 200, origin);
+      }
+
+      // 2) ask Overpass for nearby restaurants/cafés/fast food (try each server in turn)
+      const oquery = "[out:json][timeout:20];" +
+        '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););out 80;";
+      const OVERPASS = [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.openstreetmap.fr/api/interpreter",
+      ];
+      let odata = null;
+      const debug = [];
+      for (let i = 0; i < OVERPASS.length && !odata; i++) {
+        try {
+          const r = await fetch(OVERPASS[i], {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "Accept": "application/json",
+              "User-Agent": "BiteBuddy/1.0 (restaurant recommender)",
+            },
+            body: "data=" + encodeURIComponent(oquery),
+          });
+          debug.push(OVERPASS[i].replace("https://", "") + " → " + r.status);
+          if (r.ok) odata = await r.json();
+        } catch (e) { debug.push(OVERPASS[i].replace("https://", "") + " → ERR " + (e.message || e)); }
+      }
+      if (!odata) return json({ places: [], lat: lat, lon: lon, _debug: debug }, 200, origin);
+
+      // 3) drop non-eateries (libraries, gyms…) and duplicates, then return a clean list
+      const notFood = /\b(kulturhus|arena|bibliotek|museum|skola|förskola|gymnasium|kyrka|mosk|gym|sjukhus|vårdcentral|apotek|station|simhall|ishall|idrottsplats|fritidsgård|teater|biograf|rådhus|kommun)\b/i;
+      const seen = {};
+      const places = (odata.elements || [])
+        .map((e) => {
+          const t = e.tags || {};
+          return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null, lat: e.lat, lon: e.lon };
+        })
+        .filter((p) => {
+          if (!p.name || notFood.test(p.name)) return false;
+          const k = p.name.toLowerCase();
+          if (seen[k]) return false;
+          seen[k] = true;
+          return true;
+        });
+
+      return json({ places: places, lat: lat, lon: lon }, 200, origin);
+    }
+
     // Is this visitor using the secret unlimited code? (lives ONLY here on the server)
     const unlimited = env.UNLOCK_CODE && body.unlockCode === env.UNLOCK_CODE;
 

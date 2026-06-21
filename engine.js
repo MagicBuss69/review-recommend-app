@@ -313,6 +313,30 @@ async function nearbyFoodPlaces(loc) {
     if (raw) { const o = JSON.parse(raw); if (o && o.d && o.d.length && (Date.now() - o.t) < 24 * 60 * 60 * 1000) return o.d; }
   } catch (e) {}
 
+  // Production: let our Worker do the map lookups. Browsers get blocked (403/CORS) by the
+  // free map services, but server-to-server works. Falls through to the direct path (local dev).
+  const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
+  if (proxyUrl) {
+    try {
+      const geo = bbGetGeo();
+      const reqBody = (bbIsNear(loc) && geo && geo.lat)
+        ? { lat: geo.lat, lon: geo.lon }                       // real "near me" coords 📍
+        : { city: bbIsNear(loc) ? "Landskrona" : loc };       // a typed city (or default)
+      const res = await fetch(proxyUrl + "/nearby", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reqBody),
+      });
+      if (res.ok) {
+        const list = (await res.json()).places || [];
+        if (list.length) {
+          try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), d: list })); } catch (e) {}
+          return list;
+        }
+      }
+    } catch (e) { /* fall through to the direct path below */ }
+  }
+
   try {
     // 1) work out WHERE to look:
     let lat, lon;
@@ -446,7 +470,10 @@ function cacheSet(key, data) {
 */
 async function lookupPlace(placeName) {
   const loc = localStorage.getItem("bitebuddy-location") || "near";
-  const useGoogle = !!getGoogleMapsKey();
+  // Use the rich Google data when EITHER we have a Maps key (local dev) OR a Worker
+  // proxy is set (production — the key lives safely on the server, so it's empty here).
+  const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
+  const useGoogle = !!getGoogleMapsKey() || !!proxyUrl;
   const key = (useGoogle ? "g:" : "o:") + loc + ":" + placeName.toLowerCase();
 
   const cached = cacheGet(key);

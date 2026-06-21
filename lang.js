@@ -88,6 +88,10 @@ const translations = {
     "results.noteplaceholder": "Type your own thoughts about this place...",
     "results.notebtn": "Add my note 🐾",
     "results.another": "Check another place 🔍",
+    "results.helpful": "Was this helpful? 🐾",
+    "results.helpfulyes": "Yes!",
+    "results.helpfulno": "Not really",
+    "share.btn": "Share BiteBuddy",
 
     /* AI waiter page */
     "waiter.banner": "✨ Demo waiter — gives sample answers for now. Real AI coming soon!",
@@ -256,6 +260,10 @@ const translations = {
     "results.noteplaceholder": "Skriv dina egna tankar om stället...",
     "results.notebtn": "Lägg till min kommentar 🐾",
     "results.another": "Kolla ett annat ställe 🔍",
+    "results.helpful": "Var detta till hjälp? 🐾",
+    "results.helpfulyes": "Ja!",
+    "results.helpfulno": "Inte direkt",
+    "share.btn": "Dela BiteBuddy",
 
     /* AI waiter page */
     "waiter.banner": "✨ Demokypare — ger exempelsvar just nu. Riktig AI kommer snart!",

@@ -48,6 +48,8 @@
 
   <!-- honest status line — the code fills this in -->
   <div class="demo-banner" id="banner">Loading…</div>
+  <!-- 🔢 How many free AI summaries are left today (filled in after a summary) -->
+  <div class="searches-left" id="searches-left"></div>
 
   <!-- ===== THE RESULT CARD ===== -->
   <main class="result deco-host">
@@ -132,6 +134,16 @@
           <ul class="say-list" id="say-list"></ul>
         </section>
 
+        <!-- 👍👎 Quick "was this helpful?" — the fastest way for testers to give feedback -->
+        <section class="card-block helpful-card" id="helpful-card">
+          <p class="helpful-q" data-i18n="results.helpful">Was this helpful? 🐾</p>
+          <div class="helpful-btns">
+            <button id="helpful-yes" class="helpful-btn" type="button">👍 <span data-i18n="results.helpfulyes">Yes!</span></button>
+            <button id="helpful-no" class="helpful-btn" type="button">👎 <span data-i18n="results.helpfulno">Not really</span></button>
+          </div>
+          <p id="helpful-msg" class="result-message"></p>
+        </section>
+
         <section class="card-block">
           <h2 data-i18n="results.healthtitle">💰 Business health</h2>
           <p class="health-good" id="health-line"></p>
@@ -156,6 +168,10 @@
     </div>
 
     <a href="index.html" class="btn-primary big-btn" data-i18n="results.another">Check another place 🔍</a>
+
+    <!-- 📲 Loved it? Pass BiteBuddy on — the easiest way to get more testers -->
+    <button id="share-btn" class="share-btn" type="button">📲 <span data-i18n="share.btn">Share BiteBuddy</span></button>
+    <p id="share-msg" class="result-message"></p>
 
   </main>
 
@@ -576,6 +592,20 @@
             ? (sv ? "⚡ Snabbladdad (sparad sammanfattning)" : "⚡ Loaded instantly (saved summary)")
             : (sv ? "🤖 AI-sammanfattning av " : "🤖 AI summary of ") + reviews.length + " " + srcLabel;
 
+          // 🔢 Tell the user how many free AI summaries are left today (the Worker counts).
+          //    Skipped on cache hits (nothing was used) and shows ∞ for the unlock code.
+          var slEl = document.getElementById("searches-left");
+          if (slEl && !result._fromCache) {
+            if (result._unlimited) {
+              slEl.textContent = sv ? "🔑 Obegränsade sökningar (kod aktiv)" : "🔑 Unlimited searches (code active)";
+            } else if (result._searchesLeft !== undefined && result._searchesLeft !== null) {
+              var n = result._searchesLeft;
+              slEl.textContent = sv
+                ? "🔢 " + n + (n === 1 ? " gratis sökning kvar idag" : " gratis sökningar kvar idag")
+                : "🔢 " + n + (n === 1 ? " free search left today" : " free searches left today");
+            }
+          }
+
           // ---------- 🍴 WHAT TO ORDER (the heart of feature #1: do the work for them) ----------
           const dishes = (result.dishes || []).filter(Boolean);
           if (dishes.length) {
@@ -703,6 +733,52 @@
         ? "🐾 Tack! Din kommentar lades till — ladda om för att se den i sammanfattningen. 💚"
         : "🐾 Thanks! Your note was added — refresh to see it in the summary. 💚";
       noteInput.value = "";
+    });
+
+    /* ===== 👍👎 "Was this helpful?" — saves to the SAME feedback box the Admin page reads ===== */
+    function sendHelpful(verdict) {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      const place = document.getElementById("place-name").textContent || "Unknown";
+      // store it as feedback so you can read it in the Admin Panel later
+      const saved = bbParse("bitebuddy-feedback", []);
+      saved.push({ text: "[" + verdict + "] results for: " + place, time: Date.now() });
+      localStorage.setItem("bitebuddy-feedback", JSON.stringify(saved));
+
+      // hide the buttons, show a warm thank-you
+      const btns = document.querySelector(".helpful-btns");
+      if (btns) btns.style.display = "none";
+      const msg = document.getElementById("helpful-msg");
+      if (msg) msg.textContent = verdict === "helpful"
+        ? (sv ? "🐾 Tack! Det gör Forky glad. 💚" : "🐾 Thanks! That makes Forky happy. 💚")
+        : (sv ? "🐾 Tack — vi gör det bättre! Berätta gärna mer längst ner. 🙏" : "🐾 Thanks — we'll make it better! Tell us more at the bottom if you like. 🙏");
+    }
+    const hYes = document.getElementById("helpful-yes");
+    const hNo  = document.getElementById("helpful-no");
+    if (hYes) hYes.addEventListener("click", function () { sendHelpful("helpful"); });
+    if (hNo)  hNo.addEventListener("click", function () { sendHelpful("not helpful"); });
+
+    /* ===== 📲 Share BiteBuddy — uses the phone's native share sheet, or copies the link ===== */
+    const shareBtn = document.getElementById("share-btn");
+    if (shareBtn) shareBtn.addEventListener("click", async function () {
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+      const shareMsg = document.getElementById("share-msg");
+      const url = "https://magicbuss69.github.io/review-recommend-app/";
+      const text = sv
+        ? "Kolla in BiteBuddy 🐾 — den läser recensionerna åt dig och föreslår vad du ska beställa!"
+        : "Check out BiteBuddy 🐾 — it reads the reviews for you and tells you what to order!";
+      try {
+        if (navigator.share) {
+          // phones: open the real Share sheet (Messages, WhatsApp, etc.)
+          await navigator.share({ title: "BiteBuddy", text: text, url: url });
+        } else {
+          // computers: copy the link to the clipboard instead
+          await navigator.clipboard.writeText(url);
+          if (shareMsg) shareMsg.textContent = sv ? "🔗 Länk kopierad! Klistra in och dela. 💙" : "🔗 Link copied! Paste it anywhere to share. 💙";
+        }
+      } catch (e) {
+        // user closed the share sheet, or clipboard blocked — show the link so they can copy by hand
+        if (shareMsg) shareMsg.textContent = sv ? "🔗 Dela den här länken: " + url : "🔗 Share this link: " + url;
+      }
     });
   </script>
 

@@ -1228,4 +1228,59 @@ img, iframe { max-width: 100%; }
   .chat-box .btn-primary { width: 100%; }
 
   .brand-name { font-size: 22px; }
+
+  /* new bits stack & stay tappable on phones */
+  .helpful-btns { flex-direction: column; }
+  .helpful-btn { width: 100%; justify-content: center; }
+  .share-btn { width: 100%; }
 }
+
+/* ===== 🔢 "searches left today" badge (results page) ===== */
+.searches-left {
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 8px auto 0;
+}
+
+/* ===== 👍👎 "Was this helpful?" card (results page) ===== */
+.helpful-card { text-align: center; }
+.helpful-q { font-weight: 800; font-size: 17px; margin: 0 0 14px; }
+.helpful-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.helpful-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  border: 2px solid #DCE6F5;
+  border-radius: var(--r-pill);
+  padding: 10px 22px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--fast), border-color var(--fast), background var(--fast);
+}
+.helpful-btn:hover { transform: translateY(-2px); border-color: var(--green); background: #E3F9EC; }
+
+/* ===== 📲 Share BiteBuddy button (homepage footer + results page) ===== */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px auto 6px;
+  background: var(--grad-blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 12px 26px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(47, 128, 237, 0.3);
+  transition: transform var(--fast), filter var(--fast);
+}
+.share-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
