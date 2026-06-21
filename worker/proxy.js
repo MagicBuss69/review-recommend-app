@@ -158,9 +158,12 @@ export default {
         const geoUrl = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
           encodeURIComponent(city + ", Sweden");
         try {
+          const gctrl = new AbortController();
+          const gtimer = setTimeout(() => gctrl.abort(), 8000);
           const gres = await fetch(geoUrl, {
             headers: { "User-Agent": "BiteBuddy/1.0 (restaurant recommender)", "Accept": "application/json" },
-          });
+            signal: gctrl.signal,
+          }).finally(() => clearTimeout(gtimer));
           if (gres.ok) {
             const g = await gres.json();
             if (g && g.length) { lat = g[0].lat; lon = g[0].lon; }
@@ -178,6 +181,10 @@ export default {
         "https://overpass.openstreetmap.fr/api/interpreter",
       ];
       function askOverpass(endpoint) {
+        // hard 10s timeout per server — without this, a server that accepts the
+        // connection but never replies would make Promise.any wait forever.
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 10000);
         return fetch(endpoint, {
           method: "POST",
           headers: {
@@ -186,7 +193,10 @@ export default {
             "User-Agent": "BiteBuddy/1.0 (restaurant recommender)",
           },
           body: "data=" + encodeURIComponent(oquery),
-        }).then((r) => { if (!r.ok) throw new Error(endpoint + " " + r.status); return r.json(); });
+          signal: ctrl.signal,
+        })
+          .then((r) => { if (!r.ok) throw new Error(endpoint + " " + r.status); return r.json(); })
+          .finally(() => clearTimeout(timer));
       }
       let odata = null;
       try { odata = await Promise.any(OVERPASS.map(askOverpass)); }

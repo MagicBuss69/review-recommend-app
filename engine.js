@@ -317,6 +317,9 @@ async function nearbyFoodPlaces(loc) {
   // free map services, but server-to-server works. Falls through to the direct path (local dev).
   const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
   if (proxyUrl) {
+    // safety net: never let this call hang forever (that's what made "near me" spin).
+    const ctrl = new AbortController();
+    const timer = setTimeout(function () { ctrl.abort(); }, 14000);
     try {
       const geo = bbGetGeo();
       const reqBody = (bbIsNear(loc) && geo && geo.lat)
@@ -326,6 +329,7 @@ async function nearbyFoodPlaces(loc) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reqBody),
+        signal: ctrl.signal,
       });
       if (res.ok) {
         const list = (await res.json()).places || [];
@@ -334,7 +338,8 @@ async function nearbyFoodPlaces(loc) {
           return list;
         }
       }
-    } catch (e) { /* fall through to the direct path below */ }
+    } catch (e) { /* timed out or failed → fall through to the direct path below */ }
+    finally { clearTimeout(timer); }
   }
 
   try {
