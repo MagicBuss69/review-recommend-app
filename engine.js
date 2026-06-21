@@ -223,7 +223,7 @@ async function osmSearch(q) {
   const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
     "&addressdetails=1&namedetails=1&extratags=1&limit=1&q=" + encodeURIComponent(q);
   const ctrl = new AbortController();
-  const timer = setTimeout(function () { ctrl.abort(); }, 8000);
+  const timer = setTimeout(function () { ctrl.abort(); }, 5000);
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" }, signal: ctrl.signal });
     if (!res.ok) throw new Error("OpenStreetMap status " + res.status);
@@ -310,7 +310,7 @@ async function nearbyFoodPlaces(loc) {
   const cacheKey = "bitebuddy-nearby:" + bbNearbyCacheKey(loc);
   try {
     const raw = localStorage.getItem(cacheKey);
-    if (raw) { const o = JSON.parse(raw); if (o && o.d && o.d.length && (Date.now() - o.t) < 2 * 60 * 60 * 1000) return o.d; }
+    if (raw) { const o = JSON.parse(raw); if (o && o.d && o.d.length && (Date.now() - o.t) < 24 * 60 * 60 * 1000) return o.d; }
   } catch (e) {}
 
   try {
@@ -327,25 +327,36 @@ async function nearbyFoodPlaces(loc) {
       lat = g[0].lat; lon = g[0].lon;
     }
 
-    // 2) ask Overpass (trying each server in turn) for nearby restaurants, cafés & fast food
+    // 2) ask Overpass for nearby restaurants, cafés & fast food.
+    //    Instead of trying servers one-by-one (slow — a busy one made us wait 12s
+    //    before even trying the next), we ask ALL of them AT THE SAME TIME and use
+    //    whichever answers first. Each one gives up after 6s so we never hang.
     const query =
-      "[out:json][timeout:12];" +
+      "[out:json][timeout:10];" +
       '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););" +
       "out 80;";
-    let data = null;
-    for (let i = 0; i < OVERPASS_ENDPOINTS.length && !data; i++) {
+
+    // ask one server, return its JSON, or fail (so another server can win the race)
+    function askOverpass(endpoint) {
       const ctrl = new AbortController();
-      const timer = setTimeout(function () { ctrl.abort(); }, 12000);
-      try {
-        const res = await fetch(OVERPASS_ENDPOINTS[i], {
-          method: "POST",
-          body: "data=" + encodeURIComponent(query),
-          signal: ctrl.signal,
-        });
-        if (res.ok) data = await res.json();        // got it — stop trying servers
-      } catch (e) { /* this server failed → try the next one */ }
-      finally { clearTimeout(timer); }
+      const timer = setTimeout(function () { ctrl.abort(); }, 6000);
+      return fetch(endpoint, {
+        method: "POST",
+        body: "data=" + encodeURIComponent(query),
+        signal: ctrl.signal,
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("bad status");  // count as a failure → let another win
+          return res.json();
+        })
+        .finally(function () { clearTimeout(timer); });
     }
+
+    // Promise.any settles with the FIRST server that succeeds; it only rejects if ALL fail.
+    let data = null;
+    try {
+      data = await Promise.any(OVERPASS_ENDPOINTS.map(askOverpass));
+    } catch (e) { /* every server failed → fall through to the caller's fallback list */ }
     if (!data) return [];
 
     const seen = {};
