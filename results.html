@@ -656,7 +656,13 @@
             }
           }
         } catch (e) {
-          banner.textContent = (sv ? "😅 Kunde inte sammanfatta (" : "😅 Couldn't summarise (") + e.message + ").";
+          // Most common reason: today's AI quota is used up. Show real reviews + a friendly note.
+          var limitHit = /429|limit|quota|502/i.test(e.message || "");
+          banner.textContent = limitHit
+            ? (sv
+              ? "🤖 AI-sammanfattningen tar en paus idag — här är de riktiga recensionerna! 🐾"
+              : "🤖 The AI summary is taking a break today — here are the real reviews! 🐾")
+            : (sv ? "😅 Kunde inte sammanfatta just nu — här är recensionerna." : "😅 Couldn't summarise right now — here are the reviews.");
           say(reviews.slice(0, 5).map(function (r) { return { kind: "good", text: "💬 " + r }; }));
         }
       } else {
