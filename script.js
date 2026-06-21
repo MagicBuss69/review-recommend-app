@@ -80,7 +80,7 @@ if (EARLY_ACCESS_URL) {
 button.addEventListener("click", function () {
   // LAUNCH MODE: send visitors to the Google Form instead of searching
   if (EARLY_ACCESS_URL) {
-    window.open(EARLY_ACCESS_URL, "_blank");
+    window.location.href = EARLY_ACCESS_URL;
     return;
   }
 
