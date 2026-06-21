@@ -1,8 +1,14 @@
 /*
   BiteBuddy — script.js (JavaScript = the actions / behavior)
-  Right now the "read the reviews" brain isn't built yet, so when you click
-  "Find out!" we show a friendly message. We'll wire up the real review-reading later.
 */
+
+// ============================================================
+// 🚀 LAUNCH MODE — smoke test to see if real people want this
+// Paste your Google Form URL below. The "Find out!" button
+// will send visitors there instead of doing a search.
+// Set it back to "" when you're ready to launch for real.
+// ============================================================
+const EARLY_ACCESS_URL = ""; // ← paste your Google Form link here
 
 // Grab the parts of the page we need to work with
 const input = document.getElementById("link-input");
@@ -64,25 +70,35 @@ function renderHistory() {
 renderHistory();   // show the recent list when the page opens
 
 
+// Switch the page into "launching soon" mode if EARLY_ACCESS_URL is set
+if (EARLY_ACCESS_URL) {
+  input.placeholder = "Restaurant search — launching soon! 🐾";
+  button.textContent = "Get early access →";
+}
+
 // What happens when the button is clicked
 button.addEventListener("click", function () {
+  // LAUNCH MODE: send visitors to the Google Form instead of searching
+  if (EARLY_ACCESS_URL) {
+    window.open(EARLY_ACCESS_URL, "_blank");
+    return;
+  }
+
   const link = input.value.trim();   // the text the user typed
 
   if (link === "") {
-    // They clicked without pasting anything
     message.textContent = "🐾 Type a restaurant name first, then let Forky sniff it out!";
     return;
   }
 
-  // Remember what they searched (name OR link) so the results page can show it.
+  // Remember what they searched so the results page can show it.
   localStorage.setItem("bitebuddy-search", link);
-  addToHistory(link);   // also add it to the "Recent" list
+  addToHistory(link);
 
-  // Let the user know Forky is "thinking" (with a spinner), then go to results.
   message.innerHTML = '<span class="spinner"></span> 🐾 Forky is sniffing out the reviews...';
   setTimeout(function () {
     window.location.href = "results.html";
-  }, 900); // a short, friendly pause so it feels like Forky is working
+  }, 900);
 });
 
 // Bonus: let people press the Enter key instead of clicking
