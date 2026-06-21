@@ -483,13 +483,13 @@ async function loadRecos() {
   const likes = bbParse("bitebuddy-likes", []);
   const dislikes = bbParse("bitebuddy-dislikes", []);
 
-  // Only show "Recommended for you" once Forky actually knows something to base it on:
-  // a chosen location (a real city or 📍 near-me), OR saved tastes. Otherwise hide the
-  // whole section — no pointless "searching…" when there's nothing to search with.
+  // Only show "Recommended for you" when Forky can give a meaningful list:
+  // a real CITY was chosen, OR you have saved tastes. On "near me" (or no location)
+  // without tastes there's nothing personal to show → keep it hidden.
   const recosEl = document.getElementById("recos");
-  const hasLocation = isRealCity(loc) || !!localStorage.getItem("bitebuddy-geo");
+  const hasRealCity = isRealCity(loc);
   const hasTastes = likes.length > 0 || dislikes.length > 0;
-  if (!hasLocation && !hasTastes) {
+  if (!hasRealCity && !hasTastes) {
     if (recosEl) recosEl.style.display = "none";   // stay hidden until we know something
     return;
   }
