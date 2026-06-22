@@ -406,6 +406,14 @@ recommendBtn.addEventListener("click", async function () {
   renderHistory();   // refresh the Recent list to show the new pick
 });
 
+// Arrived from the results page's "🎲 Recommend me another place" button (it links to
+// index.html?pick=1)? Auto-press Recommend so Forky picks straight away. Then clean the
+// "?pick=1" out of the address bar so a refresh doesn't keep re-rolling. 🎲
+if (/[?&]pick=1/.test(location.search) && recommendBtn) {
+  recommendBtn.click();
+  if (history.replaceState) history.replaceState(null, "", location.pathname);
+}
+
 
 /* ===== 💚 "SUITS MY TASTE" — recommend a nearby place that matches foods you like ===== */
 // Many "near me" places only carry a CUISINE word (like "italian"), not the dish you typed

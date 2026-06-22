@@ -974,6 +974,17 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
   margin-top: 28px;
 }
 
+/* the smaller "Check another place" link that sits under the green Recommend button */
+.another-link {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+.another-link:hover { color: #2F80ED; text-decoration: underline; }
+
 /* ===== AI KEY BOX (make Tony a real AI) ===== */
 .key-box {
   background: linear-gradient(135deg, #FFF8E1, #FFF6D9);

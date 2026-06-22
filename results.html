@@ -16,11 +16,12 @@
   <meta property="og:description" content="The reviews, summarised — plus a recommendation made for you.">
   <meta property="og:image" content="logo.svg">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <!-- ?v=3 = cache-buster: bump after any change so browsers load the new file. 🔄 -->
+  <link rel="stylesheet" href="styles.css?v=3">
   <script src="auth.js"></script>
   <script src="config.production.js"></script>
   <script src="config.js"></script>
-  <script src="engine.js"></script>
+  <script src="engine.js?v=3"></script>
 </head>
 
 <body>
@@ -167,7 +168,11 @@
 
     </div>
 
-    <a href="index.html" class="btn-primary big-btn" data-i18n="results.another">Check another place 🔍</a>
+    <!-- This page came from a pick, so the friendliest next step is ANOTHER pick.
+         The green "recommend" button leads (matches the homepage hero); typing a
+         name yourself is the smaller, secondary option just under it. -->
+    <a href="index.html?pick=1" class="btn-recommend big-btn" data-i18n="results.recoanother">🎲 Recommend me another place</a>
+    <a href="index.html" class="another-link" data-i18n="results.another">Check another place 🔍</a>
 
     <!-- 📲 Loved it? Pass BiteBuddy on — the easiest way to get more testers -->
     <button id="share-btn" class="share-btn" type="button">📲 <span data-i18n="share.btn">Share BiteBuddy</span></button>
@@ -787,6 +792,6 @@
     <p class="footer-links"><a href="about.html" data-i18n="nav.about">About</a></p>
   </footer>
 
-  <script src="lang.js"></script>
+  <script src="lang.js?v=3"></script>
 </body>
 </html>
