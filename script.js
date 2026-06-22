@@ -200,6 +200,22 @@ const locClear = document.getElementById("loc-clear");
 // is this value a real city (not blank / not "near me")?
 function isRealCity(v) { return v && !/near|nära|📍/i.test(v); }
 
+// Are we in/around Landskrona? Used as a SAFE fallback for "near me": if the live food
+// map is having a bad moment, we can still show the real built-in Landskrona list —
+// but ONLY when that's honest. No GPS → assume home (Landskrona). GPS within ~60 km of
+// Landskrona → close enough. GPS far away (you're travelling) → don't fake it. 🛡️
+function bbNearLandskrona() {
+  const raw = localStorage.getItem("bitebuddy-geo");
+  if (!raw) return true;                       // no GPS → Landskrona is our honest default
+  try {
+    const g = JSON.parse(raw);
+    if (!g || !g.lat) return true;
+    const dLat = (g.lat - 55.8708) * 111;      // ~111 km per degree of latitude
+    const dLon = (g.lon - 12.8300) * 63;       // ~63 km per degree of longitude up here
+    return Math.sqrt(dLat * dLat + dLon * dLon) <= 60;   // within 60 km of Landskrona
+  } catch (e) { return true; }
+}
+
 // show the ✕ only when there's text to clear
 function toggleClear() {
   if (locClear) locClear.style.display = locationInput.value.trim() ? "block" : "none";
@@ -350,9 +366,9 @@ recommendBtn.addEventListener("click", async function () {
   if (!pool || pool.length < 3) {
     const lc = loc.toLowerCase();
     const nearish = lc === "" || /near|nära|📍/.test(lc);
-    const hasGeo = !!localStorage.getItem("bitebuddy-geo");
-    // only the built-in Landskrona list is REAL → use it just for Landskrona / near-without-GPS
-    if (lc === "landskrona" || (nearish && !hasGeo)) {
+    // only the built-in Landskrona list is REAL → use it for Landskrona, or for "near me"
+    // when we're in/around Landskrona (covers missing GPS AND flaky food-map moments)
+    if (lc === "landskrona" || (nearish && bbNearLandskrona())) {
       pool = landskronaPlaces;
     } else {
       const where = nearish ? (sv ? "din plats" : "your area") : loc;
@@ -477,8 +493,7 @@ if (tasteBtn) tasteBtn.addEventListener("click", async function () {
   if (!pool || pool.length < 3) {
     const lc = loc.toLowerCase();
     const nearish = lc === "" || /near|nära|📍/.test(lc);
-    const hasGeo = !!localStorage.getItem("bitebuddy-geo");
-    if (lc === "landskrona" || (nearish && !hasGeo)) {
+    if (lc === "landskrona" || (nearish && bbNearLandskrona())) {
       pool = landskronaPlaces;
     } else {
       const where = nearish ? (sv ? "din plats" : "your area") : loc;
@@ -560,8 +575,7 @@ async function loadRecos() {
   if (!pool || !pool.length) {
     const lc = loc.toLowerCase();
     const nearish = lc === "" || /near|nära|📍/.test(lc);
-    const hasGeo = !!localStorage.getItem("bitebuddy-geo");
-    if (lc === "landskrona" || (nearish && !hasGeo)) pool = landskronaPlaces;
+    if (lc === "landskrona" || (nearish && bbNearLandskrona())) pool = landskronaPlaces;
     else { listEl.innerHTML = '<p class="recos-empty">' + (sv ? "Inga rekommendationer just nu — prova en stad eller 📍." : "No recommendations right now — try a city or 📍.") + "</p>"; return; }
   }
 
