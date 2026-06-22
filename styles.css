@@ -623,6 +623,19 @@ input.location-select { width: 230px; max-width: 56vw; padding-right: 28px; }
 .btn-recommend:active { transform: translateY(1px) scale(0.98); }
 /* the two recommend buttons sit side by side (stack on small screens) */
 .reco-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* === HERO PICK === Forky's recommendation is the star of the homepage.
+   The buttons stack: big "Recommend" on top, smaller "Suits my taste" under it. */
+.hero-pick { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 10px 0 6px; width: 100%; }
+/* the big main button — wide and tall so it's clearly the thing to tap */
+.btn-recommend.btn-hero {
+  width: 100%;
+  max-width: 440px;
+  font-size: 20px;
+  padding: 20px 28px;
+}
+/* the secondary "Suits my taste" — a touch smaller so the hero button leads */
+.btn-recommend.btn-sub { font-size: 15px; padding: 11px 22px; }
 /* the "suits my taste" button — a warm love-themed pink to stand apart from the random one */
 .btn-taste { background: linear-gradient(135deg, #FF7AA2, #FF4E83); box-shadow: 0 8px 18px rgba(255, 78, 131, 0.35); }
 .btn-taste:hover { box-shadow: 0 12px 24px rgba(255, 78, 131, 0.45); }

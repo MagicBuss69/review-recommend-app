@@ -95,7 +95,28 @@
     <!-- recently-used cities — tap one to switch back fast (filled in by script.js) -->
     <div id="loc-history" class="loc-history"></div>
 
-    <!-- The paste-a-link box + button -->
+    <!-- ===== THE STAR: let Forky pick for you =====
+         Most people who arrive (especially travelers in a new town) don't know any
+         restaurant names yet — so Forky's recommendation is the MAIN action.
+         The big green button is the hero; "Suits my taste" sits just under it. -->
+    <div class="hero-pick">
+      <button id="recommend-btn" class="btn-recommend btn-hero" data-i18n="recommend.btn">🎲 Recommend me a place</button>
+      <button id="taste-btn" class="btn-recommend btn-taste btn-sub" data-i18n="recommend.tastebtn">💚 Suits my taste</button>
+    </div>
+
+    <!-- Forky's pick shows up here -->
+    <div id="recommend-card" class="recommend-card"></div>
+
+    <!-- ✨ recommended restaurants for your location (filled in by script.js).
+         Hidden until Forky knows a location or your tastes — script.js reveals it. -->
+    <div class="recos" id="recos" style="display:none;">
+      <h2 data-i18n="recos.title">✨ Recommended for you</h2>
+      <p class="recos-sub" id="recos-sub"></p>
+      <div id="recos-list" class="recos-list"></div>
+    </div>
+
+    <!-- ===== ALREADY KNOW A PLACE? — type its name (now the secondary option) ===== -->
+    <div class="or-divider"><span data-i18n="or.know">or know a place already?</span></div>
     <div class="search-box">
       <input
         type="text"
@@ -111,25 +132,6 @@
 
     <!-- A friendly message appears here after clicking (filled in by script.js) -->
     <p id="result-message" class="result-message"></p>
-
-    <!-- ✨ recommended restaurants for your location (filled in by script.js).
-         Hidden until Forky knows a location or your tastes — script.js reveals it. -->
-    <div class="recos" id="recos" style="display:none;">
-      <h2 data-i18n="recos.title">✨ Recommended for you</h2>
-      <p class="recos-sub" id="recos-sub"></p>
-      <div id="recos-list" class="recos-list"></div>
-    </div>
-
-    <!-- ===== "DECIDE FOR ME" PATH ===== -->
-    <!-- For people who don't want to type a name — just let Forky pick! -->
-    <div class="or-divider"><span data-i18n="or">or</span></div>
-    <div class="reco-buttons">
-      <button id="recommend-btn" class="btn-recommend" data-i18n="recommend.btn">🎲 Recommend me a place</button>
-      <button id="taste-btn" class="btn-recommend btn-taste" data-i18n="recommend.tastebtn">💚 Suits my taste</button>
-    </div>
-
-    <!-- Forky's pick shows up here -->
-    <div id="recommend-card" class="recommend-card"></div>
 
     <!-- Recent searches: tap one to jump straight back (filled in by script.js) -->
     <div id="recent" class="recent"></div>
