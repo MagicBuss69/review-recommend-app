@@ -985,16 +985,27 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
 .order-pop  { background: #EAF2FE; color: #1B4F9C; }   /* 💙 blue = the crowd favourite */
 .order-pick { background: #E7F8EE; color: #1E7A45; }   /* 💚 green = made for you */
 
-/* the smaller "Check another place" link that sits under the green Recommend button */
+/* "Check another place" — a clear outlined blue button under the green Recommend one.
+   Visible and easy to tap, but the green button still leads as the main action. */
 .another-link {
   display: block;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  margin: 14px auto 0;
+  padding: 15px 26px;
   text-align: center;
-  margin-top: 12px;
-  color: var(--muted);
-  font-weight: 700;
   text-decoration: none;
+  font-weight: 800;
+  font-size: 16px;
+  color: #2F80ED;
+  background: #fff;
+  border: 2px solid #2F80ED;
+  border-radius: var(--r-pill);
+  transition: transform var(--fast), background var(--fast), color var(--fast);
 }
-.another-link:hover { color: #2F80ED; text-decoration: underline; }
+.another-link:hover { background: #2F80ED; color: #fff; transform: translateY(-2px); }
+.another-link:active { transform: translateY(1px) scale(0.98); }
 
 /* ===== AI KEY BOX (make Tony a real AI) ===== */
 .key-box {
