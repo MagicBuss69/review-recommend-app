@@ -200,10 +200,12 @@ const locClear = document.getElementById("loc-clear");
 // is this value a real city (not blank / not "near me")?
 function isRealCity(v) { return v && !/near|nära|📍/i.test(v); }
 
-// Are we in/around Landskrona? Used as a SAFE fallback for "near me": if the live food
-// map is having a bad moment, we can still show the real built-in Landskrona list —
-// but ONLY when that's honest. No GPS → assume home (Landskrona). GPS within ~60 km of
-// Landskrona → close enough. GPS far away (you're travelling) → don't fake it. 🛡️
+// Are we in/around southern Sweden (Landskrona's region)? Used as a SAFE fallback for
+// "near me": if the live food map has a bad moment, we can still show the real built-in
+// Landskrona list. No GPS → assume home. GPS anywhere in the wider region → use it
+// (laptops/WiFi often guess your spot quite roughly, so we keep this radius generous so
+// real local users always get a result). Only someone genuinely far away (another country
+// / hundreds of km) won't get the Landskrona fallback. 🛡️
 function bbNearLandskrona() {
   const raw = localStorage.getItem("bitebuddy-geo");
   if (!raw) return true;                       // no GPS → Landskrona is our honest default
@@ -212,7 +214,7 @@ function bbNearLandskrona() {
     if (!g || !g.lat) return true;
     const dLat = (g.lat - 55.8708) * 111;      // ~111 km per degree of latitude
     const dLon = (g.lon - 12.8300) * 63;       // ~63 km per degree of longitude up here
-    return Math.sqrt(dLat * dLat + dLon * dLon) <= 60;   // within 60 km of Landskrona
+    return Math.sqrt(dLat * dLat + dLon * dLon) <= 250;  // within ~250 km of Landskrona
   } catch (e) { return true; }
 }
 

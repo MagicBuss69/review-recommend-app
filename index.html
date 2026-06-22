@@ -26,13 +26,15 @@
   <link rel="icon" href="logo.svg" type="image/svg+xml">
 
   <!-- Connect our styles -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- The ?v=2 on our files is a "cache-buster": bump the number after any change so
+       phones/laptops grab the NEW file instead of an old saved copy. 🔄 -->
+  <link rel="stylesheet" href="styles.css?v=2">
   <!-- login-state helper: runs early so the nav shows the right links with no flicker -->
   <script src="auth.js"></script>
   <!-- keys (private) + the search/lookup brain, so autocomplete works here too -->
   <script src="config.production.js"></script>
   <script src="config.js"></script>
-  <script src="engine.js"></script>
+  <script src="engine.js?v=2"></script>
 </head>
 
 <body>
@@ -212,7 +214,7 @@
   </footer>
 
   <!-- Connect the interactivity (the button click) + the language system -->
-  <script src="script.js"></script>
-  <script src="lang.js"></script>
+  <script src="script.js?v=2"></script>
+  <script src="lang.js?v=2"></script>
 </body>
 </html>
