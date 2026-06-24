@@ -19,6 +19,14 @@
 
 const DAILY_LIMIT = 3;
 
+// 🌍 GLOBAL "NO SURPRISES" CAPS — the most AI calls the WHOLE app will make in one
+// day, across EVERYONE combined. Once a cap is hit, Forky stops calling the paid AI
+// for everyone until tomorrow (saved/cached answers still work fine). This is your
+// app-level money wall. Cached hits do NOT count — they cost nothing.
+// Raise these only if your Google Cloud budget is comfortable with it.
+const GLOBAL_SUMMARY_LIMIT = 250; // total AI review-summaries per day, all users
+const GLOBAL_WAITER_LIMIT = 400;  // total Tony chat replies per day, all users
+
 // Only accept browser requests from these sites (blocks strangers from using your keys)
 const ALLOWED_ORIGINS = [
   "https://magicbuss69.github.io",
@@ -262,6 +270,16 @@ export default {
         }, 429, origin);
       }
 
+      // 🌍 Global cap (money safety for EVERYONE combined) — applies to all visitors.
+      const gwKey = "global:waiter:" + today;
+      const gwCount = parseInt((await env.BB_KV.get(gwKey)) || "0");
+      if (gwCount >= GLOBAL_WAITER_LIMIT) {
+        return json({
+          error: "global_limit",
+          message: "Tony's had a LOT of chats today — he's having a rest. Come back tomorrow! 🐾",
+        }, 429, origin);
+      }
+
       const language = body.lang === "sv" ? "Swedish" : "English";
       const persona =
         "You are Tony, a warm, friendly waiter at " + placeName +
@@ -312,6 +330,9 @@ export default {
       try { reply = waiterData.candidates[0].content.parts[0].text; } catch (e) { reply = ""; }
       if (!reply) return json({ error: "empty" }, 502, origin);
 
+      // count this real AI call toward the global daily cap (for everyone)
+      try { await env.BB_KV.put(gwKey, String(gwCount + 1), { expirationTtl: 90000 }); } catch (e) {}
+
       if (!unlimited) {
         await env.BB_KV.put(wKey, String(wCount + 1), { expirationTtl: 90000 });
       }
@@ -330,11 +351,42 @@ export default {
     const rateKey = "bb:" + ip + ":" + today;
     const count = parseInt((await env.BB_KV.get(rateKey)) || "0");
 
+    // ⚡ SHARED CACHE — the speed win. If ANYONE already summarised this place
+    // recently, hand back the saved answer INSTANTLY: no Gemini call, no 2-second
+    // wait, and it does NOT use up this visitor's daily limit. The first person to
+    // view a place pays the wait; everyone after gets it immediately. (Caching first,
+    // exactly like the strategy notes say. 🚀)
+    const sumKey = "sum:v1:" + (lang === "sv" ? "sv" : "en") + ":" +
+      placeName.toLowerCase().trim().replace(/\s+/g, " ");
+    try {
+      const hit = await env.BB_KV.get(sumKey);
+      if (hit) {
+        const obj = JSON.parse(hit);
+        return json({
+          ...obj,
+          _fromCache: true,
+          _searchesLeft: unlimited ? "∞" : DAILY_LIMIT - count,
+          _unlimited: unlimited,
+        }, 200, origin);
+      }
+    } catch (e) { /* cache miss or bad value → just do it fresh below */ }
+
     if (!unlimited && count >= DAILY_LIMIT) {
       return json({
         error: "daily_limit",
         limit: DAILY_LIMIT,
         message: "You've used your 3 free AI summaries for today — come back tomorrow! 🐾",
+      }, 429, origin);
+    }
+
+    // 🌍 Global cap (money safety for EVERYONE combined). Applies to all visitors,
+    // even the unlimited code — this is the wall that prevents surprise bills.
+    const gSumKey = "global:sum:" + today;
+    const gSumCount = parseInt((await env.BB_KV.get(gSumKey)) || "0");
+    if (gSumCount >= GLOBAL_SUMMARY_LIMIT) {
+      return json({
+        error: "global_limit",
+        message: "BiteBuddy is super popular today — Forky's AI is taking a little rest. Try again tomorrow! 🐾",
       }, 429, origin);
     }
 
@@ -361,15 +413,26 @@ export default {
       generationConfig: { responseMimeType: "application/json" },
     };
 
-    const geminiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
-      env.GEMINI_KEY;
-
-    const geminiRes = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(geminiBody),
-    });
+    // Be stubborn when Gemini is momentarily busy (429/503): retry the main model,
+    // then fall back to a second model — same trick that made Tony reliable.
+    const SUMMARY_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+    let geminiRes;
+    trySumModels:
+    for (const model of SUMMARY_MODELS) {
+      const gUrl = "https://generativelanguage.googleapis.com/v1beta/models/" +
+        model + ":generateContent?key=" + env.GEMINI_KEY;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        geminiRes = await fetch(gUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiBody),
+        });
+        if (geminiRes.ok) break trySumModels;                                   // got it 🎉
+        if (geminiRes.status !== 503 && geminiRes.status !== 429) break trySumModels; // real error
+        if (attempt < 1) await new Promise((r) => setTimeout(r, 1000));         // busy → wait, retry
+      }
+      // still busy after retries → try the next backup model
+    }
 
     if (!geminiRes.ok) {
       return json({ error: "gemini_error", status: geminiRes.status }, 502, origin);
@@ -377,6 +440,16 @@ export default {
 
     const geminiData = await geminiRes.json();
     const result = JSON.parse(geminiData.candidates[0].content.parts[0].text);
+
+    // Save into the shared cache for a week so the NEXT visitor to this place gets
+    // it instantly (reviews don't change fast). This is what makes popular places
+    // feel snappy for everyone — and saves the Gemini quota.
+    try {
+      await env.BB_KV.put(sumKey, JSON.stringify(result), { expirationTtl: 604800 });
+    } catch (e) { /* caching is a bonus — never fail the request over it */ }
+
+    // count this real AI call toward the global daily cap (for everyone)
+    try { await env.BB_KV.put(gSumKey, String(gSumCount + 1), { expirationTtl: 90000 }); } catch (e) {}
 
     if (!unlimited) {
       await env.BB_KV.put(rateKey, String(count + 1), { expirationTtl: 90000 });
