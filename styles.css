@@ -870,10 +870,10 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
 .menu-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
 
 /* 🍕 "Food you might like" picture tiles (from your tastes) */
-.taste-food-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+.taste-food-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
 .taste-food-tile {
   position: relative;
-  aspect-ratio: 1 / 1;
+  min-height: 135px;             /* grows taller if the dish name is long → nothing gets cut off */
   border-radius: var(--r);
   background: var(--bg);
   background-size: cover;
@@ -882,17 +882,32 @@ img.photo-tile { width: 100%; height: 100%; object-fit: cover; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 14px 10px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  border: 1px solid #E6ECF5;
+  transition: transform var(--fast), box-shadow var(--fast);
 }
-.tf-emoji { font-size: 44px; }
-.tf-name { font-weight: 800; color: var(--ink); text-transform: capitalize; padding: 0 6px; text-align: center; }
+.taste-food-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.tf-emoji { font-size: 40px; line-height: 1; }
+.tf-name {
+  font-weight: 800;
+  color: var(--ink);
+  text-transform: capitalize;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.3;
+  width: 100%;
+  word-break: break-word;        /* long names wrap onto a second line instead of clipping */
+}
+.taste-food-tile.has-photo { min-height: 145px; justify-content: flex-end; }
 .taste-food-tile.has-photo .tf-emoji { display: none; }
 .taste-food-tile.has-photo .tf-name {
   position: absolute; left: 0; right: 0; bottom: 0;
-  color: #fff; padding: 8px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.65));
+  color: #fff; padding: 22px 10px 10px;
+  font-size: 14px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.78));  /* darker so white text is always readable */
 }
 
 .place-head { text-align: center; margin-bottom: 24px; }
