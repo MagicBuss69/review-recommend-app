@@ -543,15 +543,19 @@ if (tasteBtn) tasteBtn.addEventListener("click", async function () {
 
   localStorage.setItem("bitebuddy-search", place.name);
   addToHistory(place.name);
+  renderHistory();
 
+  // Show the taste match for a heartbeat, then go STRAIGHT to that restaurant — no extra
+  // "See details" tap (same as the Recommend button). Keep a backup link just in case.
   recommendCard.innerHTML =
     '<div class="pick-emoji">' + emoji + "</div>" +
     '<div class="pick-title">' + (sv ? "För dig: " : "For you: ") + "<strong>" + escapeHtml(place.name) + "</strong></div>" +
     '<div class="pick-food">' + why + "</div>" +
     (place.food ? '<div class="pick-food">' + escapeHtml(place.food) + "</div>" : "") +
-    '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Se detaljer 🔍" : "See details 🔍") + "</a>";
+    '<div class="pick-going"><span class="spinner"></span> ' + (sv ? "Tar dig dit…" : "Taking you there…") + "</div>" +
+    '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Öppna nu 🔍" : "Open now 🔍") + "</a>";
 
-  renderHistory();
+  window.location.href = "results.html";   // jump right to the restaurant
 });
 
 
