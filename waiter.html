@@ -16,13 +16,13 @@
   <meta property="og:description" content="Ask Tony anything about the place before you visit.">
   <meta property="og:image" content="logo.svg">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=8">
   <script src="auth.js"></script>
   <!-- your private key file (not on GitHub). If missing, Tony uses the demo brain. -->
   <script src="config.production.js"></script>
   <script src="config.js"></script>
   <!-- the real-data brain, so Tony can look up the place you actually searched -->
-  <script src="engine.js"></script>
+  <script src="engine.js?v=8"></script>
 </head>
 
 <body>
@@ -86,7 +86,7 @@
   </footer>
 
   <!-- the language system (English + Svenska) -->
-  <script src="lang.js"></script>
+  <script src="lang.js?v=8"></script>
 
   <script>
     // ===== The waiter's "demo brain" =====
@@ -139,9 +139,39 @@
     }
 
     // ===== Ask the REAL AI (Gemini) =====
-    // Sends the question to Google's Gemini, telling it to BE a waiter at the place
-    // you actually searched — using the real info & reviews we looked up.
+    // Tony's brain. There are TWO ways to reach it:
+    //   1) PRODUCTION — through your Cloudflare Worker (/waiter). The secret Gemini
+    //      key lives safely on the Worker, NOT in this page. This is how the live
+    //      site works for everyone.
+    //   2) LOCAL DEV — if you've put a Gemini key in config.js on your own computer,
+    //      Tony calls Gemini directly (handy for testing without the Worker).
     async function askGemini(question) {
+      const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
+      const sv = (localStorage.getItem("bitebuddy-lang") || "en") === "sv";
+
+      // ── 1) Production path: ask the Worker (it holds the key) ──
+      if (proxyUrl) {
+        const res = await fetch(proxyUrl + "/waiter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            placeName: currentPlace,
+            city: currentCity,
+            context: placeContext,      // what we honestly know about the place
+            question: question,
+            lang: sv ? "sv" : "en",
+            unlockCode: localStorage.getItem("bitebuddy-unlock-code") || "",
+          }),
+        });
+        if (res.status === 429) throw new Error("busy");   // daily chat limit
+        if (!res.ok) throw new Error("status " + res.status);
+        const data = await res.json();
+        if (data.error === "daily_limit") throw new Error("busy");
+        if (!data.reply) throw new Error("status empty");
+        return data.reply;
+      }
+
+      // ── 2) Local-dev path: call Gemini directly with a browser key ──
       const key = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey;
       const model = "gemini-2.5-flash";  // if this ever errors, try "gemini-flash-latest"
       const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key;
@@ -199,8 +229,11 @@
       addMessage("you", text);
       chatInput.value = "";
 
-      const hasKey = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.geminiKey;
-      if (hasKey) {
+      // Real AI is available if EITHER the Worker proxy (production) OR a browser
+      // key (local dev) is set up. In production the key is empty but proxyUrl is set.
+      const hasAI = window.BITEBUDDY_CONFIG &&
+        (window.BITEBUDDY_CONFIG.proxyUrl || window.BITEBUDDY_CONFIG.geminiKey);
+      if (hasAI) {
         // Real AI mode: show a "thinking" bubble, then fill it with Gemini's reply.
         const thinking = addMessage("waiter", "🐾 ...");
         askGemini(text)
@@ -241,6 +274,15 @@
         send();
       });
     });
+
+    // If real AI is on (Worker proxy in production, or a key in dev), drop the
+    // "demo waiter — sample answers" banner — Tony is the real deal now. ✨
+    (function () {
+      const hasAI = window.BITEBUDDY_CONFIG &&
+        (window.BITEBUDDY_CONFIG.proxyUrl || window.BITEBUDDY_CONFIG.geminiKey);
+      const banner = document.querySelector(".demo-banner");
+      if (hasAI && banner) banner.style.display = "none";
+    })();
 
     // ===== Who is Tony a waiter FOR? Whatever place you searched. =====
     // These start as sensible fallbacks and get filled in by the lookup below.

@@ -5,6 +5,7 @@
     • /place      → searches Google Places (server-side, so no referrer block)
     • /photo      → streams a Google place photo (so the key isn't in the image URL)
     • /summarize  → turns reviews into an honest AI summary (Gemini)
+    • /waiter     → chats as "Tony" the waiter about a place (Gemini)
     • /verify     → checks the secret "unlimited" code (from the profile page)
 
   Rate-limits each visitor to 3 AI summaries per day (resets daily).
@@ -233,6 +234,75 @@ export default {
     // ── /verify — just checks if a code is correct (used by the profile page) ──
     if (path.endsWith("/verify")) {
       return json({ valid: !!unlimited }, 200, origin);
+    }
+
+    // ── /waiter — chat as "Tony", a friendly waiter for the place you searched ──
+    // The browser sends the question + what we honestly KNOW about the place;
+    // Gemini answers in character. The secret key never leaves this server.
+    if (path.endsWith("/waiter")) {
+      const question = (body.question || "").trim();
+      if (!question) return json({ error: "no_question" }, 400, origin);
+
+      const placeName = body.placeName || "this restaurant";
+      const city = body.city || "";
+      const ctx = (body.context || "").slice(0, 4000); // cap so one request can't be huge
+
+      // A friendly daily cap on chat messages, so the free quota isn't drained
+      // (the unlimited code skips it). Tony gets his OWN counter, separate from
+      // the review summaries, so chatting doesn't eat your summary allowance.
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      const today = new Date().toISOString().split("T")[0];
+      const wKey = "waiter:" + ip + ":" + today;
+      const wCount = parseInt((await env.BB_KV.get(wKey)) || "0");
+      const WAITER_LIMIT = 20;
+      if (!unlimited && wCount >= WAITER_LIMIT) {
+        return json({
+          error: "daily_limit",
+          message: "Tony has chatted a lot today — come back tomorrow! 🐾",
+        }, 429, origin);
+      }
+
+      const language = body.lang === "sv" ? "Swedish" : "English";
+      const persona =
+        "You are Tony, a warm, friendly waiter at " + placeName +
+        (city ? " in " + city : "") + ". " +
+        "Answer guests briefly (1-3 sentences), like a real waiter. " +
+        "Always reply in " + language + ". " +
+        (ctx
+          ? "Here is what we ACTUALLY know about the place — base your answers ONLY on this, " +
+            "and never invent dishes, prices, or facts:\n" + ctx + "\n"
+          : "You don't have the menu or reviews yet, so don't invent specifics — if asked a " +
+            "detail you don't know, say so honestly and suggest checking the menu. ") +
+        "If you don't know a detail, say so honestly.";
+
+      const waiterBody = {
+        system_instruction: { parts: [{ text: persona }] },
+        contents: [{ parts: [{ text: question }] }],
+      };
+
+      const waiterUrl =
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
+        env.GEMINI_KEY;
+
+      const waiterRes = await fetch(waiterUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(waiterBody),
+      });
+
+      if (!waiterRes.ok) {
+        return json({ error: "gemini_error", status: waiterRes.status }, 502, origin);
+      }
+
+      const waiterData = await waiterRes.json();
+      let reply = "";
+      try { reply = waiterData.candidates[0].content.parts[0].text; } catch (e) { reply = ""; }
+      if (!reply) return json({ error: "empty" }, 502, origin);
+
+      if (!unlimited) {
+        await env.BB_KV.put(wKey, String(wCount + 1), { expirationTtl: 90000 });
+      }
+      return json({ reply: reply }, 200, origin);
     }
 
     // ── /summarize ──────────────────────────────────────────────────────────
