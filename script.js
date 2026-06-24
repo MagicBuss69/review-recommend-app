@@ -393,17 +393,21 @@ recommendBtn.addEventListener("click", async function () {
   const emoji = pick.emoji || cuisineEmoji(pick.food);
   const foodLine = pick.food ? '<div class="pick-food">' + escapeHtml(pick.food) + "</div>" : "";
 
-  // Remember the pick so the results page ("See details") shows this place.
+  // Remember the pick so the results page shows this place.
   localStorage.setItem("bitebuddy-search", pick.name);
   addToHistory(pick.name);
+  renderHistory();   // refresh the Recent list to show the new pick
 
+  // Show Forky's pick for a heartbeat, then go STRAIGHT to that restaurant — no extra
+  // "See details" tap needed. We keep a card (and a backup link) in case the jump is slow.
   recommendCard.innerHTML =
     '<div class="pick-emoji">' + emoji + "</div>" +
     '<div class="pick-title">' + (sv ? "Forky väljer: " : "Forky picks: ") + "<strong>" + escapeHtml(pick.name) + "</strong></div>" +
     foodLine +
-    '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Se detaljer 🔍" : "See details 🔍") + "</a>";
+    '<div class="pick-going"><span class="spinner"></span> ' + (sv ? "Tar dig dit…" : "Taking you there…") + "</div>" +
+    '<a href="results.html" class="btn-primary big-btn">' + (sv ? "Öppna nu 🔍" : "Open now 🔍") + "</a>";
 
-  renderHistory();   // refresh the Recent list to show the new pick
+  window.location.href = "results.html";   // jump right to the restaurant
 });
 
 // Arrived from the results page's "🎲 Recommend me another place" button (it links to
