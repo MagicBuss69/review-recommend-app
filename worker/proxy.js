@@ -280,15 +280,28 @@ export default {
         contents: [{ parts: [{ text: question }] }],
       };
 
-      const waiterUrl =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
-        env.GEMINI_KEY;
-
-      const waiterRes = await fetch(waiterUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(waiterBody),
-      });
+      // Gemini sometimes replies 503 ("overloaded") or 429 ("too busy") for a moment.
+      // Be stubborn for Tony: try the main model a couple of times with a short pause,
+      // and if it's STILL overloaded, fall back to a second model that usually has
+      // spare capacity. Only a real (non-busy) error or a success stops the loop.
+      const WAITER_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+      let waiterRes;
+      tryModels:
+      for (const model of WAITER_MODELS) {
+        const mUrl = "https://generativelanguage.googleapis.com/v1beta/models/" +
+          model + ":generateContent?key=" + env.GEMINI_KEY;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          waiterRes = await fetch(mUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(waiterBody),
+          });
+          if (waiterRes.ok) break tryModels;                              // got an answer 🎉
+          if (waiterRes.status !== 503 && waiterRes.status !== 429) break tryModels; // real error
+          if (attempt < 1) await new Promise((r) => setTimeout(r, 1000)); // busy → wait, retry
+        }
+        // still busy after retries → fall through to the next backup model
+      }
 
       if (!waiterRes.ok) {
         return json({ error: "gemini_error", status: waiterRes.status }, 502, origin);
