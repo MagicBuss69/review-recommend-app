@@ -142,6 +142,42 @@ export default {
       }, 200, origin);
     }
 
+    // ── /reverse — turn GPS coords into the CITY/town name you're in ──────────
+    // The browser can't call Nominatim (it gets blocked), so we do it here. "Near me"
+    // uses this to search your whole town — which always has restaurants — instead of a
+    // tiny circle around your exact spot, which is often empty in a quiet/home area.
+    if (path.endsWith("/reverse")) {
+      const lat = body.lat, lon = body.lon;
+      if (!lat || !lon) return json({ city: null }, 200, origin);
+
+      // remember the answer (rounded to ~1km) so we don't re-ask for the same spot
+      const rkey = "reverse:v1:" + Number(lat).toFixed(2) + "," + Number(lon).toFixed(2);
+      try { const hit = await env.BB_KV.get(rkey); if (hit) return json({ city: hit }, 200, origin); } catch (e) {}
+
+      // zoom=12 ≈ town level: gives "Landskrona" for most spots, the municipality otherwise
+      const u = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=12&lat=" +
+        encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lon);
+      let city = null;
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 8000);
+        const r = await fetch(u, {
+          headers: { "User-Agent": "BiteBuddy/1.0 (restaurant recommender)", "Accept": "application/json" },
+          signal: ctrl.signal,
+        }).finally(() => clearTimeout(t));
+        if (r.ok) {
+          const a = ((await r.json()) || {}).address || {};
+          // prefer a real town/city name; only fall back to the municipality (strip " kommun")
+          city = a.city || a.town || a.village || a.suburb || null;
+          if (!city && a.municipality) city = a.municipality.replace(/s?\s*kommun$/i, "").trim();
+          if (!city) city = a.county || null;
+        }
+      } catch (e) { /* fall through → null (the browser then falls back to coords) */ }
+
+      if (city) { try { await env.BB_KV.put(rkey, city, { expirationTtl: 604800 }); } catch (e) {} }
+      return json({ city: city }, 200, origin);
+    }
+
     // ── /nearby — find food places near a city or coords (server-side, reliable) ──
     // The free map services (Nominatim/Overpass) often BLOCK direct browser calls
     // (403/CORS). Doing it here, server-to-server with a proper app name, just works.
@@ -182,51 +218,64 @@ export default {
       }
 
       // 2) ask ALL Overpass servers AT ONCE and use whichever answers first (fast + reliable)
-      const oquery = "[out:json][timeout:20];" +
-        '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:3000,' + lat + "," + lon + "););out 80;";
       const OVERPASS = [
         "https://overpass-api.de/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter",
         "https://overpass.openstreetmap.fr/api/interpreter",
       ];
-      function askOverpass(endpoint) {
-        // hard 10s timeout per server — without this, a server that accepts the
-        // connection but never replies would make Promise.any wait forever.
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 10000);
-        return fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json",
-            "User-Agent": "BiteBuddy/1.0 (restaurant recommender)",
-          },
-          body: "data=" + encodeURIComponent(oquery),
-          signal: ctrl.signal,
-        })
-          .then((r) => { if (!r.ok) throw new Error(endpoint + " " + r.status); return r.json(); })
-          .finally(() => clearTimeout(timer));
-      }
-      let odata = null;
-      try { odata = await Promise.any(OVERPASS.map(askOverpass)); }
-      catch (e) { /* every server failed */ }
-      if (!odata) return json({ places: [], lat: lat, lon: lon }, 200, origin);
-
-      // 3) drop non-eateries (libraries, gyms…) and duplicates, then return a clean list
       const notFood = /\b(kulturhus|arena|bibliotek|museum|skola|förskola|gymnasium|kyrka|mosk|gym|sjukhus|vårdcentral|apotek|station|simhall|ishall|idrottsplats|fritidsgård|teater|biograf|rådhus|kommun)\b/i;
-      const seen = {};
-      const places = (odata.elements || [])
-        .map((e) => {
-          const t = e.tags || {};
-          return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null, lat: e.lat, lon: e.lon };
-        })
-        .filter((p) => {
-          if (!p.name || notFood.test(p.name)) return false;
-          const k = p.name.toLowerCase();
-          if (seen[k]) return false;
-          seen[k] = true;
-          return true;
-        });
+
+      // ask Overpass for food places within `radius` metres of lat/lon, cleaned up.
+      async function findWithin(radius) {
+        const oquery = "[out:json][timeout:20];" +
+          '(node["amenity"~"^(restaurant|cafe|fast_food)$"]["name"](around:' + radius + "," + lat + "," + lon + "););out 80;";
+        function askOverpass(endpoint) {
+          // hard 10s timeout per server — without this, a server that accepts the
+          // connection but never replies would make Promise.any wait forever.
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 10000);
+          return fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "Accept": "application/json",
+              "User-Agent": "BiteBuddy/1.0 (restaurant recommender)",
+            },
+            body: "data=" + encodeURIComponent(oquery),
+            signal: ctrl.signal,
+          })
+            .then((r) => { if (!r.ok) throw new Error(endpoint + " " + r.status); return r.json(); })
+            .finally(() => clearTimeout(timer));
+        }
+        let odata = null;
+        try { odata = await Promise.any(OVERPASS.map(askOverpass)); }
+        catch (e) { /* every server failed */ }
+        if (!odata) return null;   // null = the map service failed (different from "found nothing")
+
+        // drop non-eateries (libraries, gyms…) and duplicates, then return a clean list
+        const seen = {};
+        return (odata.elements || [])
+          .map((e) => {
+            const t = e.tags || {};
+            return { name: t.name, food: t.cuisine ? t.cuisine.replace(/[_;]/g, " ") : null, lat: e.lat, lon: e.lon };
+          })
+          .filter((p) => {
+            if (!p.name || notFood.test(p.name)) return false;
+            const k = p.name.toLowerCase();
+            if (seen[k]) return false;
+            seen[k] = true;
+            return true;
+          });
+      }
+
+      // Try 3 km first (fast, local). If that finds nothing — e.g. the user is in a
+      // quiet residential spot — widen to 12 km so "near me" still shows real places.
+      let places = await findWithin(3000);
+      if (places === null) return json({ places: [], lat: lat, lon: lon }, 200, origin);
+      if (!places.length) {
+        const wider = await findWithin(12000);
+        if (wider && wider.length) places = wider;
+      }
 
       const result = { places: places, lat: lat, lon: lon };
       // 4) save it for a day so the next person (and you) gets it instantly

@@ -154,18 +154,48 @@
         statusEl.textContent = (sv ? "📍 Visar " : "📍 Showing ") + withCoords.length + (sv ? " ställen" : " places");
       }
 
-      // 📍 Use my real location, then show places. We RE-ASK every time so the coords are
-      // fresh (the old bug: clicking "Show places" reused missing/stale coords → no places).
+      // 📍 Find which CITY you're in, then search that whole city. Town centers always
+      // have restaurants, so this is far more reliable than a tiny circle around your
+      // exact spot (which is empty if you're at home / in a quiet area).
       function goNearMe() {
         if (!navigator.geolocation) { alert(sv ? "Kan inte dela plats — skriv en stad." : "Can't share location — type a city."); return; }
         statusEl.textContent = sv ? "📍 Hämtar din plats…" : "📍 Getting your location…";
-        navigator.geolocation.getCurrentPosition(function (pos) {
-          localStorage.setItem("bitebuddy-geo", JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude }));
-          localStorage.setItem("bitebuddy-location", "near");
-          nearMode = true;
-          input.value = NEAR_LABEL;
-          showClear();
-          showPlaces("near");
+        navigator.geolocation.getCurrentPosition(async function (pos) {
+          const lat = pos.coords.latitude, lon = pos.coords.longitude;
+          localStorage.setItem("bitebuddy-geo", JSON.stringify({ lat: lat, lon: lon }));
+          statusEl.textContent = sv ? "🏙️ Hittar din stad…" : "🏙️ Finding your city…";
+
+          // ask the server which city these coords are in
+          let city = null;
+          const proxyUrl = window.BITEBUDDY_CONFIG && window.BITEBUDDY_CONFIG.proxyUrl;
+          if (proxyUrl) {
+            try {
+              const ctrl = new AbortController();
+              const t = setTimeout(function () { ctrl.abort(); }, 9000);
+              const res = await fetch(proxyUrl + "/reverse", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lat: lat, lon: lon }), signal: ctrl.signal,
+              });
+              clearTimeout(t);
+              if (res.ok) city = (await res.json()).city || null;
+            } catch (e) { /* fall through to coords */ }
+          }
+
+          if (city) {
+            // found your city → put it in the box and search it
+            nearMode = false;
+            input.value = city;
+            localStorage.setItem("bitebuddy-location", city);
+            showClear();
+            showPlaces(city);
+          } else {
+            // couldn't name your city → fall back to searching around your coords
+            nearMode = true;
+            input.value = NEAR_LABEL;
+            localStorage.setItem("bitebuddy-location", "near");
+            showClear();
+            showPlaces("near");
+          }
         }, function () {
           statusEl.textContent = sv ? "😅 Kunde inte hämta din plats — skriv en stad." : "😅 Couldn't get your location — type a city.";
         }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
