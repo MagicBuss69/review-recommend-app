@@ -52,8 +52,12 @@
 
     <!-- type a city / use 📍, then show pins -->
     <div class="location-bar">
-      <input type="text" id="explore-loc" class="location-select" list="city-list"
-             data-i18n-placeholder="loc.placeholder" placeholder="Type a city, or tap 📍">
+      <!-- the box + a little ✕ that clears it so you can type a city directly -->
+      <span class="loc-input-wrap">
+        <input type="text" id="explore-loc" class="location-select" list="city-list"
+               data-i18n-placeholder="loc.placeholder" placeholder="Type a city, or tap 📍">
+        <button id="explore-clear" class="loc-clear" type="button" title="Clear" aria-label="Clear">✕</button>
+      </span>
       <datalist id="city-list">
         <option value="Landskrona"></option>
         <option value="Helsingborg"></option>
@@ -87,10 +91,19 @@
       const statusEl = document.getElementById("explore-status");
       const input = document.getElementById("explore-loc");
 
+      const clearBtn = document.getElementById("explore-clear");
+      const NEAR_LABEL = sv ? "📍 Nära mig" : "📍 Near me";
+
+      // are we showing "near me" right now? A real flag — don't guess from the text.
+      let nearMode = false;
+      // show the ✕ only when there's something to clear
+      function showClear() { clearBtn.style.display = input.value.trim() ? "block" : "none"; }
+
       // start the box from the saved location
       const saved = localStorage.getItem("bitebuddy-location");
-      if (saved === "near") { if (localStorage.getItem("bitebuddy-geo")) input.value = sv ? "📍 Nära mig" : "📍 Near me"; }
-      else if (saved) input.value = saved;
+      if (saved === "near" && localStorage.getItem("bitebuddy-geo")) { input.value = NEAR_LABEL; nearMode = true; }
+      else if (saved && saved !== "near") input.value = saved;
+      showClear();
 
       // if the map library didn't load (offline / CDN blocked), fail gracefully
       if (!window.L) {
@@ -116,9 +129,12 @@
         const withCoords = (places || []).filter(function (p) { return p.lat && p.lon; });
 
         if (!withCoords.length) {
-          statusEl.textContent = sv
-            ? "😅 Hittade inga ställen där just nu — prova en annan stad."
-            : "😅 Couldn't find places there right now — try another city.";
+          // a kinder, more useful message when "near me" finds nothing
+          statusEl.textContent = nearMode
+            ? (sv ? "😅 Hittade inga matställen nära dig — prova att skriva en stad istället."
+                  : "😅 No food places found near you — try typing a city instead.")
+            : (sv ? "😅 Hittade inga ställen där just nu — prova en annan stad."
+                  : "😅 Couldn't find places there right now — try another city.");
           return;
         }
 
@@ -138,27 +154,57 @@
         statusEl.textContent = (sv ? "📍 Visar " : "📍 Showing ") + withCoords.length + (sv ? " ställen" : " places");
       }
 
-      // buttons
-      document.getElementById("explore-go").addEventListener("click", function () {
-        showPlaces(input.value.trim());
-      });
-      input.addEventListener("keydown", function (e) { if (e.key === "Enter") showPlaces(input.value.trim()); });
-
-      document.getElementById("explore-near").addEventListener("click", function () {
+      // 📍 Use my real location, then show places. We RE-ASK every time so the coords are
+      // fresh (the old bug: clicking "Show places" reused missing/stale coords → no places).
+      function goNearMe() {
         if (!navigator.geolocation) { alert(sv ? "Kan inte dela plats — skriv en stad." : "Can't share location — type a city."); return; }
         statusEl.textContent = sv ? "📍 Hämtar din plats…" : "📍 Getting your location…";
         navigator.geolocation.getCurrentPosition(function (pos) {
           localStorage.setItem("bitebuddy-geo", JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude }));
           localStorage.setItem("bitebuddy-location", "near");
-          input.value = sv ? "📍 Nära mig" : "📍 Near me";
+          nearMode = true;
+          input.value = NEAR_LABEL;
+          showClear();
           showPlaces("near");
         }, function () {
-          statusEl.textContent = sv ? "😅 Kunde inte hämta din plats." : "😅 Couldn't get your location.";
-        }, { timeout: 8000 });
+          statusEl.textContent = sv ? "😅 Kunde inte hämta din plats — skriv en stad." : "😅 Couldn't get your location — type a city.";
+        }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+      }
+
+      // "Show places" — figure out if it's near-me or a typed city
+      function go() {
+        const typed = input.value.trim();
+        if (nearMode || typed === NEAR_LABEL) { goNearMe(); return; }   // re-fetch fresh coords
+        if (!typed) {
+          if (localStorage.getItem("bitebuddy-geo")) { goNearMe(); return; }
+          showPlaces("Landskrona"); return;
+        }
+        nearMode = false;
+        localStorage.setItem("bitebuddy-location", typed);
+        showPlaces(typed);
+      }
+
+      // typing means you've left "near me" mode
+      input.addEventListener("input", function () {
+        if (input.value.trim() !== NEAR_LABEL) nearMode = false;
+        showClear();
+      });
+      // the ✕ wipes the box so you can type a city directly
+      clearBtn.addEventListener("click", function () {
+        input.value = "";
+        nearMode = false;
+        localStorage.removeItem("bitebuddy-location");
+        showClear();
+        input.focus();
       });
 
+      document.getElementById("explore-go").addEventListener("click", go);
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+      document.getElementById("explore-near").addEventListener("click", goNearMe);
+
       // show something on first load
-      showPlaces(input.value.trim() || saved || "Landskrona");
+      if (nearMode) showPlaces("near");
+      else showPlaces(input.value.trim() || "Landskrona");
     })();
   </script>
 </body>
